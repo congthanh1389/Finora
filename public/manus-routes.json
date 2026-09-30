@@ -1,0 +1,7 @@
+{
+  "routes": [
+    { "path": "/", "title": "Finora Home" },
+    { "path": "/oauth/callback", "title": "OAuth Callback" },
+    { "path": "/dev/theme-lab", "title": "Theme Lab" }
+  ]
+}
