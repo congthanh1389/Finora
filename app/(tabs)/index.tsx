@@ -1,161 +1,223 @@
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import Svg, { Circle, Defs, LinearGradient, Stop } from "react-native-svg";
 
-import { FinoraIcon } from "@/components/ui/finora-icons";
+import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
 import { ScreenContainer } from "@/components/screen-container";
-import { useColors } from "@/hooks/use-colors";
 
 const quickActions = [
-  { icon: "01_finance_wallet", label: "Ví của tôi", color: "bg-blue-50" },
-  { icon: "02_management_budget", label: "Ngân sách", color: "bg-orange-50" },
-  { icon: "04_reports_report", label: "Báo cáo", color: "bg-purple-50" },
+  { icon: "01_finance_wallet", label: "Ví của tôi", box: "bg-[#EFF6FF]" },
+  { icon: "02_management_budget", label: "Ngân sách", box: "bg-[#FFF7ED]" },
+  { icon: "04_reports_report", label: "Báo cáo", box: "bg-[#F5F3FF]" },
 ] as const;
 
 const recentTransactions = [
-  { icon: "08_actions_add", title: "Ăn uống", subtitle: "Cơm trưa · Ăn uống", time: "Hôm nay 12:30", amount: "-120.000 ₫", type: "expense" },
-  { icon: "01_finance_wallet", title: "WinMart", subtitle: "Mua sắm", time: "Hôm nay 10:15", amount: "-350.000 ₫", type: "expense" },
-  { icon: "01_finance_income", title: "Lương", subtitle: "Thu nhập", time: "30/09 08:00", amount: "+25.000.000 ₫", type: "income" },
+  { icon: "cat_food", title: "Ăn uống", subtitle: "Cơm trưa · Ăn uống", time: "Hôm nay 12:30", amount: "-120.000 ₫", type: "expense" },
+  { icon: "cat_shopping", title: "WinMart", subtitle: "Mua sắm", time: "Hôm nay 10:15", amount: "-350.000 ₫", type: "expense" },
+  { icon: "01_finance_wallet", title: "Lương", subtitle: "Thu nhập", time: "30/09 08:00", amount: "+25.000.000 ₫", type: "income" },
 ] as const;
 
-export default function HomeScreen() {
-  const colors = useColors();
-
+function SavingRing() {
   return (
-    <ScreenContainer className="bg-background">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
-        <View className="gap-5 px-5 pt-4">
+    <View className="h-[92px] w-[92px] items-center justify-center">
+      <Svg width={92} height={92} viewBox="0 0 92 92">
+        <Defs>
+          <LinearGradient id="savingRing" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor="#10B981" />
+            <Stop offset="1" stopColor="#3B82F6" />
+          </LinearGradient>
+        </Defs>
+        <Circle cx="46" cy="46" r="36" stroke="#E2E8F0" strokeWidth="10" fill="none" />
+        <Circle
+          cx="46"
+          cy="46"
+          r="36"
+          stroke="url(#savingRing)"
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray="226"
+          strokeDashoffset="54"
+          fill="none"
+          rotation="-90"
+          origin="46, 46"
+        />
+      </Svg>
+      <View className="absolute items-center">
+        <Text className="text-lg font-bold text-[#0F172A]">76%</Text>
+        <Text className="text-[9px] text-[#64748B]">Tiết kiệm</Text>
+      </View>
+    </View>
+  );
+}
+
+export default function HomeScreen() {
+  return (
+    <ScreenContainer className="bg-[#F8FAFC]">
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+        <View className="gap-4 px-5 pt-4">
           <View className="flex-row items-center">
-            <View className="h-11 w-11 items-center justify-center rounded-2xl bg-primary">
-              <FinoraIcon name="00_brand_finora_mark" size={28} color={colors.background} />
+            <FinoraMockupIcon name="00_brand_finora_mark" size={42} />
+            <View className="ml-2 flex-1">
+              <Text className="text-[22px] font-bold text-[#0F2A5F]">Finora</Text>
+              <Text className="mt-1 text-[21px] font-bold text-[#0F2A5F]">Chào buổi sáng 👋</Text>
+              <Text className="mt-0.5 text-sm text-[#64748B]">Hôm nay bạn muốn làm gì?</Text>
             </View>
-            <View className="ml-3 flex-1">
-              <Text className="text-xs font-medium text-muted">Finora</Text>
-              <Text className="mt-0.5 text-2xl font-bold text-foreground">Chào buổi sáng 👋</Text>
-              <Text className="mt-1 text-sm text-muted">Hôm nay bạn muốn làm gì?</Text>
+            <View className="mr-2 h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm">
+              <FinoraMockupIcon name="05_calendar_notifications_notification" size={25} />
             </View>
-            <TouchableOpacity className="h-11 w-11 items-center justify-center rounded-full bg-surface" activeOpacity={0.7}>
-              <FinoraIcon name="05_calendar_notifications_notification" size={23} color={colors.icon} />
-            </TouchableOpacity>
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-[#EFF6FF]">
+              <Text className="text-lg">●</Text>
+            </View>
           </View>
 
-          <View className="overflow-hidden rounded-[28px] bg-primary">
+          <View className="overflow-hidden rounded-[28px] bg-[#0EA5A8] shadow-sm">
+            <Svg
+              pointerEvents="none"
+              width="100%"
+              height="190"
+              viewBox="0 0 400 190"
+              preserveAspectRatio="none"
+              style={{ position: "absolute", left: 0, right: 0, top: 0 }}
+            >
+              <Defs>
+                <LinearGradient id="assetGradient" x1="0" y1="0" x2="1" y2="0">
+                  <Stop offset="0" stopColor="#1769D2" />
+                  <Stop offset="0.55" stopColor="#17B6C0" />
+                  <Stop offset="1" stopColor="#8BE28B" />
+                </LinearGradient>
+              </Defs>
+              <Circle cx="325" cy="78" r="48" fill="#8BE2D0" opacity="0.55" />
+              <Circle cx="350" cy="112" r="38" fill="#D4F58A" opacity="0.8" />
+              <Svg.Path d="M0 142 C70 110 120 160 188 130 C260 96 310 118 400 86 V190 H0 Z" fill="#167CC6" opacity="0.9" />
+              <Svg.Path d="M0 160 C90 132 130 180 210 150 C292 118 334 136 400 112 V190 H0 Z" fill="url(#assetGradient)" opacity="0.9" />
+            </Svg>
+
             <View className="p-6">
               <View className="flex-row items-center justify-between">
-                <Text className="text-sm font-medium text-background/80">TỔNG TÀI SẢN</Text>
-                <FinoraIcon name="01_finance_wallet" size={22} color={colors.background} />
-              </View>
-              <View className="mt-3 flex-row items-center justify-between">
-                <Text className="text-[32px] font-bold tracking-tight text-background">24.580.000 ₫</Text>
-                <FinoraIcon name="06_settings_help" size={22} color={colors.background} />
-              </View>
-              <View className="mt-2 flex-row items-center">
-                <View className="rounded-full bg-background/20 px-2.5 py-1">
-                  <Text className="text-xs font-bold text-background">↑ 8,4%</Text>
+                <View className="flex-row items-center">
+                  <FinoraMockupIcon name="01_finance_wallet" size={24} />
+                  <Text className="ml-2 text-sm font-semibold text-white">TỔNG TÀI SẢN</Text>
                 </View>
-                <Text className="ml-2 text-xs text-background/75">so với tháng trước</Text>
+                <FinoraMockupIcon name="status_visibility" size={24} />
+              </View>
+              <Text className="mt-3 text-[36px] font-bold tracking-tight text-white">24.580.000 ₫</Text>
+              <View className="mt-2 flex-row items-center">
+                <View className="h-7 w-7 items-center justify-center rounded-full bg-[#10B981]">
+                  <Text className="text-base font-bold text-white">↑</Text>
+                </View>
+                <Text className="ml-2 text-base font-bold text-white">8,4%</Text>
+                <Text className="ml-2 text-xs text-white/90">so với tháng trước</Text>
               </View>
             </View>
-            <View className="flex-row bg-background px-5 py-4">
-              <View className="flex-1">
-                <Text className="text-xs text-muted">Tiền vào</Text>
-                <Text className="mt-1 text-base font-bold text-green-600">+32.500.000 ₫</Text>
+
+            <View className="mx-0 flex-row rounded-t-[22px] bg-white px-5 py-4">
+              <View className="flex-1 flex-row items-center">
+                <View className="h-10 w-10 items-center justify-center rounded-full bg-[#DCFCE7]">
+                  <Text className="text-xl font-bold text-[#16A34A]">↓</Text>
+                </View>
+                <View className="ml-3">
+                  <Text className="text-xs text-[#64748B]">Tiền vào</Text>
+                  <Text className="mt-1 text-base font-bold text-[#047857]">+32.500.000 ₫</Text>
+                </View>
               </View>
-              <View className="w-px bg-border" />
-              <View className="flex-1 pl-5">
-                <Text className="text-xs text-muted">Tiền ra</Text>
-                <Text className="mt-1 text-base font-bold text-red-500">-7.920.000 ₫</Text>
+              <View className="my-1 w-px bg-[#E2E8F0]" />
+              <View className="flex-1 flex-row items-center pl-4">
+                <View className="h-10 w-10 items-center justify-center rounded-full bg-[#FFE4E6]">
+                  <Text className="text-xl font-bold text-[#F43F5E]">↑</Text>
+                </View>
+                <View className="ml-3">
+                  <Text className="text-xs text-[#64748B]">Tiền ra</Text>
+                  <Text className="mt-1 text-base font-bold text-[#E11D48]">-7.920.000 ₫</Text>
+                </View>
               </View>
             </View>
           </View>
 
-          <TouchableOpacity activeOpacity={0.85} className="flex-row items-center justify-center rounded-2xl bg-primary px-5 py-4">
-            <FinoraIcon name="08_actions_add" size={23} color={colors.background} />
-            <Text className="ml-2 text-base font-bold text-background">Thêm giao dịch</Text>
-            <Text className="ml-auto text-2xl font-light text-background">›</Text>
+          <TouchableOpacity activeOpacity={0.88} className="flex-row items-center justify-center rounded-full bg-[#22B8A8] px-5 py-4">
+            <Text className="mr-3 text-3xl font-light text-white">+</Text>
+            <Text className="text-base font-bold text-white">Thêm giao dịch</Text>
+            <Text className="ml-auto text-2xl text-white">›</Text>
           </TouchableOpacity>
 
           <View className="flex-row gap-3">
             {quickActions.map((action) => (
-              <TouchableOpacity key={action.label} activeOpacity={0.8} className={`flex-1 items-center rounded-2xl border border-border p-4 ${action.color}`}>
-                <View className="h-12 w-12 items-center justify-center rounded-full bg-background">
-                  <FinoraIcon name={action.icon} size={25} color={colors.tint} />
-                </View>
-                <Text className="mt-3 text-center text-sm font-semibold text-foreground">{action.label}</Text>
-                <Text className="mt-1 text-base text-muted">›</Text>
+              <TouchableOpacity key={action.label} activeOpacity={0.85} className={`flex-1 items-center rounded-2xl border border-white p-3.5 shadow-sm ${action.box}`}>
+                <FinoraMockupIcon name={action.icon} size={46} />
+                <Text className="mt-2 text-center text-sm font-semibold text-[#0F2A5F]">{action.label}</Text>
+                <Text className="mt-0.5 text-lg text-[#64748B]">›</Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <View className="rounded-3xl border border-border bg-surface p-5">
+          <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
             <View className="flex-row items-center">
-              <FinoraIcon name="05_calendar_notifications_calendar" size={21} color={colors.tint} />
-              <Text className="ml-2 flex-1 text-lg font-bold text-foreground">THÁNG 10</Text>
-              <Text className="text-xs font-medium text-muted">Xem chi tiết ›</Text>
+              <FinoraMockupIcon name="util_calendar" size={23} />
+              <Text className="ml-2 flex-1 text-lg font-bold text-[#0F2A5F]">THÁNG 10</Text>
+              <Text className="text-xs font-medium text-[#64748B]">Xem chi tiết ›</Text>
             </View>
+
             <View className="mt-5 gap-4">
-              <View>
-                <View className="flex-row items-center">
-                  <Text className="flex-1 text-sm text-foreground">Thu nhập</Text>
-                  <Text className="text-sm font-bold text-green-600">32.500.000 ₫</Text>
+              <View className="flex-row items-center">
+                <View className="h-9 w-9 items-center justify-center rounded-full bg-[#DCFCE7]"><Text className="text-lg font-bold text-[#16A34A]">↓</Text></View>
+                <View className="ml-3 flex-1">
+                  <View className="flex-row"><Text className="flex-1 text-sm text-[#334155]">Thu nhập</Text><Text className="text-sm font-bold text-[#047857]">32.500.000 ₫</Text></View>
+                  <View className="mt-2 h-2 overflow-hidden rounded-full bg-[#D1FAE5]"><View className="h-full w-[82%] rounded-full bg-[#22C55E]" /></View>
                 </View>
-                <View className="mt-2 h-2 overflow-hidden rounded-full bg-green-100"><View className="h-full w-[82%] rounded-full bg-green-500" /></View>
               </View>
-              <View>
-                <View className="flex-row items-center">
-                  <Text className="flex-1 text-sm text-foreground">Chi tiêu</Text>
-                  <Text className="text-sm font-bold text-red-500">7.920.000 ₫</Text>
+              <View className="flex-row items-center">
+                <View className="h-9 w-9 items-center justify-center rounded-full bg-[#FFE4E6]"><Text className="text-lg font-bold text-[#F43F5E]">↑</Text></View>
+                <View className="ml-3 flex-1">
+                  <View className="flex-row"><Text className="flex-1 text-sm text-[#334155]">Chi tiêu</Text><Text className="text-sm font-bold text-[#E11D48]">7.920.000 ₫</Text></View>
+                  <View className="mt-2 h-2 overflow-hidden rounded-full bg-[#FFE4E6]"><View className="h-full w-[25%] rounded-full bg-[#FB7185]" /></View>
                 </View>
-                <View className="mt-2 h-2 overflow-hidden rounded-full bg-red-100"><View className="h-full w-[25%] rounded-full bg-red-400" /></View>
               </View>
-              <View>
-                <View className="flex-row items-center">
-                  <Text className="flex-1 text-sm text-foreground">Tiết kiệm</Text>
-                  <Text className="text-sm font-bold text-indigo-500">24.580.000 ₫</Text>
+              <View className="flex-row items-center">
+                <View className="h-9 w-9 items-center justify-center rounded-full bg-[#EDE9FE]"><Text className="text-lg font-bold text-[#8B5CF6]">◆</Text></View>
+                <View className="ml-3 flex-1">
+                  <View className="flex-row"><Text className="flex-1 text-sm text-[#334155]">Tiết kiệm</Text><Text className="text-sm font-bold text-[#4338CA]">24.580.000 ₫</Text></View>
+                  <View className="mt-2 h-2 overflow-hidden rounded-full bg-[#E0E7FF]"><View className="h-full w-[76%] rounded-full bg-[#6366F1]" /></View>
                 </View>
-                <View className="mt-2 h-2 overflow-hidden rounded-full bg-indigo-100"><View className="h-full w-[76%] rounded-full bg-indigo-500" /></View>
               </View>
             </View>
-            <View className="mt-5 items-center">
-              <View className="h-24 w-24 items-center justify-center rounded-full border-[10px] border-primary/20">
-                <View className="absolute h-24 w-24 rounded-full border-[10px] border-primary" />
-                <Text className="text-xl font-bold text-foreground">76%</Text>
-                <Text className="text-[10px] text-muted">Tiết kiệm</Text>
-              </View>
+
+            <View className="mt-2 items-center">
+              <SavingRing />
             </View>
           </View>
 
-          <View className="rounded-3xl border border-border bg-surface p-5">
+          <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
             <View className="flex-row items-center">
-              <FinoraIcon name="07_navigation_transactions" size={22} color={colors.tint} />
-              <Text className="ml-2 flex-1 text-lg font-bold text-foreground">Giao dịch gần đây</Text>
-              <Text className="text-xs font-medium text-muted">Xem tất cả ›</Text>
+              <FinoraMockupIcon name="07_navigation_transactions" size={23} />
+              <Text className="ml-2 flex-1 text-lg font-bold text-[#0F2A5F]">Giao dịch gần đây</Text>
+              <Text className="text-xs font-medium text-[#64748B]">Xem tất cả ›</Text>
             </View>
             <View className="mt-3">
               {recentTransactions.map((transaction, index) => (
-                <View key={`${transaction.title}-${index}`} className={`flex-row items-center py-3 ${index !== recentTransactions.length - 1 ? "border-b border-border" : ""}`}>
-                  <View className="h-11 w-11 items-center justify-center rounded-full bg-primary/10">
-                    <FinoraIcon name={transaction.icon} size={21} color={colors.tint} />
-                  </View>
+                <View key={`${transaction.title}-${index}`} className={`flex-row items-center py-3 ${index !== recentTransactions.length - 1 ? "border-b border-[#EEF2F7]" : ""}`}>
+                  <FinoraMockupIcon name={transaction.icon} size={42} />
                   <View className="ml-3 flex-1">
-                    <Text className="text-sm font-semibold text-foreground">{transaction.title}</Text>
-                    <Text className="mt-0.5 text-xs text-muted">{transaction.subtitle}</Text>
+                    <Text className="text-sm font-semibold text-[#0F2A5F]">{transaction.title}</Text>
+                    <Text className="mt-0.5 text-xs text-[#94A3B8]">{transaction.subtitle}</Text>
                   </View>
                   <View className="items-end">
-                    <Text className={`text-sm font-bold ${transaction.type === "income" ? "text-green-600" : "text-red-500"}`}>{transaction.amount}</Text>
-                    <Text className="mt-0.5 text-[10px] text-muted">{transaction.time}</Text>
+                    <Text className={`text-sm font-bold ${transaction.type === "income" ? "text-[#059669]" : "text-[#E11D48]"}`}>{transaction.amount}</Text>
+                    <Text className="mt-0.5 text-[10px] text-[#94A3B8]">{transaction.time}</Text>
                   </View>
+                  <Text className="ml-2 text-lg text-[#94A3B8]">›</Text>
                 </View>
               ))}
             </View>
           </View>
 
-          <View className="overflow-hidden rounded-3xl bg-primary/10 p-5">
-            <View className="flex-row">
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/15"><Text className="text-lg">✨</Text></View>
-              <View className="ml-3 flex-1">
-                <Text className="text-sm font-bold text-primary">Finora Insight</Text>
-                <Text className="mt-2 text-sm leading-5 text-foreground">Bạn đã chi ít hơn 12% cho ăn uống so với tháng trước. Thật tuyệt vời!</Text>
-                <Text className="mt-3 text-xs font-bold text-primary">Xem phân tích →</Text>
+          <View className="overflow-hidden rounded-3xl bg-[#E5F8F4] px-5 py-4">
+            <View className="flex-row items-center">
+              <View className="h-10 w-10 items-center justify-center rounded-full bg-[#CCF3EA]">
+                <Text className="text-lg">💡</Text>
               </View>
+              <View className="ml-3 flex-1">
+                <Text className="text-sm font-bold text-[#059669]">Finora Insight</Text>
+                <Text className="mt-2 text-sm leading-5 text-[#0F2A5F]">Bạn đã chi ít hơn 12% cho ăn uống so với tháng trước. Thật tuyệt vời!</Text>
+              </View>
+              <Text className="ml-2 text-xs font-bold text-[#047857]">Xem phân tích ›</Text>
             </View>
           </View>
         </View>
