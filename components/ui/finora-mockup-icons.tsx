@@ -1,4 +1,5 @@
 import { SvgXml } from "react-native-svg";
+import type { StyleProp, ViewStyle } from "react-native";
 
 const ICON_XML = {
   "00_brand_finora_mark": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none"><defs><linearGradient id="gGreen" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#10B981"/><stop offset="1" stop-color="#14B8A6"/></linearGradient><linearGradient id="gBlue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#3B82F6"/><stop offset="1" stop-color="#2563EB"/></linearGradient></defs><path d="M116 252C116 169 184 96 269 96h104c0 75-61 136-136 136h-75v20c0 57 46 103 103 103h43c-25 37-67 61-119 61-91 0-165-74-165-165v-20h92z" fill="url(#gGreen)"/><path d="M174 300h77c63 0 114-51 114-114h-91c-55 0-100 45-100 100v14z" fill="url(#gBlue)"/></svg>`,
@@ -29,7 +30,7 @@ export function FinoraMockupIcon({
 }: {
   name: FinoraMockupIconName;
   size?: number;
-  style?: object;
+  style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
 }) {
   return <SvgXml xml={ICON_XML[name]} width={size} height={size} style={style} accessibilityLabel={accessibilityLabel} />;
