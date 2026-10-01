@@ -1,5 +1,5 @@
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import Svg, { Circle, Defs, LinearGradient, Stop } from "react-native-svg";
+import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
 import { ScreenContainer } from "@/components/screen-container";
@@ -87,8 +87,8 @@ export default function HomeScreen() {
               </Defs>
               <Circle cx="325" cy="78" r="48" fill="#8BE2D0" opacity="0.55" />
               <Circle cx="350" cy="112" r="38" fill="#D4F58A" opacity="0.8" />
-              <Svg.Path d="M0 142 C70 110 120 160 188 130 C260 96 310 118 400 86 V190 H0 Z" fill="#167CC6" opacity="0.9" />
-              <Svg.Path d="M0 160 C90 132 130 180 210 150 C292 118 334 136 400 112 V190 H0 Z" fill="url(#assetGradient)" opacity="0.9" />
+              <Path d="M0 142 C70 110 120 160 188 130 C260 96 310 118 400 86 V190 H0 Z" fill="#167CC6" opacity="0.9" />
+              <Path d="M0 160 C90 132 130 180 210 150 C292 118 334 136 400 112 V190 H0 Z" fill="url(#assetGradient)" opacity="0.9" />
             </Svg>
 
             <View className="p-6">
