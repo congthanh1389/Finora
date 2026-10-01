@@ -99,6 +99,9 @@ function SavingRing() {
 }
 
 export default function HomeScreen() {
+  const [greeting] = useState(getGreeting);
+  const [greetingMessage] = useState(() => getRandomMessage(greeting.messages));
+
   return (
     <ScreenContainer className="bg-[#F8FAFC]">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
@@ -107,8 +110,8 @@ export default function HomeScreen() {
             <FinoraMockupIcon name="00_brand_finora_mark" size={42} />
             <View className="ml-2 flex-1">
               <Text className="text-[22px] font-bold text-[#0F2A5F]">Finora</Text>
-              <Text className="mt-1 text-[21px] font-bold text-[#0F2A5F]">Chào buổi sáng 👋</Text>
-              <Text className="mt-0.5 text-sm text-[#64748B]">Hôm nay bạn muốn làm gì?</Text>
+              <Text className="mt-1 text-[21px] font-bold text-[#0F2A5F]">{greeting.title}</Text>
+              <Text className="mt-0.5 text-sm text-[#64748B]">{greetingMessage}</Text>
             </View>
             <View className="mr-2 h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm">
               <FinoraMockupIcon name="05_calendar_notifications_notification" size={25} />
