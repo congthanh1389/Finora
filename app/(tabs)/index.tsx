@@ -1,4 +1,4 @@
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+﻿import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { FinoraIcon } from "@/components/ui/finora-icons";
 import { ScreenContainer } from "@/components/screen-container";
