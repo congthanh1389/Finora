@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HapticTab } from "@/components/haptic-tab";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { FinoraIcon } from "@/components/ui/finora-icons";
 import { Platform } from "react-native";
 import { useColors } from "@/hooks/use-colors";
 
@@ -32,7 +32,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <FinoraIcon size={24} name="07_navigation_home" color={color} />,
         }}
       />
     </Tabs>
