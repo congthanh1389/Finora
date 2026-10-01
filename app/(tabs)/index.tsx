@@ -1,4 +1,5 @@
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
@@ -9,6 +10,54 @@ const quickActions = [
   { icon: "02_management_budget", label: "Ngân sách", box: "bg-[#FFF7ED]" },
   { icon: "04_reports_report", label: "Báo cáo", box: "bg-[#F5F3FF]" },
 ] as const;
+
+const greetingMessages = {
+  morning: [
+    "Một ngày mới, cùng bắt đầu thật chủ động nhé.",
+    "Hôm nay, bạn muốn chăm sóc tài chính của mình thế nào?",
+    "Bắt đầu ngày mới với một kế hoạch tài chính thật nhẹ nhàng nhé.",
+    "Cùng xem lại dòng tiền và bắt đầu ngày mới thật thoải mái.",
+    "Một ngày mới, một cơ hội mới để quản lý tiền thật tốt.",
+    "Sẵn sàng cho một ngày tài chính thật gọn gàng chưa?",
+    "Cùng Finora bắt đầu ngày mới thật chủ động nhé.",
+    "Hôm nay có điều gì bạn muốn ghi lại hoặc theo dõi không?"
+  ],
+  afternoon: [
+    "Cùng nhìn lại một chút xem hôm nay tiền của bạn đang đi đâu nhé.",
+    "Buổi chiều rồi, bạn muốn kiểm tra tài chính một chút không?",
+    "Mọi thứ vẫn ổn chứ? Cùng xem nhanh tình hình hôm nay nhé.",
+    "Một chút kiểm tra hôm nay có thể giúp bạn chủ động hơn ngày mai.",
+    "Cùng giữ nhịp tài chính thật nhẹ nhàng cho phần còn lại của ngày nhé.",
+    "Hôm nay bạn đã ghi lại các khoản chi chưa?",
+    "Cùng xem Finora có điều gì đáng chú ý trong hôm nay nhé.",
+    "Bạn đang làm rất tốt. Cùng tiếp tục theo dõi tài chính nhé."
+  ],
+  evening: [
+    "Đã đến lúc nhìn lại một ngày tài chính của bạn.",
+    "Một ngày sắp khép lại, cùng kiểm tra lại các khoản chi nhé.",
+    "Tối rồi, dành một chút thời gian cho tài chính của bạn nhé.",
+    "Hôm nay tiền của bạn đã đi những đâu? Cùng xem nào.",
+    "Khép lại ngày hôm nay bằng một chút nhìn lại thật nhẹ nhàng.",
+    "Cùng xem hôm nay bạn đã chi tiêu thế nào nhé.",
+    "Một phút nhìn lại hôm nay có thể giúp ngày mai chủ động hơn.",
+    "Ngày hôm nay thế nào? Finora ở đây để cùng bạn nhìn lại."
+  ]
+} as const;
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) {
+    return { title: "Chào buổi sáng 👋", messages: greetingMessages.morning };
+  }
+  if (hour >= 12 && hour < 18) {
+    return { title: "Chào buổi chiều 👋", messages: greetingMessages.afternoon };
+  }
+  return { title: "Chào buổi tối 👋", messages: greetingMessages.evening };
+}
+
+function getRandomMessage(messages: readonly string[]) {
+  return messages[Math.floor(Math.random() * messages.length)];
+}
 
 const recentTransactions = [
   { icon: "cat_food", title: "Ăn uống", subtitle: "Cơm trưa · Ăn uống", time: "Hôm nay 12:30", amount: "-120.000 ₫", type: "expense" },
