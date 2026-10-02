@@ -23,7 +23,7 @@ function formatMinorUnits(value: bigint): string {
   return `${negative ? "-" : ""}${whole}.${fraction}`;
 }
 
-function addMoney(...values: Array<string | number | null | undefined>): bigint {
+function addMoney(...values: (string | number | null | undefined)[]): bigint {
   return values.reduce((total, value) => total + toMinorUnits(value), 0n);
 }
 
