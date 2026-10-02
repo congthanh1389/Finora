@@ -53,6 +53,7 @@ export const transactions = mysqlTable("transactions", {
   transactionDate: timestamp("transactionDate").defaultNow().notNull(),
   note: text("note"),
   transferAccountId: int("transferAccountId"),
+  isVoided: int("isVoided").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
