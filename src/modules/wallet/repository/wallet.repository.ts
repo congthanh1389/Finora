@@ -1,11 +1,11 @@
 import { and, desc, eq } from "drizzle-orm";
 
-import { wallets } from "../../../drizzle/schema";
+import { wallets } from "../../../../drizzle/schema";
 import type {
   IWalletRepository,
   NewWallet,
-} from "../../../src/core/database/repository-contracts";
-import { getDb } from "../../../server/db";
+} from "../../../core/database/repository-contracts";
+import { getDb } from "../../../../server/db";
 
 export class WalletRepository implements IWalletRepository {
   async create(input: NewWallet) {
