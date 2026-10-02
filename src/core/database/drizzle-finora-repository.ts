@@ -86,7 +86,7 @@ export class DrizzleFinoraRepository implements IFinoraRepository {
 
   async listTransactions(userId: number, filter: TransactionFilter = {}): Promise<Transaction[]> {
     const db = await requireDb();
-    const conditions = [eq(transactions.userId, userId)];
+    const conditions = [eq(transactions.userId, userId), eq(transactions.isVoided, 0)];
     if (filter.from) conditions.push(gte(transactions.transactionDate, filter.from));
     if (filter.to) conditions.push(lte(transactions.transactionDate, filter.to));
     if (filter.accountId) conditions.push(eq(transactions.accountId, filter.accountId));
