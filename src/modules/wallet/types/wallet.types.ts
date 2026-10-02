@@ -1,4 +1,4 @@
-import type { Wallet } from "../../../drizzle/schema";
+import type { Wallet } from "../../../../drizzle/schema";
 
 export type WalletType = Wallet["type"];
 export type WalletCurrency = Wallet["currency"];
