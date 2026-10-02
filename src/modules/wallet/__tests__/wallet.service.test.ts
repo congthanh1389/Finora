@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import type { Account, Transaction } from "../../../../drizzle/schema";
 import type { IFinoraRepository } from "../../../core/database/finora-repository";
 import { WalletService } from "../service/wallet.service";
