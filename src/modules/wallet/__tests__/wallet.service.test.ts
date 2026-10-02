@@ -34,6 +34,7 @@ function transaction(
     transactionDate: new Date("2026-10-01T12:00:00Z"),
     note: null,
     transferAccountId: transferAccountId ?? null,
+    isVoided: 0,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
