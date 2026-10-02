@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { trpc } from "@/lib/trpc";
-import type { CreateWalletInput, WalletType } from "../types/wallet.types";
+import type { WalletType } from "../types/wallet.types";
 
 export function useWalletViewModel() {
   const [isCreateOpen, setCreateOpen] = useState(false);
@@ -34,8 +34,7 @@ export function useWalletViewModel() {
     const balance = openingBalance.trim() ? Number(openingBalance.replace(/[,\.\s]/g, "")) : 0;
     if (!name.trim() || !Number.isSafeInteger(balance)) return;
 
-    const input: CreateWalletInput = {
-      userId: 0,
+    const input = {
       name,
       type,
       openingBalance: balance,
