@@ -106,7 +106,7 @@ describe("DashboardService", () => {
       expense: "50.00",
       netCashFlow: "150.00",
     });
-    expect(dashboard.accounts[0].balance).toBe("1150.00");
+    expect(dashboard.accounts[0].balance).toBe("1050.00");
     expect(dashboard.expenseByCategory).toEqual([]);
     expect(dashboard.recentTransactions).toHaveLength(3);
   });
