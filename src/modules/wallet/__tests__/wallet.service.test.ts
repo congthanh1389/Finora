@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { IWalletRepository, NewWallet } from "@/src/core/database/repository-contracts";
+import type { IWalletRepository, NewWallet } from "../../../../core/database/repository-contracts";
 import { WalletService } from "../service/wallet.service";
 
 function createRepository(): IWalletRepository {
