@@ -4,7 +4,7 @@ import type { IWalletRepository, NewWallet } from "@/src/core/database/repositor
 import { WalletService } from "../service/wallet.service";
 
 function createRepository(): IWalletRepository {
-  const rows: Array<{
+  const rows: {
     id: number;
     userId: number;
     name: string;
@@ -15,7 +15,7 @@ function createRepository(): IWalletRepository {
     isArchived: number;
     createdAt: Date;
     updatedAt: Date;
-  }> = [];
+  }[] = [];
 
   return {
     async create(input: NewWallet) {
