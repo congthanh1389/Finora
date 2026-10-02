@@ -7,11 +7,14 @@ import type {
 
 function toMinorUnits(value: string | number): bigint {
   const normalized = String(value).trim();
-  const [wholePart, fractionPart = ""] = normalized.split(".");
+  const negative = normalized.startsWith("-");
+  const unsigned = negative ? normalized.slice(1) : normalized;
+  const [wholePart, fractionPart = ""] = unsigned.split(".");
   if (!/^\d+$/.test(wholePart) || !/^\d*$/.test(fractionPart)) {
     throw new Error(`Invalid monetary value: ${normalized}`);
   }
-  return BigInt(wholePart) * 100n + BigInt((fractionPart + "00").slice(0, 2));
+  const minor = BigInt(wholePart) * 100n + BigInt((fractionPart + "00").slice(0, 2));
+  return negative ? -minor : minor;
 }
 
 function formatMinorUnits(value: bigint): string {
