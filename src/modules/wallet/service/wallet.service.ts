@@ -1,3 +1,4 @@
+import type { Wallet } from "@/drizzle/schema";
 import type { IWalletRepository, NewWallet } from "@/src/core/database/repository-contracts";
 import type { CreateWalletInput, WalletSummary } from "../types/wallet.types";
 
@@ -51,9 +52,7 @@ export class WalletService {
     return wallets.map((wallet) => this.toSummary(wallet));
   }
 
-  private toSummary(wallet: Awaited<ReturnType<IWalletRepository["findById"]>> extends infer T
-    ? Exclude<T, undefined>
-    : never): WalletSummary {
+  private toSummary(wallet: Wallet): WalletSummary {
     return {
       id: wallet.id,
       name: wallet.name,
