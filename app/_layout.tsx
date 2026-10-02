@@ -36,7 +36,7 @@ function AuthGate() {
 
     const isPublicRoute = pathname === "/login" || pathname === "/oauth/callback";
     if (!user && !isPublicRoute) {
-      router.replace("/login");
+      router.replace("/login" as never);
     } else if (user && pathname === "/login") {
       router.replace("/(tabs)");
     }
