@@ -20,6 +20,10 @@ function createRepository(): IWalletRepository {
   return {
     async create(input: NewWallet) {
       const wallet = {
+        currency: input.currency ?? "VND",
+        openingBalance: input.openingBalance ?? 0,
+        allowNegative: input.allowNegative ?? 0,
+        isArchived: input.isArchived ?? 0,
         id: rows.length + 1,
         ...input,
         createdAt: new Date(),
