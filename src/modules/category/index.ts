@@ -1,2 +1,4 @@
 export * from "./service/category.service";
-export * from "./types/category.types";
+export type {
+  CategoryView,
+} from "./types/category.types";
