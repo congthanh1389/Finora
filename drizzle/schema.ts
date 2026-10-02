@@ -37,7 +37,9 @@ export const categories = mysqlTable("categories", {
   parentId: int("parentId"),
   icon: varchar("icon", { length: 80 }),
   isSystem: int("isSystem").default(0).notNull(),
+  isArchived: int("isArchived").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 /** Money movements recorded by a user. */
