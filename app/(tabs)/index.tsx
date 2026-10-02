@@ -59,6 +59,10 @@ export default function HomeScreen() {
     );
   }
 
+  if (!dashboard.data) {
+    return null;
+  }
+
   const data = dashboard.data;
   const currency = data.accounts[0]?.currency ?? "VND";
   const maxExpense = Math.max(
