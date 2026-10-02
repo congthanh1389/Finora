@@ -40,7 +40,8 @@ export class WalletService {
     const wallet = await this.repository.getAccount(userId, walletId);
     if (!wallet) throw new Error("Wallet not found");
 
-    const transactions = await this.repository.listTransactions(userId, { accountId: walletId });
+    // Read all valid transactions because a transfer affects both source and destination wallets.
+    const transactions = await this.repository.listTransactions(userId);
     const transactionEffectTotal = transactions.reduce(
       (total, transaction) => total + transactionEffect(walletId, transaction),
       0,
