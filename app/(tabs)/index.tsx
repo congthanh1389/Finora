@@ -1,6 +1,4 @@
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { useRouter } from "expo-router";
-
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
 import { ScreenContainer } from "@/components/screen-container";
 import { trpc } from "@/lib/trpc";
@@ -30,7 +28,6 @@ function getGreeting() {
 }
 
 export default function HomeScreen() {
-  const router = useRouter();
   const dashboard = trpc.dashboard.summary.useQuery(undefined, {
     staleTime: 30_000,
   });
@@ -96,7 +93,6 @@ export default function HomeScreen() {
 
           <TouchableOpacity
             activeOpacity={0.88}
-            onPress={() => router.push("/transaction")}
             className="flex-row items-center justify-center rounded-full bg-[#22B8A8] px-5 py-4"
           >
             <Text className="mr-3 text-3xl font-light text-white">+</Text>
@@ -182,9 +178,7 @@ export default function HomeScreen() {
           <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5">
             <View className="flex-row items-center">
               <Text className="flex-1 text-lg font-bold text-[#0F2A5F]">Giao dịch gần đây</Text>
-              <TouchableOpacity onPress={() => router.push("/transactions")}>
-                <Text className="text-xs font-semibold text-[#64748B]">Xem tất cả ›</Text>
-              </TouchableOpacity>
+              <Text className="text-xs font-semibold text-[#64748B]">Trong kỳ này</Text>
             </View>
 
             {data.recentTransactions.length === 0 ? (
