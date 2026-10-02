@@ -5,7 +5,7 @@ import type {
   InsertWallet,
   Transaction,
   Wallet,
-} from "@/drizzle/schema";
+} from "../../../drizzle/schema";
 
 export type NewWallet = Omit<InsertWallet, "id" | "createdAt" | "updatedAt">;
 export type NewCategory = Omit<InsertCategory, "id" | "createdAt" | "updatedAt">;
