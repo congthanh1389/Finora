@@ -1,124 +1,114 @@
-# FINORA — CORE SPECIFICATION v2.0
+# FINORA — CORE SPECIFICATION v2.1
 
-**Tài liệu cốt lõi về sản phẩm, nghiệp vụ, UX/UI, kiến trúc, dữ liệu và roadmap**
+**Tài liệu Source of Truth cho sản phẩm, nghiệp vụ, UX/UI, kiến trúc, dữ liệu, kiểm thử và roadmap của Finora.**
 
 - Sản phẩm: Finora
-- Định hướng: Quản lý tài chính cá nhân và gia đình
+- Định hướng: quản lý tài chính cá nhân và gia đình
 - Nền tảng: Android + iOS
 - Công nghệ: Expo / React Native / TypeScript
-- Kiến trúc: MVVM + Modular Architecture + Service Layer + Repository Pattern
-- Phiên bản: 2.0
-- Trạng thái: **Nguồn sự thật (Source of Truth) cho quá trình xây dựng Finora**
+- Kiến trúc: MVVM + Modular Architecture + Service / Use Case Layer + Repository Pattern
+- Phiên bản: 2.1
+- Trạng thái: **Core Source of Truth**
 - Ngôn ngữ mặc định: Tiếng Việt, sẵn sàng đa ngôn ngữ
 - Project: `D:\Projects\Finoras\Finora`
 
 ---
 
-## 1. Tuyên bố sản phẩm
+## 0. Mục đích và nguyên tắc của tài liệu
+
+Tài liệu này là chuẩn chung để quyết định **Finora phải làm gì, làm như thế nào và khi nào được coi là hoàn thành**.
+
+Khi code, UI, database hoặc tài liệu khác mâu thuẫn với tài liệu này, phải xử lý theo thứ tự:
+
+1. Xác định mâu thuẫn.
+2. Không tự ý tạo quy tắc nghiệp vụ mới trong code.
+3. Nếu cần thay đổi nghiệp vụ, cập nhật Core Specification trước.
+4. Sau khi đặc tả thay đổi mới cập nhật database, architecture và code.
+
+Core Specification không phải danh sách mọi tính năng có thể có. Những tính năng chưa cần thiết cho lõi ổn định phải được giữ ngoài phạm vi triển khai hiện tại.
+
+---
+
+# 1. Tầm nhìn sản phẩm
 
 Finora không được định hướng thành một ứng dụng có thật nhiều chức năng. Mục tiêu là làm cho **việc quản lý tiền trở nên đơn giản, nhanh, rõ ràng và đáng tin cậy**.
 
-Nguyên tắc sản phẩm số 1:
+> **Nguyên tắc sản phẩm số 1: Ghi nhận giao dịch phải nhanh hơn việc người dùng ngại ghi chép.**
 
-> **Ghi nhận giao dịch phải nhanh hơn việc người dùng ngại ghi chép.**
+Mọi tính năng nâng cao phải hỗ trợ nguyên tắc này, không được làm chậm hoặc làm phức tạp luồng Thu / Chi cơ bản.
 
-Mọi tính năng nâng cao phải hỗ trợ, không được làm hỏng hoặc làm chậm luồng ghi Thu/Chi.
+Finora phải phục vụ được:
 
-Finora phục vụ cả người mới bắt đầu và người có nhu cầu quản lý tài chính sâu hơn. Người dùng phổ thông không cần hiểu thuật ngữ kỹ thuật hay kế toán để sử dụng ứng dụng.
+- người mới bắt đầu quản lý tiền;
+- người dùng thường xuyên muốn ghi chép thật nhanh;
+- người dùng muốn phân tích tài chính sâu hơn;
+- gia đình có nhiều ví, tài khoản và thành viên ở giai đoạn mở rộng.
 
----
-
-## 2. Đối tượng và nhu cầu
-
-### 2.1 Người dùng cá nhân
-
-Nhu cầu chính:
-- Biết hiện có bao nhiêu tiền.
-- Ghi một khoản Thu/Chi trong vài thao tác.
-- Biết tiền đang được chi vào đâu.
-- Theo dõi lịch sử.
-- Đặt giới hạn chi tiêu.
-- Xem tình hình tài chính theo ngày/tháng.
-
-### 2.2 Gia đình
-
-Nhu cầu mở rộng:
-- Nhiều thành viên.
-- Nhiều ví/tài khoản.
-- Theo dõi chi tiêu chung.
-- Phân quyền khi cần.
-- Báo cáo theo phạm vi cá nhân/gia đình.
-
-Tính năng gia đình có thể triển khai sau khi lõi cá nhân ổn định.
+Người dùng phổ thông không cần hiểu thuật ngữ kế toán để sử dụng các nghiệp vụ cơ bản.
 
 ---
 
-## 3. Nguyên tắc UX cốt lõi
+# 2. Mục tiêu trải nghiệm
 
-1. **Mobile-first, một tay:** thao tác chính nằm trong vùng dễ chạm.
-2. **Ít bước:** giao dịch thường xuyên phải tối giản.
-3. **Không ép người dùng nhập quá nhiều thông tin:** chỉ yêu cầu trường thực sự cần.
-4. **Mặc định thông minh:** ngày, ví thường dùng, danh mục gần nhất có thể được đề xuất.
-5. **Hiển thị rõ:** số tiền, số dư và trạng thái phải dễ đọc.
-6. **Không gây sợ:** lỗi được giải thích bằng ngôn ngữ đời thường.
-7. **Có thể hoàn tác:** thao tác xóa hoặc thay đổi quan trọng cần có cơ chế an toàn.
-8. **Accessibility:** hỗ trợ cỡ chữ lớn, vùng chạm đủ rộng, tương phản tốt và thông tin không chỉ truyền bằng màu.
-9. **Offline-first cho nghiệp vụ lõi:** ghi nhận và xem dữ liệu cục bộ không phụ thuộc Internet.
-10. **Nhất quán:** một nghiệp vụ chỉ có một quy tắc tính toán.
+Mỗi ngày, trải nghiệm lý tưởng là:
 
----
+`Mở app → nhìn tình hình → ghi giao dịch → tiếp tục cuộc sống`
 
-## 4. Mô hình trải nghiệm chính
+Finora phải trả lời nhanh 5 câu hỏi:
 
-### 4.1 Luồng hằng ngày
+1. Tôi đang có bao nhiêu tiền?
+2. Trong kỳ này tôi đã thu bao nhiêu?
+3. Trong kỳ này tôi đã chi bao nhiêu?
+4. Tiền đang đi vào đâu?
+5. Có khoản ngân sách nào cần chú ý không?
 
-Mở Finora → nhìn nhanh tình hình → ghi giao dịch → tiếp tục sử dụng.
+### 2.1 Quy tắc UX
 
-Dashboard phải trả lời nhanh:
-
-- Tôi đang có bao nhiêu tiền?
-- Tháng này tôi thu bao nhiêu?
-- Tôi đã chi bao nhiêu?
-- Tiền đang đi đâu?
-- Có ngân sách nào sắp vượt?
-
-### 4.2 Luồng ghi giao dịch
-
-**Chi tiêu**
-1. Bấm nút Giao dịch.
-2. Chọn Chi.
-3. Nhập số tiền.
-4. Chọn/đề xuất danh mục.
-5. Chọn/đề xuất ví.
-6. Có thể thêm ghi chú.
-7. Lưu.
-8. Cập nhật giao dịch, số dư, ngân sách và dashboard theo một transaction flow nhất quán.
-
-**Thu nhập** dùng cùng nguyên tắc nhưng loại giao dịch là Thu.
-
-**Chuyển tiền**
-1. Chọn Chuyển.
-2. Chọn ví/tài khoản nguồn.
-3. Chọn ví/tài khoản đích.
-4. Nhập số tiền.
-5. Lưu.
-6. Trừ nguồn và cộng đích.
-7. **Không làm thay đổi tổng tài sản chỉ vì chuyển tiền nội bộ.**
-
-### 4.3 Luồng sau khi lưu
-
-Sau khi lưu thành công:
-- Hiển thị xác nhận rõ ràng.
-- Cập nhật số dư.
-- Cập nhật danh sách giao dịch.
-- Cập nhật dữ liệu Dashboard/Budget/Report khi liên quan.
-- Cho phép hoàn tác trong thời gian hợp lý nếu UX áp dụng.
+1. Mobile-first.
+2. Tối ưu thao tác một tay.
+3. Ít bước cho nghiệp vụ thường xuyên.
+4. Không bắt nhập thông tin không cần thiết.
+5. Mặc định thông minh nhưng luôn cho phép người dùng sửa.
+6. Số tiền và số dư phải dễ đọc.
+7. Lỗi phải nói bằng ngôn ngữ đời thường và hướng dẫn cách xử lý.
+8. Thao tác nguy hiểm phải có bảo vệ và/hoặc hoàn tác.
+9. Core finance phải dùng được offline.
+10. Một nghiệp vụ chỉ có một quy tắc tính toán.
+11. Không dựa chỉ vào màu sắc để truyền trạng thái.
+12. Vùng chạm, cỡ chữ và tương phản phải đáp ứng accessibility.
 
 ---
 
-## 5. Information Architecture
+# 3. Người dùng và phạm vi
 
-Điều hướng chính nên giữ đơn giản:
+## 3.1 Cá nhân — phạm vi ưu tiên
+
+MVP tập trung vào một người dùng quản lý tài chính của chính mình.
+
+Nhu cầu:
+
+- nhiều ví / tài khoản;
+- Thu / Chi / Chuyển;
+- số dư chính xác;
+- danh mục;
+- ngân sách;
+- lịch sử giao dịch;
+- báo cáo;
+- dữ liệu hoạt động offline.
+
+## 3.2 Gia đình — mở rộng sau lõi cá nhân
+
+Mô hình phải đủ khả năng mở rộng thành:
+
+`User → Ledger / Household → Members → Financial Data`
+
+Nhưng không được để phân quyền, đồng bộ nhiều thành viên hoặc cloud sync làm phức tạp MVP cá nhân.
+
+---
+
+# 4. Information Architecture
+
+Điều hướng chính đề xuất:
 
 - **Tổng quan**
 - **Giao dịch**
@@ -126,96 +116,17 @@ Sau khi lưu thành công:
 - **Báo cáo**
 - **Khác**
 
-Các chức năng như Danh mục, Ngân sách, Cài đặt, Sao lưu... không nhất thiết phải chiếm tab chính nếu tần suất sử dụng thấp.
+Nút **+ Giao dịch** phải luôn dễ tiếp cận từ Tổng quan và các màn hình chính.
 
-Nút **+ Giao dịch** phải luôn dễ tiếp cận từ màn hình chính.
+Các chức năng tần suất thấp như Danh mục, Ngân sách, Sao lưu, Cài đặt không cần chiếm tab chính.
 
----
+### 4.1 Tổng quan
 
-## 6. Chức năng lõi
+Là nơi trả lời nhanh tình hình tài chính.
 
-### 6.1 Wallet / Account
+Ưu tiên hiển thị:
 
-Mỗi nguồn tiền được biểu diễn như một ví/tài khoản tài chính.
-
-Ví dụ:
-- Tiền mặt
-- Tài khoản ngân hàng
-- Ví điện tử
-- Tài khoản khác
-
-Thông tin cơ bản:
-- Tên
-- Loại
-- Số dư đầu kỳ
-- Số dư hiện tại
-- Trạng thái hoạt động
-- Đơn vị tiền tệ
-
-Không nên đồng nhất mọi loại tài khoản với tiền mặt. Mô hình dữ liệu phải đủ khả năng mở rộng cho thẻ tín dụng và các khoản phải thu/phải trả.
-
-### 6.2 Category
-
-Danh mục gồm:
-- Danh mục Chi
-- Danh mục Thu
-- Nhóm danh mục
-- Danh mục hệ thống
-- Danh mục người dùng tự tạo
-
-Không cho phép xóa cứng danh mục đã được giao dịch sử dụng nếu việc đó làm mất tính toàn vẹn lịch sử. Có thể chuyển sang trạng thái không hoạt động.
-
-### 6.3 Transaction
-
-Ba loại lõi:
-- Income
-- Expense
-- Transfer
-
-Thuộc tính cần thiết:
-- ID
-- Loại giao dịch
-- Số tiền
-- Ví/tài khoản
-- Danh mục nếu áp dụng
-- Ngày giao dịch
-- Ghi chú
-- Trạng thái
-- Thời gian tạo/cập nhật
-
-Các thao tác:
-- Tạo
-- Xem
-- Sửa
-- Xóa/an toàn hóa
-- Hoàn tác khi phù hợp
-- Tìm kiếm
-- Lọc
-- Sắp xếp
-
-### 6.4 Budget
-
-Ngân sách theo:
-- Thời gian
-- Danh mục
-- Số tiền kế hoạch
-
-Theo dõi:
-- Đã chi
-- Còn lại
-- Phần trăm sử dụng
-- Cảnh báo theo ngưỡng
-
-Các trạng thái cần xét:
-- Bình thường
-- Gần ngưỡng
-- Đạt 100%
-- Vượt ngân sách
-
-### 6.5 Dashboard
-
-Ưu tiên:
-1. Tổng số dư các tài khoản tiền được chọn.
+1. Tổng số dư các tài khoản được đưa vào phạm vi tổng quan.
 2. Thu trong kỳ.
 3. Chi trong kỳ.
 4. Dòng tiền ròng.
@@ -223,103 +134,56 @@ Các trạng thái cần xét:
 6. Ngân sách đáng chú ý.
 7. Phân bổ chi tiêu khi có đủ dữ liệu.
 
-Không hiển thị quá nhiều biểu đồ ngay khi người dùng chưa có dữ liệu.
+Không ép người dùng xem quá nhiều biểu đồ khi dữ liệu chưa đủ.
 
-### 6.6 Report
+### 4.2 Giao dịch
 
-Báo cáo lấy dữ liệu từ nguồn giao dịch đã chuẩn hóa.
+Cho phép:
 
-Nhóm báo cáo:
-- Thu/Chi theo kỳ
-- Thu/Chi theo danh mục
-- Dòng tiền
-- So sánh kỳ
-- Ngân sách và thực tế
+- xem danh sách;
+- tìm kiếm;
+- lọc theo kỳ, ví, loại, danh mục;
+- sắp xếp;
+- mở chi tiết;
+- sửa;
+- xóa / vô hiệu hóa theo quy tắc;
+- hoàn tác khi có thể.
 
-Tổng báo cáo phải khớp dữ liệu giao dịch nguồn.
+### 4.3 Ví
 
----
+Cho phép xem:
 
-## 7. Financial Engine — nguyên tắc bất biến
+- danh sách ví / tài khoản;
+- số dư;
+- giao dịch liên quan;
+- trạng thái hoạt động;
+- thiết lập cơ bản.
 
-Đây là phần quan trọng nhất của Finora.
+### 4.4 Báo cáo
 
-### 7.1 Số dư
+Chỉ hiển thị báo cáo được tính từ nguồn dữ liệu giao dịch chuẩn hóa.
 
-Số dư phải được xác định từ:
-- Số dư đầu kỳ
-- Các giao dịch làm tăng
-- Các giao dịch làm giảm
-- Các giao dịch chuyển vào/ra
+### 4.5 Khác
 
-Ví dụ:
+Chứa các chức năng quản trị và mở rộng như:
 
-**1.000.000đ - 300.000đ = 700.000đ**
-
-### 7.2 Transfer
-
-Chuyển 500.000đ từ A sang B:
-
-- A giảm 500.000đ.
-- B tăng 500.000đ.
-- Tổng tài sản nội bộ không đổi.
-
-### 7.3 Sửa giao dịch
-
-Sửa giao dịch phải điều chỉnh đúng ảnh hưởng cũ trước khi áp dụng ảnh hưởng mới. Không được cộng/trừ lặp.
-
-### 7.4 Xóa giao dịch
-
-Xóa phải bảo đảm số dư và các tổng hợp liên quan được cập nhật chính xác.
-
-Ưu tiên soft delete hoặc cơ chế audit khi phù hợp thay vì xóa vật lý không kiểm soát.
-
-### 7.5 Tiền
-
-Không dùng phép tính floating-point đơn giản cho nghiệp vụ tiền.
-
-Thiết kế phải dùng:
-- đơn vị nhỏ nhất phù hợp, hoặc
-- Decimal/kiểu số chính xác.
-
-Mục tiêu là tránh sai số tiền do biểu diễn số thực.
-
-### 7.6 Date/Time
-
-Phân biệt:
-- Ngày giao dịch
-- Thời điểm tạo
-- Thời điểm cập nhật
-
-Không để timezone làm thay đổi sai ngày tài chính của người dùng.
-
-### 7.7 Data integrity
-
-Mọi thao tác ảnh hưởng tới giao dịch và số dư phải được xử lý theo một use case nhất quán, tránh trạng thái giao dịch đã lưu nhưng số dư chưa cập nhật hoặc ngược lại.
+- Danh mục
+- Ngân sách
+- Cài đặt
+- Sao lưu / khôi phục
+- Tài khoản người dùng
+- Trợ giúp
+- Các tính năng nâng cao trong tương lai.
 
 ---
 
-## 8. Offline-first
+# 5. Financial Domain Model
 
-Các nghiệp vụ lõi phải sử dụng được khi không có Internet:
-- Xem dữ liệu.
-- Tạo giao dịch.
-- Sửa giao dịch.
-- Xóa/hoàn tác theo quy tắc.
-- Xem số dư.
-- Xem các tổng hợp có thể tính cục bộ.
+Đây là mô hình nghiệp vụ trung tâm:
 
-Cloud Sync là lớp mở rộng sau này, không được trở thành điều kiện để Finora hoạt động cơ bản.
-
----
-
-## 9. Database domain model
-
-Mô hình định hướng:
-
-```
+```text
 User
- └── Ledger / Household
+ └── Ledger / Workspace
       ├── Members
       ├── Wallets / Accounts
       ├── Categories
@@ -331,40 +195,507 @@ User
       └── Audit / Sync Metadata
 ```
 
-Lõi MVP tối thiểu:
-- users
-- ledgers/workspaces
-- wallets
-- categories
-- transactions
-- budgets
+Luồng dữ liệu cốt lõi:
 
-Mở rộng:
-- recurring_transactions/rules
-- debts
-- savings
-- attachments
-- notifications
-- audit_logs
-- sync metadata
+```text
+Wallet / Account
+      ↓
+Transaction
+      ↓
+Financial Engine
+      ↓
+Balance / Cash Flow
+      ↓
+Budget
+      ↓
+Dashboard / Report
+```
 
-### 9.1 Quy tắc dữ liệu
-
-- ID phải ổn định.
-- Có createdAt/updatedAt ở entity cần thiết.
-- Không phá lịch sử khi đổi tên danh mục hoặc ví.
-- Foreign key/reference phải được kiểm soát.
-- Dữ liệu tiền phải có quy tắc precision thống nhất.
-- Migration phải có version.
-- Không sửa schema tùy tiện mà không cập nhật đặc tả.
+**Financial Engine là nguồn sự thật về tác động tài chính.** Dashboard và Report không được tự xây dựng logic tính tiền riêng.
 
 ---
 
-## 10. Kiến trúc phần mềm
+# 6. Wallet / Account — mô hình nguồn tiền
 
-Giữ:
+Một Wallet / Account đại diện cho một nơi hoặc một loại tài sản / nghĩa vụ tài chính mà Finora cần theo dõi.
 
+Các loại MVP:
+
+- Cash — tiền mặt
+- Bank — tài khoản ngân hàng
+- E-wallet — ví điện tử
+- Other — nguồn tiền khác
+
+Mô hình phải có khả năng mở rộng cho:
+
+- Credit Card
+- Receivable
+- Payable
+- các loại tài khoản đặc thù khác.
+
+## 6.1 Thuộc tính cơ bản
+
+- `id`
+- `ledgerId`
+- `name`
+- `type`
+- `currency`
+- `openingBalance`
+- `openingBalanceDate` hoặc mốc bắt đầu tương đương
+- `isActive`
+- `createdAt`
+- `updatedAt`
+
+## 6.2 Quy tắc số dư
+
+Không coi `currentBalance` là một giá trị độc lập có thể tùy ý sửa trong mọi trường hợp.
+
+Về nghiệp vụ:
+
+`Current Balance = Opening Balance + Net Financial Effects From Valid Transactions`
+
+Nếu hệ thống có cache số dư để tối ưu, cache chỉ là dữ liệu dẫn xuất và phải có khả năng tái tính / kiểm tra từ nguồn giao dịch.
+
+## 6.3 Ẩn / ngừng sử dụng
+
+Ví đã có lịch sử giao dịch không được xóa cứng tùy tiện. Ưu tiên `inactive` / archive để giữ lịch sử.
+
+---
+
+# 7. Transaction — mô hình giao dịch chuẩn
+
+Ba loại giao dịch lõi:
+
+- `INCOME`
+- `EXPENSE`
+- `TRANSFER`
+
+Mọi giao dịch phải có:
+
+- ID ổn định;
+- ledger / workspace;
+- loại giao dịch;
+- số tiền dương theo đơn vị tiền tệ chuẩn;
+- ngày giao dịch;
+- thời điểm tạo;
+- thời điểm cập nhật;
+- trạng thái;
+- nguồn / ví liên quan;
+- danh mục khi nghiệp vụ yêu cầu;
+- ghi chú tùy chọn.
+
+## 7.1 Quy tắc số tiền
+
+Không dùng số floating-point trực tiếp cho nghiệp vụ tiền.
+
+Ưu tiên một trong hai mô hình:
+
+- integer theo đơn vị nhỏ nhất của tiền tệ; hoặc
+- Decimal / kiểu số chính xác.
+
+Một hệ thống chỉ được chọn **một quy tắc chuẩn** và áp dụng xuyên suốt database, domain, service, repository và report.
+
+Số tiền giao dịch phải là số dương; hướng tác động được xác định bởi loại giao dịch và tài khoản liên quan. Không dùng số âm để biểu diễn đồng thời nhiều ý nghĩa.
+
+---
+
+# 8. Quy tắc Thu / Chi / Chuyển
+
+## 8.1 Expense
+
+Ví dụ:
+
+`Cash 1.000.000 → Chi 300.000 → Cash 700.000`
+
+Expense:
+
+- giảm số dư nguồn;
+- thuộc một danh mục Chi;
+- được đưa vào tổng Chi của kỳ;
+- được tính vào Budget nếu thỏa điều kiện ngân sách.
+
+## 8.2 Income
+
+Ví dụ:
+
+`Bank 5.000.000 → Thu 2.000.000 → Bank 7.000.000`
+
+Income:
+
+- tăng số dư nguồn;
+- thuộc một danh mục Thu khi áp dụng;
+- được đưa vào tổng Thu của kỳ;
+- không làm tăng chi ngân sách.
+
+## 8.3 Transfer
+
+Ví dụ:
+
+`Cash 2.000.000 → Transfer 500.000 → Bank +500.000`
+
+Kết quả:
+
+- nguồn giảm 500.000;
+- đích tăng 500.000;
+- tổng tài sản nội bộ không đổi;
+- không tính là Income;
+- không tính là Expense;
+- không làm tăng / giảm tổng Chi chỉ vì chuyển tiền.
+
+Transfer phải là một nghiệp vụ logic thống nhất, không phải hai Expense/Income độc lập.
+
+## 8.4 Không cho phép
+
+Không cho phép chuyển tiền:
+
+- từ ví sang chính nó;
+- số tiền <= 0;
+- từ ví không hoạt động nếu nghiệp vụ không cho phép;
+- vượt khả năng chi trả nếu loại tài khoản / chính sách nghiệp vụ yêu cầu chặn.
+
+---
+
+# 9. Transaction lifecycle
+
+Mỗi giao dịch phải có vòng đời rõ ràng.
+
+```text
+Draft / Input
+    ↓
+Validate
+    ↓
+Create
+    ↓
+Persist
+    ↓
+Apply Financial Effects
+    ↓
+Refresh Derived Data
+    ↓
+Visible / Confirmed
 ```
+
+Nếu lưu thất bại, không được để trạng thái một nửa: transaction đã tồn tại nhưng balance chưa cập nhật, hoặc balance đã đổi nhưng transaction chưa tồn tại.
+
+Nghiệp vụ ghi giao dịch phải nằm trong một use case / service có trách nhiệm điều phối toàn bộ thay đổi cần thiết.
+
+---
+
+# 10. Sửa, xóa và hoàn tác giao dịch
+
+## 10.1 Sửa
+
+Khi sửa một giao dịch:
+
+1. đọc trạng thái / tác động cũ;
+2. loại bỏ tác động cũ khỏi các dữ liệu dẫn xuất;
+3. validate dữ liệu mới;
+4. áp dụng tác động mới;
+5. commit thành một nghiệp vụ nhất quán.
+
+Ví dụ đổi Expense từ 300.000 thành 450.000 thì số dư phải thay đổi thêm đúng 150.000, không được trừ 450.000 lần thứ hai.
+
+## 10.2 Xóa
+
+Ưu tiên soft delete / void hoặc cơ chế audit có kiểm soát đối với dữ liệu đã tham gia vào lịch sử tài chính.
+
+Sau khi xóa / void:
+
+- số dư phải được tính lại đúng;
+- tổng Thu / Chi phải đúng;
+- Budget phải đúng;
+- Report phải loại giao dịch theo trạng thái chuẩn.
+
+## 10.3 Undo
+
+Undo là hành vi UX, không phải một quy tắc tính tiền riêng.
+
+Undo phải gọi lại domain operation phù hợp và không tạo ra cách tính thứ hai.
+
+---
+
+# 11. Date / Time / Timezone
+
+Phải phân biệt ít nhất:
+
+- `transactionDate` — ngày tài chính người dùng chọn;
+- `createdAt` — thời điểm hệ thống tạo bản ghi;
+- `updatedAt` — thời điểm cập nhật.
+
+`transactionDate` là dữ liệu nghiệp vụ và không được tự ý đổi ngày chỉ vì timezone / UTC conversion.
+
+Ví dụ người dùng ghi một khoản lúc 23:30 ngày 01/10 theo giờ địa phương thì giao dịch phải thuộc ngày 01/10 theo lịch tài chính của người dùng.
+
+Các truy vấn theo ngày / tháng phải dựa trên trường nghiệp vụ phù hợp, không lấy `createdAt` thay cho `transactionDate`.
+
+---
+
+# 12. Category
+
+Danh mục có thể gồm:
+
+- danh mục Chi;
+- danh mục Thu;
+- nhóm danh mục;
+- danh mục hệ thống;
+- danh mục người dùng tạo.
+
+Quy tắc:
+
+- Category phải có loại phù hợp với transaction.
+- Không xóa cứng category đã được sử dụng nếu làm mất lịch sử.
+- Đổi tên category không được làm thay đổi lịch sử giao dịch.
+- Có thể inactive category.
+- Category không được chứa logic tính balance riêng.
+
+---
+
+# 13. Budget
+
+Budget là kế hoạch / giới hạn chi tiêu, không phải nguồn sự thật về giao dịch.
+
+Một Budget tối thiểu gồm:
+
+- phạm vi ledger;
+- kỳ áp dụng;
+- category hoặc phạm vi category;
+- planned amount;
+- trạng thái;
+- createdAt / updatedAt.
+
+Các chỉ số:
+
+- `spent`
+- `remaining`
+- `usagePercent`
+- trạng thái cảnh báo.
+
+Công thức cơ bản:
+
+`remaining = plannedAmount - eligibleExpense`
+
+`usagePercent = eligibleExpense / plannedAmount × 100`
+
+`eligibleExpense` chỉ bao gồm Expense hợp lệ thuộc đúng kỳ, đúng category / scope và trạng thái được tính.
+
+Transfer không được tính vào Budget Expense.
+
+Ngưỡng cảnh báo có thể cấu hình, nhưng logic phải nằm ở domain/service chứ không nằm rải rác trong UI.
+
+---
+
+# 14. Dashboard
+
+Dashboard chỉ đọc dữ liệu đã được chuẩn hóa.
+
+Không tạo một bộ công thức riêng cho Dashboard.
+
+### 14.1 Chỉ số chuẩn
+
+**Total Balance**
+
+Tổng số dư của các tài khoản thuộc phạm vi hiển thị và được cấu hình để tính vào tổng tài sản.
+
+**Income**
+
+Tổng Income hợp lệ trong kỳ.
+
+**Expense**
+
+Tổng Expense hợp lệ trong kỳ.
+
+**Net Cash Flow**
+
+`Income - Expense`
+
+Transfer nội bộ không làm thay đổi Net Cash Flow.
+
+### 14.2 Empty state
+
+Khi chưa có dữ liệu:
+
+- không hiển thị biểu đồ giả;
+- giải thích ngắn gọn;
+- hướng người dùng tới hành động đầu tiên, ví dụ tạo ví hoặc ghi giao dịch.
+
+---
+
+# 15. Report
+
+Report phải lấy dữ liệu từ Financial Engine / domain query chuẩn.
+
+Các báo cáo lõi:
+
+1. Thu / Chi theo kỳ.
+2. Thu / Chi theo category.
+3. Cash flow.
+4. So sánh kỳ.
+5. Budget vs Actual.
+6. Chi tiêu theo ví / tài khoản khi có ý nghĩa.
+
+### 15.1 Nguyên tắc đối soát
+
+Tổng Report phải khớp với tổng giao dịch nguồn sau khi áp dụng cùng:
+
+- kỳ;
+- phạm vi ledger;
+- trạng thái;
+- loại giao dịch;
+- category;
+- timezone / ngày tài chính.
+
+Nếu Dashboard và Report cùng trả lời một câu hỏi nhưng cho kết quả khác nhau thì đó là lỗi hệ thống, không phải hai cách tính hợp lệ.
+
+---
+
+# 16. Multi-currency — định hướng tương lai
+
+MVP có thể dùng một currency chuẩn cho ledger.
+
+Nếu mở rộng multi-currency, không được giả định cộng trực tiếp các số tiền khác currency.
+
+Phải có:
+
+- transaction currency;
+- account / wallet currency;
+- tỷ giá / exchange rate khi cần;
+- quy tắc currency của ledger;
+- quy tắc làm tròn;
+- cách hiển thị số liệu quy đổi.
+
+Multi-currency chỉ được triển khai sau khi mô hình tiền một currency ổn định.
+
+---
+
+# 17. Credit Card / Receivable / Payable
+
+Đây là phần mở rộng của Financial Engine, không được giả định giống Cash/Bank.
+
+Ví dụ Credit Card có thể cần mô hình hóa:
+
+- khoản chi phát sinh;
+- nghĩa vụ phải trả;
+- thanh toán thẻ;
+- giới hạn tín dụng;
+- số dư nợ.
+
+Receivable / Payable phải phân biệt tài sản tiền hiện có với khoản phải thu / phải trả.
+
+**Không đưa các loại tài khoản nâng cao vào MVP nếu chưa có nghiệp vụ và test đầy đủ.**
+
+---
+
+# 18. Offline-first và Persistence
+
+Core operations phải hoạt động không cần Internet:
+
+- mở dữ liệu đã lưu;
+- xem ví;
+- tạo / sửa / xóa giao dịch theo quy tắc;
+- xem số dư;
+- xem tổng hợp có thể tính cục bộ.
+
+Database cục bộ là nguồn dữ liệu vận hành của offline mode.
+
+UI không được phụ thuộc vào network response để hoàn tất một giao dịch local cơ bản.
+
+---
+
+# 19. Backup / Restore / Sync
+
+## 19.1 Backup
+
+Backup phải bảo toàn:
+
+- entity IDs;
+- transaction history;
+- wallet/category relationships;
+- dates;
+- monetary precision;
+- schema/version metadata.
+
+## 19.2 Restore
+
+Restore phải có:
+
+1. validation file;
+2. schema/version check;
+3. preview hoặc xác nhận khi cần;
+4. transaction-safe import;
+5. báo lỗi rõ ràng nếu không thể khôi phục.
+
+## 19.3 Cloud Sync
+
+Cloud sync là lớp mở rộng, không phải điều kiện của core finance.
+
+Khi triển khai sync phải có quy tắc rõ cho:
+
+- identity;
+- created/updated timestamps;
+- deletion / tombstone;
+- conflict;
+- retry;
+- duplicate prevention;
+- offline queue.
+
+Không tự động chọn một phiên bản dữ liệu trong im lặng khi conflict có thể làm mất dữ liệu tài chính.
+
+---
+
+# 20. Database Design Rules
+
+Mô hình tối thiểu định hướng:
+
+```text
+users
+ledgers / workspaces
+members
+wallets
+categories
+transactions
+budgets
+```
+
+Mở rộng:
+
+```text
+recurring_rules
+savings_goals
+debts
+attachments
+notifications
+audit_logs
+sync_metadata
+```
+
+## 20.1 Integrity
+
+- ID ổn định.
+- Foreign key/reference được kiểm soát.
+- Entity quan trọng có createdAt/updatedAt.
+- Transaction date không thay thế createdAt.
+- Monetary precision thống nhất.
+- Migration có version.
+- Không phá lịch sử khi đổi tên / archive.
+- Không để entity tham chiếu tới bản ghi không tồn tại.
+- Unique constraints phải được xác định cho các identity cần duy nhất.
+- Index phải được thiết kế cho các truy vấn nghiệp vụ thường xuyên.
+
+## 20.2 Transaction atomicity
+
+Các thao tác tạo / sửa / void transaction phải bảo đảm tính nhất quán giữa:
+
+`Transaction + Financial Effects + Derived Data`
+
+Nếu database engine hỗ trợ transaction, các thay đổi cần thiết phải được commit atomically trong cùng use case.
+
+---
+
+# 21. Architecture — MVVM + Modular
+
+Chuỗi phụ thuộc chuẩn:
+
+```text
 View
  ↓
 ViewModel
@@ -375,406 +706,454 @@ Repository Interface
  ↓
 Repository Implementation
  ↓
-Database / External Source
+Local DB / Remote Source
 ```
 
 ### View
-Chỉ trình bày và nhận tương tác.
+
+Chỉ chịu trách nhiệm presentation và user interaction.
+
+Không đặt business rules tài chính phức tạp trong component.
 
 ### ViewModel
-Quản lý UI state, validation flow, loading/error/success và command.
 
-### Service
-Chứa business rules và use cases.
+Quản lý:
+
+- UI state;
+- loading;
+- validation presentation;
+- event handling;
+- gọi use case.
+
+Không trở thành nơi tính toán domain tùy tiện.
+
+### Service / Use Case
+
+Là nơi điều phối nghiệp vụ:
+
+- CreateExpense
+- CreateIncome
+- CreateTransfer
+- UpdateTransaction
+- VoidTransaction
+- UndoTransaction
+- CalculateBalance
+- CalculateBudgetStatus
+- QueryDashboard
+- QueryReports
 
 ### Repository
-Đọc/ghi dữ liệu thông qua abstraction.
 
-### Expo Router
-Thư mục `app/` chỉ nên giữ route và kết nối mỏng tới View. Không đặt SQL hoặc business logic quan trọng trong route.
+Ẩn chi tiết persistence khỏi domain/service.
 
----
-
-## 11. Modular Architecture
-
-Module lõi:
-
-```
-src/modules/
-├── transaction/
-├── wallet/
-├── category/
-├── budget/
-└── report/
-```
-
-Module mở rộng khi thực sự triển khai:
-
-```
-├── recurring/
-├── debt/
-├── saving/
-├── notification/
-└── account/
-```
-
-Quy tắc:
-- Module không truy cập trực tiếp database của module khác.
-- Phối hợp nghiệp vụ qua Service/public interface.
-- Không tạo dependency vòng.
-- Shared components đặt trong `src/shared`.
-- Hạ tầng chung đặt trong `src/core`.
-- Không over-engineer module chưa cần.
+Repository interface không được chứa UI concern.
 
 ---
 
-## 12. Cấu trúc thư mục chuẩn
+# 22. Modular Architecture
 
-```
-app/
+Định hướng module:
+
+```text
 src/
-├── core/
-│   ├── database/
-│   ├── storage/
-│   ├── config/
-│   ├── constants/
-│   ├── errors/
-│   ├── utils/
-│   └── types/
-├── shared/
-│   ├── components/
-│   ├── hooks/
-│   ├── theme/
-│   └── types/
-└── modules/
-    ├── transaction/
-    ├── wallet/
-    ├── category/
-    ├── budget/
-    └── report/
-
-assets/
-tests/
-docs/
+  core/
+    domain/
+    errors/
+    money/
+    date-time/
+    validation/
+  modules/
+    wallets/
+    categories/
+    transactions/
+    budgets/
+    dashboard/
+    reports/
+    settings/
+  data/
+    repositories/
+    database/
+    migrations/
+  shared/
+    components/
+    hooks/
+    utils/
 ```
 
-Mỗi module có thể có:
-- model
-- types
-- view
-- viewmodel
-- service
-- repository
-- validation
-- tests
-- index
+Tên thư mục thực tế có thể điều chỉnh theo repo, nhưng ranh giới trách nhiệm phải giữ nguyên.
 
-Chỉ tạo phần cần thiết khi nghiệp vụ được triển khai.
+Module không được truy cập trực tiếp database của module khác để thực hiện nghiệp vụ riêng. Cross-module operation phải đi qua service / use case phù hợp.
 
 ---
 
-## 13. Design System
+# 23. Error Handling
 
-Finora cần một design system thống nhất thay vì mỗi màn hình tự thiết kế.
+Lỗi phải được phân loại tối thiểu:
 
-Bao gồm:
-- Typography
-- Spacing
-- Radius
-- Iconography
-- Button
-- Input
-- Card
-- List
-- Bottom sheet
-- Modal
-- Toast/Snackbar
-- Empty state
-- Loading state
-- Error state
-- Confirmation
-- Theme
+- Validation Error
+- Business Rule Error
+- Persistence Error
+- Sync / Network Error
+- Unexpected Error
 
-Tiền phải có định dạng nhất quán toàn ứng dụng.
+UI phải chuyển lỗi kỹ thuật thành thông báo người dùng hiểu được.
 
-Các màu không được là nguồn thông tin duy nhất. Ví dụ Thu/Chi cần có thêm chữ, icon hoặc trạng thái.
+Ví dụ không hiển thị raw SQL / stack trace cho người dùng cuối.
+
+Các lỗi tài chính quan trọng phải được fail-safe: không báo thành công khi dữ liệu chưa được commit thành công.
 
 ---
 
-## 14. Accessibility và khả năng tiếp cận
+# 24. Accessibility
 
-Finora phải phục vụ:
-- Người dùng lớn tuổi.
-- Người dùng thích cỡ chữ lớn.
-- Người dùng thao tác bằng một tay.
-- Người dùng có khả năng nhìn màu hạn chế.
+Finora phải hỗ trợ:
 
-Yêu cầu:
-- Vùng chạm đủ lớn.
-- Text dễ đọc.
-- Không phụ thuộc hoàn toàn vào màu sắc.
-- Nội dung biểu đồ có cách đọc thay thế.
-- Label rõ ràng.
-- Focus/accessibility semantics phù hợp.
-- Không nhồi quá nhiều thông tin vào một màn hình.
+- cỡ chữ lớn;
+- vùng chạm đủ rộng;
+- contrast phù hợp;
+- screen reader labels cho control quan trọng;
+- không truyền ý nghĩa chỉ bằng màu;
+- chart có số liệu / mô tả thay thế;
+- trạng thái lỗi có thông báo rõ;
+- focus / keyboard support khi nền tảng yêu cầu.
+
+Accessibility là yêu cầu sản phẩm, không phải việc làm sau cùng.
 
 ---
 
-## 15. Error handling
+# 25. Security và Privacy
 
-Không hiển thị lỗi kỹ thuật kiểu database/SQL cho người dùng.
+Finora xử lý dữ liệu tài chính nên phải áp dụng nguyên tắc tối thiểu quyền truy cập.
 
-Ví dụ:
-- Không lưu được giao dịch → giải thích việc gì xảy ra và cho phép thử lại.
-- Không đủ dữ liệu → hướng dẫn người dùng bổ sung.
-- Sync lỗi → dữ liệu cục bộ vẫn an toàn và cho phép thử lại.
+Không lưu / log dữ liệu nhạy cảm không cần thiết.
 
-Mọi trạng thái chính:
-- Loading
-- Empty
-- Success
-- Error
-- Disabled
+Không đưa số tiền, nội dung giao dịch hoặc thông tin tài khoản vào debug log production nếu không cần thiết.
 
-phải được thiết kế trước khi coi màn hình hoàn thành.
+Các tính năng trong tương lai cần xem xét:
 
----
+- app lock;
+- biometric unlock;
+- encrypted local storage cho dữ liệu phù hợp;
+- secure backup;
+- session / token security;
+- data deletion.
 
-## 16. Security và quyền riêng tư
-
-Dữ liệu tài chính là dữ liệu nhạy cảm.
-
-Yêu cầu kiến trúc:
-- Không đưa secret/API key vào Git.
-- Không log dữ liệu tài chính nhạy cảm không cần thiết.
-- Chuẩn bị khả năng khóa ứng dụng bằng cơ chế bảo vệ phù hợp.
-- Backup/restore phải tránh ghi đè hoặc mất dữ liệu ngoài ý muốn.
-- Cloud sync phải có chiến lược conflict rõ ràng trước khi triển khai.
+Không được coi bảo mật là lý do để làm chậm core flow một cách không cần thiết.
 
 ---
 
-## 17. Testing Strategy
+# 26. Testing Strategy
 
-### Unit
-Ưu tiên:
-- Tính số dư.
-- Thu/Chi.
-- Transfer.
-- Sửa giao dịch.
-- Xóa/hoàn tác.
-- Budget.
-- Report aggregation.
-- Date/time.
-- Money precision.
+## 26.1 Unit tests — bắt buộc cho Financial Engine
 
-### Integration
-Kiểm tra chuỗi:
+Phải có test cho:
 
-```
-Transaction
- → Wallet
- → Balance
- → Budget
- → Dashboard
- → Report
-```
+- tạo Expense;
+- tạo Income;
+- tạo Transfer;
+- balance;
+- sửa giao dịch;
+- void / delete;
+- undo;
+- budget;
+- date boundary;
+- timezone boundary;
+- monetary precision;
+- category filtering;
+- report totals.
 
-### Regression
-Mỗi thay đổi ở Financial Engine phải chạy lại các test liên quan.
+## 26.2 Integration tests
 
-### E2E
+Ít nhất phải kiểm tra chuỗi:
+
+`Transaction → Wallet → Balance → Budget → Dashboard → Report`
+
+## 26.3 E2E
+
 Các luồng quan trọng:
-- Tạo ví.
-- Tạo giao dịch Chi.
-- Tạo giao dịch Thu.
-- Chuyển tiền.
-- Sửa giao dịch.
-- Xóa/hoàn tác.
-- Tạo ngân sách.
-- Xem báo cáo.
 
-**Không release khi các phép tính tài chính cốt lõi chưa được kiểm thử.**
+1. Tạo ví.
+2. Ghi Chi.
+3. Ghi Thu.
+4. Chuyển tiền.
+5. Sửa giao dịch.
+6. Xóa / hoàn tác.
+7. Kiểm tra Dashboard.
+8. Kiểm tra Report.
+9. Kiểm tra Budget.
 
----
+## 26.4 Regression
 
-## 18. Product quality gates
-
-Một chức năng chỉ được coi là hoàn thành khi:
-
-- Đúng nghiệp vụ.
-- UX dễ hiểu.
-- Luồng chính ngắn.
-- Có loading/empty/error/success phù hợp.
-- Không phá chức năng cũ.
-- Không làm sai số dư.
-- Có test nghiệp vụ quan trọng.
-- Không phá kiến trúc MVVM.
-- Có thể sử dụng offline nếu thuộc nhóm lõi.
-- Đã kiểm tra trên Android; sau đó kiểm tra iOS trước release.
+Mọi thay đổi Financial Engine phải chạy lại bộ regression liên quan trước khi coi là hoàn thành.
 
 ---
 
-## 19. Roadmap v2
+# 27. Quality Gate — định nghĩa Done
 
-### Milestone 1 — Foundation
-- Project foundation
-- Theme
-- Navigation
-- Shared components
-- Core infrastructure
+Một chức năng chỉ được coi là **Done** khi đáp ứng đồng thời:
 
-### Milestone 2 — Financial Core
-- Database
-- Repository
-- Wallet/Account
-- Category
-- Transaction
-- Financial Engine
+1. Đúng nghiệp vụ.
+2. Đúng UX.
+3. Không phá chức năng hiện có.
+4. Đúng architecture.
+5. Có validation cần thiết.
+6. Có loading / empty / error / success state phù hợp.
+7. Có test tương ứng với mức độ rủi ro.
+8. Không tạo logic tính tiền trùng lặp.
+9. Không làm sai dữ liệu lịch sử.
+10. Đã kiểm tra trên Android; các thay đổi cross-platform phải được kiểm tra theo phạm vi phù hợp.
+11. Tài liệu được cập nhật nếu thay đổi contract hoặc business rule.
 
-**Mục tiêu nghiệm thu:** người dùng có thể ghi Thu/Chi/Chuyển tiền và số dư luôn chính xác.
-
-### Milestone 3 — Daily Finance
-- Dashboard
-- Transaction history
-- Search/filter
-- Quick transaction
-- Recent transactions
-
-### Milestone 4 — Planning
-- Budget
-- Budget alerts
-- Period comparison
-
-### Milestone 5 — Understanding
-- Reports
-- Charts
-- Cash-flow analysis
-- Spending breakdown
-
-### Milestone 6 — Advanced Finance
-- Recurring
-- Debt
-- Saving goals
-- Notifications
-
-### Milestone 7 — Account & Data
-- Backup
-- Restore
-- Account
-- Cloud sync
-- Multi-device
-
-### Milestone 8 — Production
-- Unit tests
-- Integration tests
-- E2E/regression
-- Accessibility
-- Performance
-- Security/privacy review
-- Android/iOS release
+Build thành công **không đồng nghĩa** với Done.
 
 ---
 
-## 20. Quy tắc phát triển Git
+# 28. Roadmap xây dựng
 
-Trong giai đoạn xây dựng:
+## Milestone 1 — Foundation
 
-- `main` = phiên bản ổn định.
-- Mỗi chức năng/nhóm chức năng phát triển trên branch riêng.
-- Không merge vào `main` chỉ vì một chức năng vừa chạy được.
-- Chỉ merge khi nhóm chức năng đã ổn định và đạt quality gates.
-- Sau khi merge, `main` phải luôn ở trạng thái có thể tiếp tục phát triển an toàn.
+- project structure;
+- design system;
+- database foundation;
+- repository pattern;
+- error / validation foundation;
+- test foundation.
 
-Quy trình:
+## Milestone 2 — Financial Core
 
+- Wallet;
+- Category;
+- Transaction;
+- Income;
+- Expense;
+- Transfer;
+- Balance;
+- edit / void / undo;
+- Financial Engine tests.
+
+**Đây là milestone quan trọng nhất.**
+
+## Milestone 3 — Daily Finance
+
+- Dashboard;
+- transaction list;
+- search/filter;
+- quick transaction;
+- empty/loading/error states.
+
+## Milestone 4 — Planning
+
+- Budget;
+- budget alerts;
+- budget vs actual.
+
+## Milestone 5 — Understanding
+
+- Reports;
+- cash flow;
+- category analysis;
+- period comparison.
+
+## Milestone 6 — Advanced Finance
+
+Chỉ triển khai sau khi core ổn định:
+
+- recurring transactions;
+- savings goals;
+- debts;
+- credit card;
+- receivable / payable;
+- multi-currency.
+
+## Milestone 7 — Account & Data
+
+- account / authentication;
+- backup;
+- restore;
+- cloud sync;
+- family / household;
+- permissions.
+
+## Milestone 8 — Production
+
+- performance;
+- accessibility audit;
+- security review;
+- full regression;
+- release build;
+- store preparation.
+
+---
+
+# 29. Những thứ chưa được phép làm phức tạp lõi
+
+Trước khi Financial Engine ổn định, không ưu tiên:
+
+- AI financial advisor;
+- social features;
+- gamification phức tạp;
+- cloud dependency;
+- multi-currency đầy đủ;
+- family collaboration phức tạp;
+- dashboard quá nhiều biểu đồ;
+- automation chưa có business rule rõ.
+
+Các tính năng này có thể quay lại roadmap sau khi lõi chứng minh được tính chính xác và dễ dùng.
+
+---
+
+# 30. Git Development Rules
+
+- `main` là nhánh ổn định.
+- Không merge từng feature vào `main` trong giai đoạn xây dựng hệ thống.
+- Mỗi nhóm thay đổi có feature branch riêng.
+- Code phải được kiểm tra trước khi coi feature hoàn thành.
+- Những thay đổi lớn về business rule phải cập nhật Core Specification trước.
+- Không sửa trực tiếp `main` để thử nghiệm.
+- Khi toàn bộ hệ thống lõi, business flow, build và test ổn định mới chuẩn bị merge vào `main`.
+
+---
+
+# 31. Quy trình thay đổi đặc tả
+
+Khi phát hiện một yêu cầu mới hoặc vấn đề nghiệp vụ:
+
+```text
+Requirement
+   ↓
+Business Rule
+   ↓
+User Flow
+   ↓
+Domain Model
+   ↓
+Database Contract
+   ↓
+Architecture
+   ↓
+Implementation
+   ↓
+Tests
+   ↓
+Acceptance
 ```
-main
-  ↓
-feature/*
-  ↓
-Develop
-  ↓
-Build
-  ↓
-Test
-  ↓
-Fix
-  ↓
-Regression
-  ↓
-Stable
-  ↓
-Merge main
+
+Không đi thẳng từ “ý tưởng UI” sang code nếu thay đổi đó ảnh hưởng Financial Engine.
+
+---
+
+# 32. Nguyên tắc chống sai lệch hệ thống
+
+Finora phải tránh 5 nguồn sự thật khác nhau cho cùng một dữ liệu.
+
+Ví dụ không được có:
+
+- một cách tính Balance trong Wallet;
+- một cách tính khác trong Dashboard;
+- một cách tính khác trong Report.
+
+Chuẩn phải là:
+
+```text
+Domain Rules
+     ↓
+Financial Engine
+     ↓
+Queries / Derived Data
+     ↓
+UI
 ```
 
----
-
-## 21. Nguyên tắc thay đổi đặc tả
-
-Đây là tài liệu **Source of Truth**.
-
-Nếu thay đổi ảnh hưởng đến:
-- Dữ liệu
-- Giao dịch
-- Số dư
-- Budget
-- Report
-- Luồng UX chính
-- Kiến trúc
-
-thì phải cập nhật tài liệu trước hoặc đồng thời với code.
-
-Không tự suy đoán các nghiệp vụ tài chính quan trọng chưa được quyết định. Những điểm chưa chốt phải đánh dấu **TBD**.
+UI chỉ trình bày kết quả đã được chuẩn hóa.
 
 ---
 
-## 22. Những gì Finora không ưu tiên ở giai đoạn lõi
+# 33. Acceptance Scenarios tối thiểu
 
-Không triển khai AI, OCR, kết nối ngân hàng hoặc tính năng phức tạp chỉ để tăng số lượng chức năng trước khi:
+## Scenario A — Expense
 
-- Financial Engine ổn định.
-- Database ổn định.
-- Transaction flow ổn định.
-- Dashboard/Report cho kết quả chính xác.
-- Backup/restore có chiến lược rõ ràng.
+Given ví có 1.000.000đ.
 
-Các tính năng nâng cao phải được xây trên nền dữ liệu đáng tin cậy.
+When người dùng ghi Expense 300.000đ.
+
+Then:
+
+- transaction tồn tại;
+- wallet còn 700.000đ;
+- Expense kỳ hiện tại tăng 300.000đ;
+- category tương ứng tăng 300.000đ;
+- Budget liên quan tăng đúng 300.000đ;
+- Dashboard phản ánh đúng;
+- Report phản ánh đúng.
+
+## Scenario B — Income
+
+Given ví có 1.000.000đ.
+
+When người dùng ghi Income 500.000đ.
+
+Then wallet có 1.500.000đ và Income kỳ tăng 500.000đ.
+
+## Scenario C — Transfer
+
+Given A = 1.000.000đ, B = 500.000đ.
+
+When chuyển 300.000đ A → B.
+
+Then:
+
+- A = 700.000đ;
+- B = 800.000đ;
+- tổng tài sản nội bộ vẫn = 1.500.000đ;
+- Expense không tăng;
+- Income không tăng.
+
+## Scenario D — Edit Expense
+
+Given Expense cũ = 300.000đ.
+
+When sửa thành 450.000đ.
+
+Then ảnh hưởng ròng phải là -150.000đ đối với ví, không phải -450.000đ thêm lần nữa.
+
+## Scenario E — Void Expense
+
+Given Expense hợp lệ = 300.000đ.
+
+When giao dịch bị void.
+
+Then tác động tài chính của giao dịch được loại khỏi balance, budget và report theo cùng một quy tắc trạng thái.
+
+## Scenario F — Date boundary
+
+Given người dùng đang ở timezone địa phương.
+
+When tạo giao dịch sát 00:00.
+
+Then transactionDate phải đúng ngày người dùng chọn; createdAt có thể dùng timestamp hệ thống riêng.
 
 ---
 
-## 23. Tiêu chuẩn trải nghiệm cuối cùng
+# 34. Chuẩn thiết kế trải nghiệm cuối cùng
 
-Khi người dùng mở Finora, họ phải có cảm giác:
+Finora phải tạo cảm giác:
 
-**“Tôi biết mình đang có bao nhiêu tiền.”**
+**Nhanh — rõ — yên tâm — không phiền.**
 
-Khi muốn ghi chi:
+Người dùng không cần nghĩ về database, repository, ledger, transaction state hay financial engine. Những thứ đó phải được hệ thống xử lý phía sau.
 
-**“Tôi ghi xong rất nhanh.”**
+Người dùng chỉ cần:
 
-Khi muốn kiểm tra:
-
-**“Tôi hiểu tiền của mình đang đi đâu.”**
-
-Khi nhập sai:
-
-**“Tôi có thể sửa và không sợ làm hỏng số dư.”**
-
-Khi mất mạng:
-
-**“Dữ liệu của tôi vẫn ở đây.”**
-
-Đó là tiêu chuẩn sản phẩm mà mọi phase sau phải hướng tới.
+`Biết tiền → Ghi tiền → Hiểu tiền → Kiểm soát tiền.`
 
 ---
 
-## 24. Trạng thái phiên bản
+# 35. Trạng thái tài liệu
 
-### v2.0 — Core Product Specification
-- Hợp nhất định hướng sản phẩm, UX/UI, nghiệp vụ, kiến trúc, dữ liệu, testing và roadmap.
-- Chuyển trọng tâm từ “nhiều module” sang “trải nghiệm quản lý tiền đơn giản và chính xác”.
-- Xác lập Financial Engine và Quick Transaction là nền tảng.
-- Xác lập `main` là stable branch.
-- Xác lập tài liệu này là Source of Truth.
+**FINORA CORE SPECIFICATION v2.1** là baseline Source of Truth cho giai đoạn xây dựng Financial Core.
 
-**Ngày:** 2026-10-02
+Mọi triển khai tiếp theo phải bám tài liệu này.
+
+Nếu phát sinh nghiệp vụ chưa được định nghĩa, phải dừng ở mức thiết kế / đặc tả để bổ sung quy tắc trước khi đưa logic đó vào Financial Engine.
+
+**Không bắt đầu xây Financial Engine bằng cách suy đoán các business rule còn thiếu.**
