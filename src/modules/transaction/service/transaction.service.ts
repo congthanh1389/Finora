@@ -29,10 +29,18 @@ export type UpdateTransactionInput = Partial<
 
 function normalizeAmount(value: string | number): string {
   const amount = String(value).trim();
-  if (!/^\d+(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0) {
+  const match = amount.match(/^(\d+)(?:\.(\d{1,2}))?$/);
+  if (!match) {
     throw new Error("Transaction amount must be greater than zero");
   }
-  return Number(amount).toFixed(2);
+
+  const whole = match[1];
+  const fraction = match[2] ?? "";
+  if (BigInt(whole) === 0n && /^0*$/.test(fraction)) {
+    throw new Error("Transaction amount must be greater than zero");
+  }
+
+  return `${whole}.${(fraction + "00").slice(0, 2)}`;
 }
 
 export class TransactionService {
