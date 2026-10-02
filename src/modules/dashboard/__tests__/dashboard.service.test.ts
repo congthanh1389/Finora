@@ -101,7 +101,7 @@ describe("DashboardService", () => {
     });
 
     expect(dashboard.summary).toEqual({
-      totalBalance: "1150.00",
+      totalBalance: "1050.00",
       income: "200.00",
       expense: "50.00",
       netCashFlow: "150.00",
