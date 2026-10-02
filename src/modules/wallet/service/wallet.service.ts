@@ -27,7 +27,7 @@ function addMoney(...values: Array<string | number | null | undefined>): bigint 
   return values.reduce((total, value) => total + toMinorUnits(value), 0n);
 }
 
-function transactionEffect(walletId: number, transaction: Transaction): number {
+function transactionEffect(walletId: number, transaction: Transaction): bigint {
   const amount = toMinorUnits(transaction.amount);
 
   switch (transaction.type) {
