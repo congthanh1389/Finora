@@ -1,8 +1,8 @@
-import type { Wallet } from "../../../drizzle/schema";
+import type { Wallet } from "../../../../drizzle/schema";
 import type {
   IWalletRepository,
   NewWallet,
-} from "../../core/database/repository-contracts";
+} from "../../../core/database/repository-contracts";
 import type { CreateWalletInput, WalletSummary } from "../types/wallet.types";
 
 const SUPPORTED_CURRENCIES = /^[A-Z]{3}$/;
