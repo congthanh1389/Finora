@@ -242,7 +242,9 @@ export default function HomeScreen() {
             <View className="flex-row items-center">
               <FinoraMockupIcon name="07_navigation_transactions" size={23} />
               <Text className="ml-2 flex-1 text-lg font-bold text-[#0F2A5F]">Giao dịch gần đây</Text>
-              <Text className="text-xs font-medium text-[#64748B]">Xem tất cả ›</Text>
+              <TouchableOpacity onPress={() => router.push("/transaction")}>
+                <Text className="text-xs font-medium text-[#047857]">Xem tất cả ›</Text>
+              </TouchableOpacity>
             </View>
             <View className="mt-3">
               {recentTransactions.map((transaction, index) => (
