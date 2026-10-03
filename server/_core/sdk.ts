@@ -14,7 +14,7 @@ import type {
   GetUserInfoWithJwtRequest,
   GetUserInfoWithJwtResponse,
 } from "./types/manusTypes";
-// Utility function
+
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === "string" && value.length > 0;
 
@@ -32,15 +32,12 @@ class OAuthService {
   constructor(private client: ReturnType<typeof axios.create>) {
     console.log("[OAuth] Client initialized");
     if (!ENV.oAuthServerUrl) {
-      console.error(
-        "[OAuth] ERROR: OAUTH_SERVER_URL is not configured! Set OAUTH_SERVER_URL environment variable.",
-      );
+      console.warn("[OAuth] Manus OAuth server is not configured; local password auth remains available.");
     }
   }
 
   private decodeState(state: string): string {
-    const redirectUri = atob(state);
-    return redirectUri;
+    return atob(state);
   }
 
   async getTokenByCode(code: string, state: string): Promise<ExchangeTokenResponse> {
@@ -52,7 +49,6 @@ class OAuthService {
     };
 
     const { data } = await this.client.post<ExchangeTokenResponse>(EXCHANGE_TOKEN_PATH, payload);
-
     return data;
   }
 
@@ -60,7 +56,6 @@ class OAuthService {
     const { data } = await this.client.post<GetUserInfoResponse>(GET_USER_INFO_PATH, {
       accessToken: token.accessToken,
     });
-
     return data;
   }
 }
@@ -97,45 +92,25 @@ class SDKServer {
     return first ? first.toLowerCase() : null;
   }
 
-  /**
-   * Exchange OAuth authorization code for access token
-   * @example
-   * const tokenResponse = await sdk.exchangeCodeForToken(code, state);
-   */
   async exchangeCodeForToken(code: string, state: string): Promise<ExchangeTokenResponse> {
     return this.oauthService.getTokenByCode(code, state);
   }
 
-  /**
-   * Get user information using access token
-   * @example
-   * const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
-   */
   async getUserInfo(accessToken: string): Promise<GetUserInfoResponse> {
-    const data = await this.oauthService.getUserInfoByToken({
-      accessToken,
-    } as ExchangeTokenResponse);
+    const data = await this.oauthService.getUserInfoByToken({ accessToken } as ExchangeTokenResponse);
     const loginMethod = this.deriveLoginMethod(
       (data as any)?.platforms,
       (data as any)?.platform ?? data.platform ?? null,
     );
-    return {
-      ...(data as any),
-      platform: loginMethod,
-      loginMethod,
-    } as GetUserInfoResponse;
+    return { ...(data as any), platform: loginMethod, loginMethod } as GetUserInfoResponse;
   }
 
   private getSessionSecret() {
     const secret = ENV.cookieSecret;
+    if (!secret) throw new Error("JWT_SECRET is not configured");
     return new TextEncoder().encode(secret);
   }
 
-  /**
-   * Create a session token for a Manus user openId
-   * @example
-   * const sessionToken = await sdk.createSessionToken(userInfo.openId);
-   */
   async createSessionToken(
     openId: string,
     options: { expiresInMs?: number; name?: string } = {},
@@ -143,7 +118,7 @@ class SDKServer {
     return this.signSession(
       {
         openId,
-        appId: ENV.appId,
+        appId: ENV.appId || "finora-local",
         name: options.name || "",
       },
       options,
@@ -172,58 +147,35 @@ class SDKServer {
   async verifySession(
     cookieValue: string | undefined | null,
   ): Promise<{ openId: string; appId: string; name: string } | null> {
-    if (!cookieValue) {
-      console.warn("[Auth] Missing session cookie");
-      return null;
-    }
+    if (!cookieValue) return null;
 
     try {
       const secretKey = this.getSessionSecret();
-      const { payload } = await jwtVerify(cookieValue, secretKey, {
-        algorithms: ["HS256"],
-      });
+      const { payload } = await jwtVerify(cookieValue, secretKey, { algorithms: ["HS256"] });
       const { openId, appId, name } = payload as Record<string, unknown>;
-
       if (!isNonEmptyString(openId) || !isNonEmptyString(appId) || !isNonEmptyString(name)) {
-        console.warn("[Auth] Session payload missing required fields");
         return null;
       }
-
-      return {
-        openId,
-        appId,
-        name,
-      };
+      return { openId, appId, name };
     } catch {
-      console.warn("[Auth] Session verification failed");
       return null;
     }
   }
 
   async getUserInfoWithJwt(jwtToken: string): Promise<GetUserInfoWithJwtResponse> {
-    const payload: GetUserInfoWithJwtRequest = {
-      jwtToken,
-      projectId: ENV.appId,
-    };
-
+    const payload: GetUserInfoWithJwtRequest = { jwtToken, projectId: ENV.appId };
     const { data } = await this.client.post<GetUserInfoWithJwtResponse>(
       GET_USER_INFO_WITH_JWT_PATH,
       payload,
     );
-
     const loginMethod = this.deriveLoginMethod(
       (data as any)?.platforms,
       (data as any)?.platform ?? data.platform ?? null,
     );
-    return {
-      ...(data as any),
-      platform: loginMethod,
-      loginMethod,
-    } as GetUserInfoWithJwtResponse;
+    return { ...(data as any), platform: loginMethod, loginMethod } as GetUserInfoWithJwtResponse;
   }
 
   async authenticateRequest(req: Request): Promise<AuthenticatedUser> {
-    // Regular authentication flow
     const authHeader = req.headers.authorization || req.headers.Authorization;
     let token: string | undefined;
     if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
@@ -232,58 +184,45 @@ class SDKServer {
 
     const sessionCookie = token || currentSessionCookie(req);
     const session = await this.verifySession(sessionCookie);
-
-    if (!session) {
-      throw ForbiddenError("Invalid session cookie");
-    }
+    if (!session) throw ForbiddenError("Invalid session cookie");
 
     if (session.openId.startsWith(CRON_OPEN_ID_PREFIX)) {
       const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
       const taskUid = userInfo.taskUid ?? null;
-      if (!taskUid) {
-        throw ForbiddenError("Cron session missing task_uid");
-      }
+      if (!taskUid) throw ForbiddenError("Cron session missing task_uid");
       return buildCronUser(userInfo);
     }
 
-    const sessionUserId = session.openId;
     const signedInAt = new Date();
-    let user = await db.getUserByOpenId(sessionUserId);
+    const user = await db.getUserByOpenId(session.openId);
 
-    // If user not in DB, sync from OAuth server automatically
-    if (!user) {
-      try {
-        const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
-        await db.upsertUser({
-          openId: userInfo.openId,
-          name: userInfo.name || null,
-          email: userInfo.email ?? null,
-          loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
-          lastSignedIn: signedInAt,
-        });
-        user = await db.getUserByOpenId(userInfo.openId);
-      } catch {
-        console.error("[Auth] Failed to sync user from OAuth");
-        throw ForbiddenError("Failed to sync user info");
-      }
+    // A local password-authenticated user is already fully represented in the DB.
+    // Only fall back to Manus OAuth synchronization for legacy OAuth users.
+    if (user) {
+      await db.touchUserLastSignedIn(user.openId);
+      return user;
     }
 
-    if (!user) {
+    try {
+      const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
+      await db.upsertUser({
+        openId: userInfo.openId,
+        name: userInfo.name || null,
+        email: userInfo.email ?? null,
+        loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
+        lastSignedIn: signedInAt,
+      });
+      const syncedUser = await db.getUserByOpenId(userInfo.openId);
+      if (!syncedUser) throw new Error("User not found after OAuth sync");
+      return syncedUser;
+    } catch {
       throw ForbiddenError("User not found");
     }
-
-    await db.upsertUser({
-      openId: user.openId,
-      lastSignedIn: signedInAt,
-    });
-
-    return user;
   }
 }
 
 const CRON_OPEN_ID_PREFIX = "cron_";
 
-/** Result of `sdk.authenticateRequest`. Cron callbacks set `isCron=true` and `taskUid`; see `/home/ubuntu/skills/webdev-periodic-updates/SKILL.md`. */
 export type AuthenticatedUser = User & {
   taskUid?: string;
   isCron?: boolean;
@@ -296,6 +235,7 @@ function buildCronUser(userInfo: GetUserInfoWithJwtResponse): AuthenticatedUser 
     openId: userInfo.openId,
     name: userInfo.name || "Manus Scheduled Task",
     email: null,
+    passwordHash: null,
     loginMethod: null,
     role: "user",
     createdAt: now,
