@@ -35,10 +35,10 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     };
     const updateSet: Record<string, unknown> = {};
 
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
+    const nullableFields = ["name", "email", "passwordHash", "loginMethod"] as const;
+    type NullableField = (typeof nullableFields)[number];
 
-    const assignNullable = (field: TextField) => {
+    const assignNullable = (field: NullableField) => {
       const value = user[field];
       if (value === undefined) return;
       const normalized = value ?? null;
@@ -46,7 +46,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet[field] = normalized;
     };
 
-    textFields.forEach(assignNullable);
+    nullableFields.forEach(assignNullable);
 
     if (user.lastSignedIn !== undefined) {
       values.lastSignedIn = user.lastSignedIn;
@@ -87,6 +87,50 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user by email: database not available");
+    return undefined;
+  }
+
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createLocalUser(input: {
+  email: string;
+  name: string;
+  passwordHash: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+
+  const openId = `local_${crypto.randomUUID()}`;
+  const [created] = await db
+    .insert(users)
+    .values({
+      openId,
+      email: input.email,
+      name: input.name,
+      passwordHash: input.passwordHash,
+      loginMethod: "password",
+      lastSignedIn: new Date(),
+    })
+    .$returningId();
+
+  return getUserByOpenId(openId).then((user) => {
+    if (!user) throw new Error(`Failed to load created user ${created.id}`);
+    return user;
+  });
+}
+
+export async function touchUserLastSignedIn(openId: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.openId, openId));
 }
 
 // TODO: add feature queries here as your schema grows.
