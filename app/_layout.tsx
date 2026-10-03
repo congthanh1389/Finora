@@ -1,6 +1,7 @@
 import "@/global.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, usePathname, useRouter } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -51,7 +52,6 @@ function AuthGate() {
   );
 }
 
-
 export const unstable_settings = {
   anchor: "(tabs)",
 };
@@ -62,6 +62,10 @@ export default function RootLayout() {
 
   const [insets, setInsets] = useState<EdgeInsets>(initialInsets);
   const [frame, setFrame] = useState<Rect>(initialFrame);
+
+  useEffect(() => {
+    void SplashScreen.hideAsync();
+  }, []);
 
   // Initialize Manus runtime for cookie injection from parent container
   useEffect(() => {
