@@ -1,5 +1,5 @@
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
 import { ScreenContainer } from "@/components/screen-container";
@@ -27,7 +27,9 @@ function formatAmount(value: string) {
 
 export function TransactionView() {
   const router = useRouter();
-  const vm = useTransactionViewModel();
+  const params = useLocalSearchParams<{ type?: string }>();
+  const initialType = params.type === "income" ? "income" : "expense";
+  const vm = useTransactionViewModel(initialType);
   const isIncome = vm.type === "income";
   const options = isIncome ? incomeSources : expenseCategories;
 
