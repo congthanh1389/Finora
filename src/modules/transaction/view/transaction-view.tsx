@@ -104,13 +104,16 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
 
           {vm.createError ? <Text className="text-sm text-[#DC2626]">{vm.createError.message}</Text> : null}
 
-          <Pressable
-            disabled={vm.isCreating}
-            onPress={() => void save()}
-            className={`items-center rounded-full py-4 opacity-100 ${isIncome ? "bg-[#059669]" : "bg-[#22B8A8]"}`}
-          >
-            {vm.isCreating ? <ActivityIndicator color="#FFFFFF" /> : <Text className="font-bold text-white">Lưu giao dịch</Text>}
-          </Pressable>
+          <View className="mt-1 pb-2">
+            <Pressable
+              disabled={vm.isCreating}
+              onPress={() => void save()}
+              style={{ backgroundColor: isIncome ? "#059669" : "#22B8A8", opacity: vm.isCreating ? 0.7 : 1 }}
+              className="items-center rounded-full py-4"
+            >
+              {vm.isCreating ? <ActivityIndicator color="#FFFFFF" /> : <Text className="font-bold text-white">Lưu giao dịch</Text>}
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
     </ScreenContainer>
