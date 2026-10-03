@@ -4,15 +4,26 @@ import { spawn } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 
 const root = process.cwd();
-const portFile = `${root}/server/.data/dev-server-port`;
+const portFile = `\${root}/server/.data/dev-server-port`;
 
 if (existsSync(portFile)) unlinkSync(portFile);
 
-const command = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
-const server = spawn(command, ["dev:server"], {
-  cwd: root,
-  stdio: "inherit",
-  env: { ...process.env, NODE_ENV: "development", PORT: "0" },
+const run = (command, args, env = {}) =>
+  process.platform === "win32"
+    ? spawn("cmd.exe", ["/d", "/s", "/c", command, ...args], {
+        cwd: root,
+        stdio: "inherit",
+        env: { ...process.env, ...env },
+      })
+    : spawn(command, args, {
+        cwd: root,
+        stdio: "inherit",
+        env: { ...process.env, ...env },
+      });
+
+const server = run("pnpm", ["dev:server"], {
+  NODE_ENV: "development",
+  PORT: "0",
 });
 
 let port;
@@ -29,18 +40,17 @@ if (!port) {
   throw new Error("Finora API server did not publish its port.");
 }
 
-console.log(`[finora] API port: ${port}`);
+console.log(`[finora] API port: \${port}`);
 
-const expo = spawn(process.platform === "win32" ? "npx.cmd" : "npx", ["expo", "run:android"], {
-  cwd: root,
-  stdio: "inherit",
-  env: {
-    ...process.env,
-    EXPO_PUBLIC_API_BASE_URL: `http://10.0.2.2:${port}`,
-  },
+const expo = run("npx", ["expo", "run:android"], {
+  EXPO_PUBLIC_API_BASE_URL: `http://10.0.2.2:\${port}`,
 });
 
-const shutdown = () => server.kill();
+const shutdown = () => {
+  server.kill();
+  expo.kill();
+};
+
 process.once("SIGINT", shutdown);
 process.once("SIGTERM", shutdown);
 
