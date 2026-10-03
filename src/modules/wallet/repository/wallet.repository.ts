@@ -10,6 +10,7 @@ export class WalletRepository implements IWalletRepository {
     return createLocalWallet({
       ...input,
       currency: input.currency ?? "VND",
+      openingBalance: input.openingBalance ?? 0,
       allowNegative: input.allowNegative ?? 0,
       isArchived: input.isArchived ?? 0,
     });
