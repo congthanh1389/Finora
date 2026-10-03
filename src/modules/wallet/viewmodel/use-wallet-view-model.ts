@@ -4,7 +4,7 @@ import { useFocusEffect } from "expo-router";
 
 import * as Auth from "@/lib/_core/auth";
 import type { User } from "@/lib/_core/auth";
-import { DEVICE_TRANSACTIONS_CHANGED_EVENT } from "../../core/storage/device-store";
+import { DEVICE_TRANSACTIONS_CHANGED_EVENT } from "../../../core/storage/device-store";
 import { DeviceTransactionRepository } from "../../transaction/repository/device-transaction.repository";
 import { TransactionService } from "../../transaction/service/transaction.service";
 import type { TransactionSummary } from "../../transaction/types/transaction.types";
