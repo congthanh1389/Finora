@@ -12,10 +12,10 @@ const expenseCategories = [
 ] as const;
 
 const incomeSources = [
-  { label: "Lương", icon: "cat_work" },
-  { label: "Thưởng", icon: "cat_gift" },
-  { label: "Kinh doanh", icon: "cat_business" },
-  { label: "Đầu tư", icon: "cat_investment" },
+  { label: "Lương", icon: "cat_food" },
+  { label: "Thưởng", icon: "cat_shopping" },
+  { label: "Kinh doanh", icon: "01_finance_wallet" },
+  { label: "Đầu tư", icon: "04_reports_report" },
   { label: "Khác", icon: "01_finance_wallet" },
 ] as const;
 
