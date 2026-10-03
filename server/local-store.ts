@@ -1,13 +1,15 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { InsertUser, User, Wallet } from "../drizzle/schema";
+import type { InsertUser, Transaction, User, Wallet } from "../drizzle/schema";
 
 type StoredData = {
   nextUserId: number;
   nextWalletId: number;
+  nextTransactionId: number;
   users: User[];
   wallets: Wallet[];
+  transactions: Transaction[];
 };
 
 const DATA_DIR = join(dirname(fileURLToPath(import.meta.url)), ".data");
@@ -16,17 +18,22 @@ const DATA_FILE = join(DATA_DIR, "finora.json");
 const emptyData = (): StoredData => ({
   nextUserId: 1,
   nextWalletId: 1,
+  nextTransactionId: 1,
   users: [],
   wallets: [],
+  transactions: [],
 });
 
 async function load(): Promise<StoredData> {
   try {
     const raw = await readFile(DATA_FILE, "utf8");
-    const data = JSON.parse(raw) as StoredData;
-    data.users = data.users.map((u) => ({ ...u, createdAt: new Date(u.createdAt), updatedAt: new Date(u.updatedAt), lastSignedIn: new Date(u.lastSignedIn) }));
-    data.wallets = data.wallets.map((w) => ({ ...w, createdAt: new Date(w.createdAt), updatedAt: new Date(w.updatedAt) }));
-    return data;
+    const data = JSON.parse(raw) as Partial<StoredData>;
+    data.nextTransactionId ??= 1;
+    data.transactions ??= [];
+    data.users = (data.users ?? []).map((u) => ({ ...u, createdAt: new Date(u.createdAt), updatedAt: new Date(u.updatedAt), lastSignedIn: new Date(u.lastSignedIn) }));
+    data.wallets = (data.wallets ?? []).map((w) => ({ ...w, createdAt: new Date(w.createdAt), updatedAt: new Date(w.updatedAt) }));
+    data.transactions = data.transactions.map((t) => ({ ...t, occurredAt: new Date(t.occurredAt), createdAt: new Date(t.createdAt), updatedAt: new Date(t.updatedAt) }));
+    return data as StoredData;
   } catch {
     return emptyData();
   }
@@ -127,4 +134,29 @@ export async function listLocalWallets(userId: number) {
   return data.wallets
     .filter((w) => w.userId === userId)
     .sort((a, b) => b.isArchived - a.isArchived || b.createdAt.getTime() - a.createdAt.getTime());
+}
+
+export async function createLocalTransaction(input: Omit<Transaction, "id" | "createdAt" | "updatedAt">) {
+  const data = await load();
+  const wallet = data.wallets.find((w) => w.userId === input.userId && w.id === input.walletId);
+  if (!wallet) throw new Error("Wallet not found.");
+
+  const now = new Date();
+  const transaction: Transaction = {
+    ...input,
+    id: data.nextTransactionId++,
+    createdAt: now,
+    updatedAt: now,
+    occurredAt: input.occurredAt ?? now,
+  };
+  data.transactions.push(transaction);
+  await save(data);
+  return transaction;
+}
+
+export async function listLocalTransactions(userId: number) {
+  const data = await load();
+  return data.transactions
+    .filter((t) => t.userId === userId)
+    .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime());
 }
