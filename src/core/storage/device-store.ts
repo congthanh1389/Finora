@@ -1,8 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import LegacyAsyncStorage from "@react-native-async-storage/async-storage";
+import Storage from "expo-sqlite/kv-store";
 
 import type { Wallet, Transaction } from "../../../drizzle/schema";
 
 const STORAGE_KEY = "finora.device.database.v1";
+const STORAGE_SCHEMA_KEY = "finora.device.database.schema";
+const CURRENT_SCHEMA_VERSION = 2;
 
 type DeviceData = {
   nextWalletId: number;
@@ -18,8 +21,37 @@ const emptyData = (): DeviceData => ({
   transactions: [],
 });
 
+let initializationPromise: Promise<void> | null = null;
+
+async function initializeStorage() {
+  if (!initializationPromise) {
+    initializationPromise = (async () => {
+      const schemaVersion = await Storage.getItem(STORAGE_SCHEMA_KEY);
+
+      if (schemaVersion === String(CURRENT_SCHEMA_VERSION)) return;
+
+      const currentData = await Storage.getItem(STORAGE_KEY);
+      const legacyData = await LegacyAsyncStorage.getItem(STORAGE_KEY);
+
+      if (!currentData && legacyData) {
+        await Storage.setItem(STORAGE_KEY, legacyData);
+      }
+
+      await Storage.setItem(STORAGE_SCHEMA_KEY, String(CURRENT_SCHEMA_VERSION));
+    })();
+  }
+
+  await initializationPromise;
+}
+
+export async function initializeDeviceStorage() {
+  await initializeStorage();
+}
+
 async function load(): Promise<DeviceData> {
-  const raw = await AsyncStorage.getItem(STORAGE_KEY);
+  await initializeStorage();
+
+  const raw = await Storage.getItem(STORAGE_KEY);
   if (!raw) return emptyData();
 
   try {
@@ -45,7 +77,8 @@ async function load(): Promise<DeviceData> {
 }
 
 async function save(data: DeviceData) {
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  await initializeStorage();
+  await Storage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
 export async function listDeviceWallets(userId: number) {
