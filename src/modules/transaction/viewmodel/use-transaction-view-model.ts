@@ -69,7 +69,7 @@ export function useTransactionViewModel() {
     setCreateError(null);
   }
 
-  async function submit() {
+  async function submit(transactionType: "income" | "expense" = type) {
     const parsedAmount = Number(amount.replace(/[^0-9]/g, ""));
     if (!Number.isSafeInteger(parsedAmount) || parsedAmount <= 0) {
       setCreateError(new Error("Vui lòng nhập số tiền hợp lệ."));
@@ -96,10 +96,10 @@ export function useTransactionViewModel() {
 
       const transaction = await transactionService.createTransaction({
         userId: currentUser.id,
-        type,
+        type: transactionType,
         amount: parsedAmount,
         walletId: selectedWalletId,
-        note: note.trim() || (type === "income" ? category : null),
+        note: note.trim() || (transactionType === "income" ? category : null),
         occurredAt: new Date(),
       });
 
