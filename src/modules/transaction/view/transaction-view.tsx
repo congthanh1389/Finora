@@ -126,7 +126,7 @@ export function TransactionView() {
             />
           </View>
 
-          {vm.createError ? <Text className="text-sm text-[#DC2626]">Không thể lưu giao dịch. Vui lòng thử lại.</Text> : null}
+          {vm.createError ? <Text className="text-sm text-[#DC2626]">{vm.createError.message}</Text> : null}
 
           <Pressable
             disabled={vm.isCreating || vm.wallets.length === 0 || !vm.amount.replace(/[^0-9]/g, "")}
