@@ -76,22 +76,21 @@ export function useTransactionViewModel() {
       return false;
     }
 
-    const currentUser = await Auth.getUserInfo();
-    if (!currentUser) {
-      setCreateError(new Error("Không tìm thấy người dùng hiện tại."));
-      return false;
-    }
-
-    const currentWallets = await walletService.listWallets(currentUser.id);
-    const selectedWalletId = walletId ?? currentWallets[0]?.id;
-    if (!selectedWalletId) {
-      setCreateError(new Error("Bạn cần thêm ví trước khi ghi giao dịch."));
-      return false;
-    }
-
     try {
       setCreating(true);
       setCreateError(null);
+
+      const currentUser = await Auth.getUserInfo();
+      if (!currentUser) {
+        throw new Error("Không tìm thấy người dùng hiện tại.");
+      }
+
+      const currentWallets = await walletService.listWallets(currentUser.id);
+      const selectedWalletId = walletId ?? currentWallets[0]?.id;
+      if (!selectedWalletId) {
+        throw new Error("Bạn cần thêm ví trước khi ghi giao dịch.");
+      }
+
       setUser(currentUser);
       setWallets(currentWallets);
 
@@ -100,7 +99,7 @@ export function useTransactionViewModel() {
         type,
         amount: parsedAmount,
         walletId: selectedWalletId,
-        note: note.trim() || null,
+        note: note.trim() || (type === "income" ? category : null),
         occurredAt: new Date(),
       });
 
