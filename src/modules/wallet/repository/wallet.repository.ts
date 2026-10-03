@@ -7,7 +7,12 @@ import {
 
 export class WalletRepository implements IWalletRepository {
   async create(input: NewWallet) {
-    return createLocalWallet(input);
+    return createLocalWallet({
+      ...input,
+      currency: input.currency ?? "VND",
+      allowNegative: input.allowNegative ?? 0,
+      isArchived: input.isArchived ?? 0,
+    });
   }
 
   async findById(userId: number, walletId: number) {
