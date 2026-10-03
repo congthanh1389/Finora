@@ -5,8 +5,8 @@ import { useRouter } from "expo-router";
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
 import { ScreenContainer } from "@/components/screen-container";
 import * as Auth from "@/lib/_core/auth";
-import { DeviceTransactionRepository } from "./repository/device-transaction.repository";
-import { DeviceWalletRepository } from "../wallet/repository/device-wallet.repository";
+import { DeviceTransactionRepository } from "../repository/device-transaction.repository";
+import { DeviceWalletRepository } from "../../wallet/repository/device-wallet.repository";
 import type { TransactionSummary } from "./types/transaction.types";
 import type { WalletSummary } from "../wallet/types/wallet.types";
 
