@@ -1,5 +1,6 @@
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
+import { useRouter } from "expo-router";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
@@ -99,6 +100,7 @@ function SavingRing() {
 }
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [greeting] = useState(getGreeting);
   const [greetingMessage] = useState(() => getRandomMessage(greeting.messages));
 
@@ -184,7 +186,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <TouchableOpacity activeOpacity={0.88} className="flex-row items-center justify-center rounded-full bg-[#22B8A8] px-5 py-4">
+          <TouchableOpacity activeOpacity={0.88} onPress={() => router.push("/transaction/new")} className="flex-row items-center justify-center rounded-full bg-[#22B8A8] px-5 py-4">
             <Text className="mr-3 text-3xl font-light text-white">+</Text>
             <Text className="text-base font-bold text-white">Thêm giao dịch</Text>
             <Text className="ml-auto text-2xl text-white">›</Text>
