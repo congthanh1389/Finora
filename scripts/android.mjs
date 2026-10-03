@@ -27,7 +27,7 @@ const server = run("pnpm", ["dev:server"], {
 });
 
 let port;
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < 300; i++) {
   if (existsSync(portFile)) {
     port = Number(await readFile(portFile, "utf8"));
     break;
