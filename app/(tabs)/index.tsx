@@ -134,7 +134,19 @@ export default function HomeScreen() {
             <View className="mt-4 gap-3">
               {recentTransactions.length === 0 ? <Text className="py-4 text-sm text-[#64748B]">Chưa có giao dịch nào.</Text> : recentTransactions.map((transaction) => {
                 const isIncome = transaction.type === "income";
-                return <View key={transaction.id} className="flex-row items-center"><View className={"h-10 w-10 items-center justify-center rounded-full " + (isIncome ? "bg-[#DCFCE7]" : "bg-[#FFE4E6]")}><Text className={"text-lg font-bold " + (isIncome ? "text-[#16A34A]" : "text-[#E11D48]")}>{isIncome ? "↓" : "↑"}</Text></View><View className="ml-3 flex-1"><Text className="text-sm font-semibold text-[#334155]">{transaction.note || (isIncome ? "Thu nhập" : "Chi tiêu")}</Text><Text className="mt-1 text-xs text-[#64748B]">{transaction.walletName}</Text></View><Text className={"text-sm font-bold " + (isIncome ? "text-[#047857]" : "text-[#E11D48]")}>{isIncome ? "+" : "−"}{new Intl.NumberFormat("vi-VN").format(transaction.amount)} ₫</Text></View>;
+                return <View key={transaction.id} className="flex-row items-center"><View className={"h-10 w-10 items-center justify-center rounded-full " + (isIncome ? "bg-[#DCFCE7]" : "bg-[#FFE4E6]")}><Text className={"text-lg font-bold " + (isIncome ? "text-[#16A34A]" : "text-[#E11D48]")}>{isIncome ? "↓" : "↑"}</Text></View><View className="ml-3 flex-1"><Text className="text-sm font-semibold text-[#334155]">{transaction.note || (isIncome ? "Thu nhập" : "Chi tiêu")}</Text><Text className="mt-1 text-xs text-[#64748B]">{transaction.walletName}</Text></View><View className="items-end">
+                <Text className={"text-sm font-bold " + (isIncome ? "text-[#047857]" : "text-[#E11D48]")}>{isIncome ? "+" : "−"}{new Intl.NumberFormat("vi-VN").format(transaction.amount)} ₫</Text>
+                <Text className="mt-1 text-[10px] text-[#94A3B8]">
+                  {new Date(transaction.occurredAt).toLocaleString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}
+                </Text>
+              </View></View>;
               })}
             </View>
           </View>
