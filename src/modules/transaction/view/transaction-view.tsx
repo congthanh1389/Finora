@@ -32,7 +32,7 @@ export function TransactionView() {
   const options = isIncome ? incomeSources : expenseCategories;
 
   async function save() {
-    const ok = await vm.submit();
+    const ok = await vm.submit(isIncome ? "income" : "expense");
     if (ok) router.back();
   }
 
