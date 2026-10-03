@@ -133,7 +133,7 @@ export function TransactionView() {
             onPress={() => void save()}
             className={`items-center rounded-full py-4 ${vm.isCreating || vm.wallets.length === 0 || !vm.amount.replace(/[^0-9]/g, "") ? "bg-[#CBD5E1]" : isIncome ? "bg-[#059669]" : "bg-[#22B8A8]"}`}
           >
-            {vm.isCreating ? <ActivityIndicator color="#FFFFFF" /> : <Text className="font-bold text-white">{isIncome ? "Lưu khoản thu" : "Lưu giao dịch"}</Text>}
+            {vm.isCreating ? <ActivityIndicator color="#FFFFFF" /> : <Text className="font-bold text-white">Lưu giao dịch</Text>}
           </Pressable>
         </View>
       </ScrollView>
