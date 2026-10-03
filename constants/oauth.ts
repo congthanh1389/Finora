@@ -27,26 +27,19 @@ export const OWNER_OPEN_ID = env.ownerId;
 export const OWNER_NAME = env.ownerName;
 export const API_BASE_URL = env.apiBaseUrl;
 
-/**
- * Get the API base URL, deriving from current hostname if not set.
- * Metro runs on 8081, API server runs on 3000.
- * URL pattern: https://PORT-sandboxid.region.domain
- */
+/** Get the API base URL supplied by the current development/build environment. */
 export function getApiBaseUrl(): string {
   if (API_BASE_URL) {
     return API_BASE_URL.replace(/\/$/, "");
   }
 
   if (ReactNative.Platform.OS === "android") {
-    return "http://10.0.2.2:3000";
+    return "";
   }
 
   if (ReactNative.Platform.OS === "web" && typeof window !== "undefined" && window.location) {
     const { protocol, hostname } = window.location;
-    const apiHostname = hostname.replace(/^8081-/, "3000-");
-    if (apiHostname !== hostname) {
-      return `${protocol}//${apiHostname}`;
-    }
+    return `${protocol}//${hostname}`;
   }
 
   return "";
