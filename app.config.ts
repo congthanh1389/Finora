@@ -71,8 +71,8 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
     "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
+      "ITSAppUsesNonExemptEncryption": false
+    }
   },
   android: {
     adaptiveIcon: {
@@ -117,18 +117,6 @@ const config: ExpoConfig = {
       {
         supportsBackgroundPlayback: true,
         supportsPictureInPicture: true,
-      },
-    ],
-    [
-      "expo-splash-screen",
-      {
-        image: "./assets/images/splash-icon.png",
-        imageWidth: 200,
-        resizeMode: "contain",
-        backgroundColor: "#ffffff",
-        dark: {
-          backgroundColor: "#000000",
-        },
       },
     ],
     [
