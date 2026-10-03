@@ -48,10 +48,22 @@ export function TransactionView() {
           </View>
 
           <View className="flex-row rounded-2xl bg-[#E2E8F0] p-1">
-            <Pressable onPress={() => vm.setType("expense")} className={`flex-1 rounded-xl px-4 py-3 ${!isIncome ? "bg-white" : ""}`}>
+            <Pressable
+              onPress={() => {
+                vm.setType("expense");
+                vm.setCategory("Ăn uống");
+              }}
+              className={`flex-1 rounded-xl px-4 py-3 ${!isIncome ? "bg-white" : ""}`}
+            >
               <Text className={`text-center font-bold ${!isIncome ? "text-[#E11D48]" : "text-[#64748B]"}`}>Chi tiêu</Text>
             </Pressable>
-            <Pressable onPress={() => vm.setType("income")} className={`flex-1 rounded-xl px-4 py-3 ${isIncome ? "bg-white" : ""}`}>
+            <Pressable
+              onPress={() => {
+                vm.setType("income");
+                vm.setCategory("Lương");
+              }}
+              className={`flex-1 rounded-xl px-4 py-3 ${isIncome ? "bg-white" : ""}`}
+            >
               <Text className={`text-center font-bold ${isIncome ? "text-[#059669]" : "text-[#64748B]"}`}>Thu nhập</Text>
             </Pressable>
           </View>
@@ -133,7 +145,7 @@ export function TransactionView() {
             onPress={() => void save()}
             className={`items-center rounded-full py-4 ${vm.isCreating || vm.wallets.length === 0 || !vm.amount.replace(/[^0-9]/g, "") ? "bg-[#CBD5E1]" : isIncome ? "bg-[#059669]" : "bg-[#22B8A8]"}`}
           >
-            {vm.isCreating ? <ActivityIndicator color="#FFFFFF" /> : <Text className="font-bold text-white">Lưu giao dịch</Text>}
+            {vm.isCreating ? <ActivityIndicator color="#FFFFFF" /> : <Text className="font-bold text-white">{isIncome ? "Lưu thu nhập" : "Lưu giao dịch"}</Text>}
           </Pressable>
         </View>
       </ScrollView>
