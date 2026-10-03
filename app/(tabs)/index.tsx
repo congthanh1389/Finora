@@ -1,5 +1,9 @@
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
+import * as Auth from "@/lib/_core/auth";
+import { DeviceTransactionRepository } from "@/src/modules/transaction/repository/device-transaction.repository";
+import { DeviceWalletRepository } from "@/src/modules/wallet/repository/device-wallet.repository";
 import { useRouter } from "expo-router";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
@@ -60,12 +64,6 @@ function getRandomMessage(messages: readonly string[]) {
   return messages[Math.floor(Math.random() * messages.length)];
 }
 
-const recentTransactions = [
-  { icon: "cat_food", title: "Ăn uống", subtitle: "Cơm trưa · Ăn uống", time: "Hôm nay 12:30", amount: "-120.000 ₫", type: "expense" },
-  { icon: "cat_shopping", title: "WinMart", subtitle: "Mua sắm", time: "Hôm nay 10:15", amount: "-350.000 ₫", type: "expense" },
-  { icon: "01_finance_wallet", title: "Lương", subtitle: "Thu nhập", time: "30/09 08:00", amount: "+25.000.000 ₫", type: "income" },
-] as const;
-
 function SavingRing() {
   return (
     <View className="h-[92px] w-[92px] items-center justify-center">
@@ -101,6 +99,23 @@ function SavingRing() {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+
+  const loadRecentTransactions = useCallback(async () => {
+    const user = await Auth.getUserInfo();
+    if (!user) return setRecentTransactions([]);
+    const tr = new DeviceTransactionRepository();
+    const wr = new DeviceWalletRepository();
+    const [transactions, wallets] = await Promise.all([tr.list(user.id), wr.listByUser(user.id)]);
+    const walletMap = new Map(wallets.map((wallet) => [wallet.id, wallet.name]));
+    setRecentTransactions(transactions.slice(0, 3).map((transaction) => ({
+      ...transaction,
+      walletName: walletMap.get(transaction.walletId) ?? "Ví",
+    })));
+  }, []);
+
+  useEffect(() => { void loadRecentTransactions(); }, [loadRecentTransactions]);
+
   const [greeting] = useState(getGreeting);
   const [greetingMessage] = useState(() => getRandomMessage(greeting.messages));
 
@@ -247,20 +262,29 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
             <View className="mt-3">
-              {recentTransactions.map((transaction, index) => (
-                <View key={`${transaction.title}-${index}`} className={`flex-row items-center py-3 ${index !== recentTransactions.length - 1 ? "border-b border-[#EEF2F7]" : ""}`}>
-                  <FinoraMockupIcon name={transaction.icon} size={42} />
-                  <View className="ml-3 flex-1">
-                    <Text className="text-sm font-semibold text-[#0F2A5F]">{transaction.title}</Text>
-                    <Text className="mt-0.5 text-xs text-[#94A3B8]">{transaction.subtitle}</Text>
+              {recentTransactions.length === 0 ? (
+                <Text className="py-4 text-sm text-[#64748B]">Chưa có giao dịch nào.</Text>
+              ) : recentTransactions.map((transaction, index) => {
+                const isIncome = transaction.type === "income";
+                return (
+                  <View key={transaction.id} className={`flex-row items-center py-3 ${index !== recentTransactions.length - 1 ? "border-b border-[#EEF2F7]" : ""}`}>
+                    <FinoraMockupIcon name="01_finance_wallet" size={42} />
+                    <View className="ml-3 flex-1">
+                      <Text className="text-sm font-semibold text-[#0F2A5F]">{transaction.note || (isIncome ? "Khoản thu" : "Khoản chi")}</Text>
+                      <Text className="mt-0.5 text-xs text-[#94A3B8]">{transaction.walletName}</Text>
+                    </View>
+                    <View className="items-end">
+                      <Text className={`text-sm font-bold ${isIncome ? "text-[#059669]" : "text-[#E11D48]"}`}>
+                        {isIncome ? "+" : "−"}{new Intl.NumberFormat("vi-VN").format(transaction.amount)} ₫
+                      </Text>
+                      <Text className="mt-0.5 text-[10px] text-[#94A3B8]">
+                        {new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(transaction.occurredAt)}
+                      </Text>
+                    </View>
+                    <Text className="ml-2 text-lg text-[#94A3B8]">›</Text>
                   </View>
-                  <View className="items-end">
-                    <Text className={`text-sm font-bold ${transaction.type === "income" ? "text-[#059669]" : "text-[#E11D48]"}`}>{transaction.amount}</Text>
-                    <Text className="mt-0.5 text-[10px] text-[#94A3B8]">{transaction.time}</Text>
-                  </View>
-                  <Text className="ml-2 text-lg text-[#94A3B8]">›</Text>
-                </View>
-              ))}
+                );
+              })}
             </View>
           </View>
 
