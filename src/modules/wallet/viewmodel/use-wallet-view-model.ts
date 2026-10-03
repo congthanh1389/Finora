@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { DeviceEventEmitter } from "react-native";
 import { useFocusEffect } from "expo-router";
 
 import * as Auth from "@/lib/_core/auth";
 import type { User } from "@/lib/_core/auth";
+import { DEVICE_TRANSACTIONS_CHANGED_EVENT } from "../../core/storage/device-store";
 import { DeviceTransactionRepository } from "../../transaction/repository/device-transaction.repository";
 import { TransactionService } from "../../transaction/service/transaction.service";
 import type { TransactionSummary } from "../../transaction/types/transaction.types";
@@ -68,6 +70,17 @@ export function useWalletViewModel() {
       void loadData();
     }, [loadData]),
   );
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      DEVICE_TRANSACTIONS_CHANGED_EVENT,
+      () => {
+        void loadData();
+      },
+    );
+
+    return () => subscription.remove();
+  }, [loadData]);
 
   const totalBalance = useMemo(
     () => wallets.reduce((sum, wallet) => sum + wallet.openingBalance, 0),
