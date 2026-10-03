@@ -5,9 +5,9 @@ import type { User } from "@/lib/_core/auth";
 import { DeviceTransactionRepository } from "../repository/device-transaction.repository";
 import { TransactionService } from "../service/transaction.service";
 import type { TransactionSummary } from "../types/transaction.types";
-import type { WalletSummary } from "@/modules/wallet/types/wallet.types";
-import { DeviceWalletRepository } from "@/modules/wallet/repository/device-wallet.repository";
-import { WalletService } from "@/modules/wallet/service/wallet.service";
+import type { WalletSummary } from "../../wallet/types/wallet.types";
+import { DeviceWalletRepository } from "../../wallet/repository/device-wallet.repository";
+import { WalletService } from "../../wallet/service/wallet.service";
 
 export function useTransactionViewModel() {
   const [type, setType] = useState<"income" | "expense">("expense");
