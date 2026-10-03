@@ -1,8 +1,8 @@
-import type { CreateTransactionInput } from "../types/transaction.types";
+import type { CreateTransactionInput, TransactionSummary } from "../types/transaction.types";
 
 type TransactionServiceRepository = {
-  list(userId: number): Promise<unknown[]>;
-  create(input: CreateTransactionInput): Promise<unknown>;
+  list(userId: number): Promise<TransactionSummary[]>;
+  create(input: CreateTransactionInput): Promise<TransactionSummary>;
 };
 
 export class TransactionService {
