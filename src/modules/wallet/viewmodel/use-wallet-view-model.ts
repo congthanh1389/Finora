@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
 
 import * as Auth from "@/lib/_core/auth";
 import type { User } from "@/lib/_core/auth";
@@ -61,6 +62,12 @@ export function useWalletViewModel() {
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadData();
+    }, [loadData]),
+  );
 
   const totalBalance = useMemo(
     () => wallets.reduce((sum, wallet) => sum + wallet.openingBalance, 0),
