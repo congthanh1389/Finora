@@ -1,4 +1,5 @@
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { useRouter } from "expo-router";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
 import { ScreenContainer } from "@/components/screen-container";
@@ -17,7 +18,18 @@ function formatVnd(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value) + " ₫";
 }
 
+function formatDate(value: Date) {
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(value);
+}
+
 export function WalletView() {
+  const router = useRouter();
   const vm = useWalletViewModel();
 
   return (
@@ -51,8 +63,8 @@ export function WalletView() {
             </View>
           ) : vm.error ? (
             <View className="rounded-3xl border border-[#FECACA] bg-white p-5">
-              <Text className="text-base font-bold text-[#991B1B]">Không thể tải danh sách ví</Text>
-              <Text className="mt-1 text-sm text-[#64748B]">Vui lòng kiểm tra đăng nhập và thử lại.</Text>
+              <Text className="text-base font-bold text-[#991B1B]">Không thể tải dữ liệu cục bộ</Text>
+              <Text className="mt-1 text-sm text-[#64748B]">Vui lòng thử lại.</Text>
             </View>
           ) : vm.wallets.length === 0 ? (
             <View className="items-center rounded-3xl border border-dashed border-[#CBD5E1] bg-white px-6 py-12">
@@ -79,6 +91,52 @@ export function WalletView() {
               ))}
             </View>
           )}
+
+          <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5">
+            <View className="flex-row items-center">
+              <View className="flex-1">
+                <Text className="text-lg font-bold text-[#0F2A5F]">Giao dịch gần đây</Text>
+                <Text className="mt-1 text-xs text-[#64748B]">Dữ liệu được lưu trực tiếp trên thiết bị.</Text>
+              </View>
+              <Pressable onPress={() => router.push("/transaction/new")} className="rounded-full bg-[#E6FFFA] px-4 py-2">
+                <Text className="text-xs font-bold text-[#047857]">+ Giao dịch</Text>
+              </Pressable>
+            </View>
+
+            {vm.isLoadingTransactions ? (
+              <ActivityIndicator className="mt-5" />
+            ) : vm.transactions.length === 0 ? (
+              <View className="mt-4 rounded-2xl bg-[#F8FAFC] p-4">
+                <Text className="text-sm text-[#64748B]">Chưa có giao dịch nào.</Text>
+                <Text className="mt-1 text-xs text-[#94A3B8]">Thêm một giao dịch để lịch sử xuất hiện tại đây.</Text>
+              </View>
+            ) : (
+              <View className="mt-4 gap-2">
+                {vm.transactions.slice(0, 20).map((transaction) => {
+                  const isIncome = transaction.type === "income";
+                  const wallet = vm.wallets.find((item) => item.id === transaction.walletId);
+                  return (
+                    <View key={transaction.id} className="flex-row items-center rounded-2xl border border-[#E2E8F0] p-3">
+                      <View className={"h-10 w-10 items-center justify-center rounded-xl " + (isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
+                        <Text className={"text-lg font-bold " + (isIncome ? "text-[#059669]" : "text-[#E11D48]")}>
+                          {isIncome ? "+" : "−"}
+                        </Text>
+                      </View>
+                      <View className="ml-3 flex-1">
+                        <Text className="font-semibold text-[#0F2A5F]">{transaction.note || (isIncome ? "Khoản thu" : "Khoản chi")}</Text>
+                        <Text className="mt-1 text-xs text-[#64748B]">
+                          {wallet?.name || "Ví"} · {formatDate(transaction.occurredAt)}
+                        </Text>
+                      </View>
+                      <Text className={"text-sm font-bold " + (isIncome ? "text-[#059669]" : "text-[#E11D48]")}>
+                        {isIncome ? "+" : "−"}{formatVnd(transaction.amount)}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
 
@@ -108,7 +166,7 @@ export function WalletView() {
                   <Pressable
                     key={item.value}
                     onPress={() => vm.setType(item.value)}
-                    className={`rounded-2xl border px-4 py-3 ${vm.type === item.value ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0] bg-white"}`}
+                    className={"rounded-2xl border px-4 py-3 " + (vm.type === item.value ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0] bg-white")}
                   >
                     <Text className={vm.type === item.value ? "font-bold text-[#047857]" : "font-semibold text-[#475569]"}>{item.label}</Text>
                   </Pressable>
@@ -131,7 +189,7 @@ export function WalletView() {
             <Pressable
               disabled={vm.isCreating || !vm.name.trim()}
               onPress={() => void vm.submit()}
-              className={`mt-5 items-center rounded-full px-5 py-4 ${vm.isCreating || !vm.name.trim() ? "bg-[#CBD5E1]" : "bg-[#22B8A8]"}`}
+              className={"mt-5 items-center rounded-full px-5 py-4 " + (vm.isCreating || !vm.name.trim() ? "bg-[#CBD5E1]" : "bg-[#22B8A8]")}
             >
               {vm.isCreating ? <ActivityIndicator color="#FFFFFF" /> : <Text className="font-bold text-white">Lưu ví</Text>}
             </Pressable>
