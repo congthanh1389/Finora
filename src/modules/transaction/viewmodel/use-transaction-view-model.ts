@@ -10,11 +10,11 @@ import type { WalletSummary } from "../../wallet/types/wallet.types";
 import { DeviceWalletRepository } from "../../wallet/repository/device-wallet.repository";
 import { WalletService } from "../../wallet/service/wallet.service";
 
-export function useTransactionViewModel() {
-  const [type, setType] = useState<"income" | "expense">("expense");
+export function useTransactionViewModel(initialType: "income" | "expense" = "expense") {
+  const [type, setType] = useState<"income" | "expense">(initialType);
   const [amount, setAmount] = useState("");
   const [walletId, setWalletId] = useState<number | null>(null);
-  const [category, setCategory] = useState("Ăn uống");
+  const [category, setCategory] = useState(initialType === "income" ? "Lương" : "Ăn uống");
   const [note, setNote] = useState("");
   const [wallets, setWallets] = useState<WalletSummary[]>([]);
   const [transactions, setTransactions] = useState<TransactionSummary[]>([]);
@@ -61,10 +61,10 @@ export function useTransactionViewModel() {
   );
 
   function resetForm() {
-    setType("expense");
+    setType(initialType);
     setAmount("");
     setWalletId(null);
-    setCategory("Ăn uống");
+    setCategory(initialType === "income" ? "Lương" : "Ăn uống");
     setNote("");
     setCreateError(null);
   }
