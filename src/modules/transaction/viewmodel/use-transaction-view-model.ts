@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
 
 import * as Auth from "@/lib/_core/auth";
 import type { User } from "@/lib/_core/auth";
@@ -43,7 +44,7 @@ export function useTransactionViewModel() {
       }
       setWallets(await walletService.listWallets(currentUser.id));
     } catch (err) {
-      setWalletsError(err instanceof Error ? err : new Error("Failed to load wallets"));
+      setWalletsError(err instanceof Error ? err : new Error("Không thể tải danh sách ví."));
     } finally {
       setLoadingWallets(false);
     }
@@ -52,6 +53,12 @@ export function useTransactionViewModel() {
   useEffect(() => {
     void loadWallets();
   }, [loadWallets]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadWallets();
+    }, [loadWallets]),
+  );
 
   function resetForm() {
     setType("expense");
@@ -64,31 +71,44 @@ export function useTransactionViewModel() {
 
   async function submit() {
     const parsedAmount = Number(amount.replace(/[^0-9]/g, ""));
-    const selectedWalletId = walletId ?? wallets[0]?.id;
-    if (
-      !user ||
-      !selectedWalletId ||
-      !Number.isSafeInteger(parsedAmount) ||
-      parsedAmount <= 0
-    ) {
+    if (!Number.isSafeInteger(parsedAmount) || parsedAmount <= 0) {
+      setCreateError(new Error("Vui lòng nhập số tiền hợp lệ."));
+      return false;
+    }
+
+    const currentUser = await Auth.getUserInfo();
+    if (!currentUser) {
+      setCreateError(new Error("Không tìm thấy người dùng hiện tại."));
+      return false;
+    }
+
+    const currentWallets = await walletService.listWallets(currentUser.id);
+    const selectedWalletId = walletId ?? currentWallets[0]?.id;
+    if (!selectedWalletId) {
+      setCreateError(new Error("Bạn cần thêm ví trước khi ghi giao dịch."));
       return false;
     }
 
     try {
       setCreating(true);
       setCreateError(null);
+      setUser(currentUser);
+      setWallets(currentWallets);
+
       const transaction = await transactionService.createTransaction({
-        userId: user.id,
+        userId: currentUser.id,
         type,
         amount: parsedAmount,
         walletId: selectedWalletId,
         note: note.trim() || null,
+        occurredAt: new Date(),
       });
+
       setTransactions((current) => [transaction, ...current]);
       resetForm();
       return true;
     } catch (err) {
-      setCreateError(err instanceof Error ? err : new Error("Failed to create transaction"));
+      setCreateError(err instanceof Error ? err : new Error("Không thể lưu giao dịch."));
       return false;
     } finally {
       setCreating(false);
