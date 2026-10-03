@@ -1,7 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import type { Wallet } from "../../../drizzle/schema";
-import type { Transaction } from "../../../drizzle/schema";
+import type { Wallet, Transaction } from "../../../drizzle/schema";
 
 const STORAGE_KEY = "finora.device.database.v1";
 
@@ -54,6 +53,11 @@ export async function listDeviceWallets(userId: number) {
   return data.wallets
     .filter((wallet) => wallet.userId === userId)
     .sort((a, b) => b.isArchived - a.isArchived || b.createdAt.getTime() - a.createdAt.getTime());
+}
+
+export async function getDeviceWallet(userId: number, walletId: number) {
+  const data = await load();
+  return data.wallets.find((wallet) => wallet.userId === userId && wallet.id === walletId);
 }
 
 export async function createDeviceWallet(
