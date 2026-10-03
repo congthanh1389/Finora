@@ -1,3 +1,4 @@
+import { DeviceEventEmitter } from "react-native";
 import LegacyAsyncStorage from "@react-native-async-storage/async-storage";
 import Storage from "expo-sqlite/kv-store";
 
@@ -6,6 +7,7 @@ import type { Wallet, Transaction } from "../../../drizzle/schema";
 const STORAGE_KEY = "finora.device.database.v1";
 const STORAGE_SCHEMA_KEY = "finora.device.database.schema";
 const CURRENT_SCHEMA_VERSION = 2;
+export const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
 type DeviceData = {
   nextWalletId: number;
@@ -135,5 +137,6 @@ export async function createDeviceTransaction(
   };
   data.transactions.push(transaction);
   await save(data);
+  DeviceEventEmitter.emit(DEVICE_TRANSACTIONS_CHANGED_EVENT, transaction);
   return transaction;
 }
