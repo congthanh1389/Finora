@@ -1,11 +1,15 @@
-import type { ITransactionRepository } from "../../../core/database/repository-contracts";
 import type { CreateTransactionInput } from "../types/transaction.types";
 
+type TransactionServiceRepository = {
+  list(userId: number): Promise<unknown[]>;
+  create(input: CreateTransactionInput): Promise<unknown>;
+};
+
 export class TransactionService {
-  constructor(private readonly repository: Pick<ITransactionRepository, "list" | "create">) {}
+  constructor(private readonly repository: TransactionServiceRepository) {}
 
   listTransactions(userId: number) {
-    return this.repository.list({ userId });
+    return this.repository.list(userId);
   }
 
   createTransaction(input: CreateTransactionInput) {
