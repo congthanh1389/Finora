@@ -6,9 +6,9 @@ import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { WalletRepository, WalletService } from "../src/modules/wallet/index";
+import { TransactionRepository, TransactionService } from "../src/modules/transaction/index";
 
 export const appRouter = router({
-  // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
@@ -18,9 +18,7 @@ export const appRouter = router({
         ...cookieOptions,
         maxAge: -1,
       });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
   }),
 
@@ -61,12 +59,27 @@ export const appRouter = router({
       }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  transaction: router({
+    list: protectedProcedure.query(({ ctx }) => {
+      const service = new TransactionService(new TransactionRepository());
+      return service.listTransactions(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(
+        z.object({
+          type: z.enum(["income", "expense"]),
+          amount: z.number().int().positive(),
+          walletId: z.number().int().positive(),
+          categoryId: z.number().int().positive().nullable().optional(),
+          note: z.string().nullable().optional(),
+          occurredAt: z.coerce.date().optional(),
+        }),
+      )
+      .mutation(({ ctx, input }) => {
+        const service = new TransactionService(new TransactionRepository());
+        return service.createTransaction({ userId: ctx.user.id, ...input });
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
