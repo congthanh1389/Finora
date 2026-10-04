@@ -55,13 +55,14 @@ export class WalletService {
     return wallets.map((wallet) => this.toSummary(wallet));
   }
 
-  private toSummary(wallet: Wallet): WalletSummary {
+  private toSummary(wallet: Wallet & { balance?: number }): WalletSummary {
     return {
       id: wallet.id,
       name: wallet.name,
       type: wallet.type,
       currency: wallet.currency,
       openingBalance: wallet.openingBalance,
+      balance: Number(wallet.balance ?? wallet.openingBalance),
       allowNegative: wallet.allowNegative === 1,
       isArchived: wallet.isArchived === 1,
     };
