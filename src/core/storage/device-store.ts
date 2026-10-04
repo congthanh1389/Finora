@@ -4,7 +4,7 @@ import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 import type { Category, Wallet, Transaction } from "../../../drizzle/schema";
 
 const DATABASE_NAME = "finora.db";
-const CURRENT_SCHEMA_VERSION = 2;
+const CURRENT_SCHEMA_VERSION = 3;
 
 export const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
@@ -84,6 +84,10 @@ async function migrateDatabase(db: SQLiteDatabase) {
 
       PRAGMA user_version = 2;
     `);
+  }
+
+  if (version < 3) {
+    await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_transactions_category_id ON transactions(category_id); PRAGMA user_version = 3;`);
   }
 
   if (version > CURRENT_SCHEMA_VERSION) {
@@ -169,6 +173,25 @@ export async function listDeviceCategories(
   return rows.map(categoryFromRow);
 }
 
+export async function ensureDefaultDeviceCategories(userId: number): Promise<Category[]> {
+  const existing = await listDeviceCategories(userId);
+  if (existing.length > 0) return existing;
+  const defaults: Array<{ name: string; type: Category["type"]; icon: string }> = [
+    { name: "Ăn uống", type: "expense", icon: "cat_food" },
+    { name: "Mua sắm", type: "expense", icon: "cat_shopping" },
+    { name: "Khác", type: "expense", icon: "01_finance_wallet" },
+    { name: "Lương", type: "income", icon: "cat_food" },
+    { name: "Thưởng", type: "income", icon: "cat_shopping" },
+    { name: "Kinh doanh", type: "income", icon: "01_finance_wallet" },
+    { name: "Đầu tư", type: "income", icon: "04_reports_report" },
+    { name: "Khác", type: "income", icon: "01_finance_wallet" },
+  ];
+  for (const item of defaults) {
+    await createDeviceCategory({ userId, name: item.name, type: item.type, parentId: null, icon: item.icon, isArchived: 0 });
+  }
+  return listDeviceCategories(userId);
+}
+
 export async function createDeviceCategory(
   input: Omit<Category, "id" | "createdAt" | "updatedAt">,
 ): Promise<Category> {
@@ -208,11 +231,15 @@ export async function listDeviceUserIds(): Promise<number[]> {
   const transactionRows = await db.getAllAsync<{ user_id: number }>(
     "SELECT DISTINCT user_id FROM transactions",
   );
+  const categoryRows = await db.getAllAsync<{ user_id: number }>(
+    "SELECT DISTINCT user_id FROM categories",
+  );
 
   return Array.from(
     new Set([
       ...walletRows.map((row) => Number(row.user_id)),
       ...transactionRows.map((row) => Number(row.user_id)),
+      ...categoryRows.map((row) => Number(row.user_id)),
     ]),
   )
     .filter((id) => Number.isInteger(id) && id > 0)
@@ -295,6 +322,14 @@ export async function createDeviceTransaction(
 ): Promise<Transaction> {
   const db = await getDatabase();
   await migrateDatabase(db);
+
+  if (input.categoryId != null) {
+    const category = await db.getFirstAsync<{ id: number; type: string }>(
+      "SELECT id, type FROM categories WHERE user_id = ? AND id = ?", input.userId, input.categoryId,
+    );
+    if (!category) throw new Error("Category not found.");
+    if (category.type !== input.type) throw new Error("Category type does not match transaction type.");
+  }
 
   if (input.walletId != null) {
     const wallet = await db.getFirstAsync(
