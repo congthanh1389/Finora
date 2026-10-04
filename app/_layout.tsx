@@ -68,10 +68,6 @@ export default function RootLayout() {
   const [runtimeError, setRuntimeError] = useState<string | null>(null);
 
   useEffect(() => {
-    void SplashScreen.hideAsync();
-  }, []);
-
-  useEffect(() => {
     initManusRuntime();
   }, []);
 
@@ -94,6 +90,13 @@ export default function RootLayout() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!runtimeReady || Platform.OS === "web") return;
+    void SplashScreen.hideAsync().catch((error) => {
+      console.warn("[Finora] Splash screen hide failed", error);
+    });
+  }, [runtimeReady]);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {
     setInsets(metrics.insets);
