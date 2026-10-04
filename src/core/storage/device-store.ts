@@ -284,6 +284,14 @@ export async function getDeviceWallet(userId: number, walletId: number): Promise
   return row ? walletFromRow(row) : undefined;
 }
 
+export async function getDeviceWalletWithBalance(
+  userId: number,
+  walletId: number,
+): Promise<(Wallet & { balance: number }) | undefined> {
+  const wallets = await listDeviceWalletsWithBalances(userId);
+  return wallets.find((wallet) => wallet.id === walletId);
+}
+
 export async function createDeviceWallet(
   input: Omit<Wallet, "id" | "createdAt" | "updatedAt">,
 ): Promise<Wallet> {
@@ -328,59 +336,190 @@ export async function listDeviceTransactions(userId: number): Promise<Transactio
   return rows.map(transactionFromRow);
 }
 
+export async function getDeviceWalletBalance(userId: number, walletId: number): Promise<number> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+
+  const row = await db.getFirstAsync<{ opening_balance: number; balance_effect: number | null }>(
+    `SELECT
+       w.opening_balance,
+       COALESCE(SUM(
+         CASE
+           WHEN t.type = 'income' AND t.wallet_id = w.id THEN t.amount
+           WHEN t.type = 'expense' AND t.wallet_id = w.id THEN -t.amount
+           WHEN t.type = 'transfer' AND t.destination_wallet_id = w.id THEN t.amount
+           WHEN t.type = 'transfer' AND t.source_wallet_id = w.id THEN -t.amount
+           ELSE 0
+         END
+       ), 0) AS balance_effect
+     FROM wallets w
+     LEFT JOIN transactions t
+       ON t.user_id = w.user_id
+      AND (
+        t.wallet_id = w.id
+        OR t.source_wallet_id = w.id
+        OR t.destination_wallet_id = w.id
+      )
+     WHERE w.user_id = ? AND w.id = ?
+     GROUP BY w.id, w.opening_balance`,
+    userId,
+    walletId,
+  );
+
+  if (!row) throw new Error("Wallet not found.");
+  return Number(row.opening_balance) + Number(row.balance_effect ?? 0);
+}
+
+export async function listDeviceWalletsWithBalances(userId: number): Promise<Array<Wallet & { balance: number }>> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+
+  const rows = await db.getAllAsync(
+    `SELECT
+       w.*,
+       w.opening_balance + COALESCE(SUM(
+         CASE
+           WHEN t.type = 'income' AND t.wallet_id = w.id THEN t.amount
+           WHEN t.type = 'expense' AND t.wallet_id = w.id THEN -t.amount
+           WHEN t.type = 'transfer' AND t.destination_wallet_id = w.id THEN t.amount
+           WHEN t.type = 'transfer' AND t.source_wallet_id = w.id THEN -t.amount
+           ELSE 0
+         END
+       ), 0) AS balance
+     FROM wallets w
+     LEFT JOIN transactions t
+       ON t.user_id = w.user_id
+      AND (
+        t.wallet_id = w.id
+        OR t.source_wallet_id = w.id
+        OR t.destination_wallet_id = w.id
+      )
+     WHERE w.user_id = ?
+     GROUP BY w.id
+     ORDER BY w.is_archived DESC, w.created_at DESC`,
+    userId,
+  );
+
+  return rows.map((row: any) => ({
+    ...walletFromRow(row),
+    balance: Number(row.balance),
+  }));
+}
+
+function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | "updatedAt">) {
+  if (!Number.isSafeInteger(input.amount) || input.amount <= 0) {
+    throw new Error("Transaction amount must be a positive integer.");
+  }
+
+  if (input.type === "transfer") {
+    if (input.walletId != null || input.categoryId != null) {
+      throw new Error("Transfer must use source and destination wallets.");
+    }
+    if (input.sourceWalletId == null || input.destinationWalletId == null) {
+      throw new Error("Transfer requires source and destination wallets.");
+    }
+    if (input.sourceWalletId === input.destinationWalletId) {
+      throw new Error("Transfer wallets must be different.");
+    }
+  } else {
+    if (input.walletId == null) throw new Error("Income and expense require a wallet.");
+    if (input.sourceWalletId != null || input.destinationWalletId != null) {
+      throw new Error("Income and expense cannot use transfer wallets.");
+    }
+  }
+}
+
 export async function createDeviceTransaction(
   input: Omit<Transaction, "id" | "createdAt" | "updatedAt">,
 ): Promise<Transaction> {
   const db = await getDatabase();
   await migrateDatabase(db);
-
-  if (input.categoryId != null) {
-    const category = await db.getFirstAsync<{ id: number; type: string }>(
-      "SELECT id, type FROM categories WHERE user_id = ? AND id = ?", input.userId, input.categoryId,
-    );
-    if (!category) throw new Error("Category not found.");
-    if (category.type !== input.type) throw new Error("Category type does not match transaction type.");
-  }
-
-  if (input.walletId != null) {
-    const wallet = await db.getFirstAsync(
-      "SELECT id FROM wallets WHERE user_id = ? AND id = ?",
-      input.userId,
-      input.walletId,
-    );
-    if (!wallet) throw new Error("Wallet not found.");
-  }
+  validateTransactionInput(input);
 
   const now = new Date();
   const occurredAt = input.occurredAt ?? now;
 
-  const result = await db.runAsync(
-    `INSERT INTO transactions
-      (user_id, type, amount, currency, wallet_id, source_wallet_id, destination_wallet_id,
-       category_id, note, occurred_at, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    input.userId,
-    input.type,
-    input.amount,
-    input.currency,
-    input.walletId,
-    input.sourceWalletId,
-    input.destinationWalletId,
-    input.categoryId,
-    input.note,
-    occurredAt.toISOString(),
-    now.toISOString(),
-    now.toISOString(),
-  );
+  let transaction: Transaction;
 
-  const transaction: Transaction = {
-    ...input,
-    id: result.lastInsertRowId,
-    createdAt: now,
-    updatedAt: now,
-    occurredAt,
-  };
+  await db.withTransactionAsync(async () => {
+    if (input.categoryId != null) {
+      const category = await db.getFirstAsync<{ id: number; type: string }>(
+        "SELECT id, type FROM categories WHERE user_id = ? AND id = ?",
+        input.userId,
+        input.categoryId,
+      );
+      if (!category) throw new Error("Category not found.");
+      if (category.type !== input.type) throw new Error("Category type does not match transaction type.");
+    }
 
-  DeviceEventEmitter.emit(DEVICE_TRANSACTIONS_CHANGED_EVENT, transaction);
-  return transaction;
+    const walletIds = [input.walletId, input.sourceWalletId, input.destinationWalletId].filter(
+      (id): id is number => id != null,
+    );
+
+    const wallets = new Map<number, { currency: string; allow_negative: number }>();
+    for (const walletId of walletIds) {
+      const wallet = await db.getFirstAsync<{ id: number; currency: string; allow_negative: number }>(
+        "SELECT id, currency, allow_negative FROM wallets WHERE user_id = ? AND id = ?",
+        input.userId,
+        walletId,
+      );
+      if (!wallet) throw new Error("Wallet not found.");
+      wallets.set(walletId, wallet);
+    }
+
+    if (input.type === "transfer") {
+      const source = wallets.get(input.sourceWalletId!);
+      const destination = wallets.get(input.destinationWalletId!);
+      if (!source || !destination) throw new Error("Transfer wallets not found.");
+      if (source.currency !== destination.currency || source.currency !== input.currency) {
+        throw new Error("Transfer wallets must use the same currency.");
+      }
+    } else {
+      const wallet = wallets.get(input.walletId!);
+      if (!wallet || wallet.currency !== input.currency) {
+        throw new Error("Transaction currency does not match wallet currency.");
+      }
+    }
+
+    if (input.type === "expense" || input.type === "transfer") {
+      const sourceWalletId = input.type === "expense" ? input.walletId! : input.sourceWalletId!;
+      const sourceWallet = wallets.get(sourceWalletId)!;
+      if (Number(sourceWallet.allow_negative) !== 1) {
+        const balance = await getDeviceWalletBalance(input.userId, sourceWalletId);
+        if (balance - input.amount < 0) {
+          throw new Error("Insufficient wallet balance.");
+        }
+      }
+    }
+
+    const result = await db.runAsync(
+      `INSERT INTO transactions
+        (user_id, type, amount, currency, wallet_id, source_wallet_id, destination_wallet_id,
+         category_id, note, occurred_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      input.userId,
+      input.type,
+      input.amount,
+      input.currency,
+      input.walletId,
+      input.sourceWalletId,
+      input.destinationWalletId,
+      input.categoryId,
+      input.note,
+      occurredAt.toISOString(),
+      now.toISOString(),
+      now.toISOString(),
+    );
+
+    transaction = {
+      ...input,
+      id: result.lastInsertRowId,
+      createdAt: now,
+      updatedAt: now,
+      occurredAt,
+    };
+  });
+
+  DeviceEventEmitter.emit(DEVICE_TRANSACTIONS_CHANGED_EVENT, transaction!);
+  return transaction!;
 }
