@@ -1,10 +1,10 @@
 import { DeviceEventEmitter } from "react-native";
 import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 
-import type { Wallet, Transaction } from "../../../drizzle/schema";
+import type { Category, Wallet, Transaction } from "../../../drizzle/schema";
 
 const DATABASE_NAME = "finora.db";
-const CURRENT_SCHEMA_VERSION = 1;
+const CURRENT_SCHEMA_VERSION = 2;
 
 export const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
@@ -65,6 +65,27 @@ async function migrateDatabase(db: SQLiteDatabase) {
     `);
   }
 
+  if (version < 2) {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        parent_id INTEGER,
+        icon TEXT,
+        is_archived INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_categories_user_id_type
+        ON categories(user_id, type, is_archived);
+
+      PRAGMA user_version = 2;
+    `);
+  }
+
   if (version > CURRENT_SCHEMA_VERSION) {
     throw new Error("Finora database version is newer than this app.");
   }
@@ -106,6 +127,74 @@ function transactionFromRow(row: any): Transaction {
     occurredAt: new Date(row.occurred_at),
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
+  };
+}
+
+function categoryFromRow(row: any): Category {
+  return {
+    id: Number(row.id),
+    userId: Number(row.user_id),
+    name: String(row.name),
+    type: row.type,
+    parentId: row.parent_id == null ? null : Number(row.parent_id),
+    icon: row.icon == null ? null : String(row.icon),
+    isArchived: Number(row.is_archived),
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+}
+
+export async function listDeviceCategories(
+  userId: number,
+  type?: Category["type"],
+): Promise<Category[]> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+
+  const rows = type
+    ? await db.getAllAsync(
+        `SELECT * FROM categories
+         WHERE user_id = ? AND type = ?
+         ORDER BY is_archived ASC, name ASC`,
+        userId,
+        type,
+      )
+    : await db.getAllAsync(
+        `SELECT * FROM categories
+         WHERE user_id = ?
+         ORDER BY is_archived ASC, type ASC, name ASC`,
+        userId,
+      );
+
+  return rows.map(categoryFromRow);
+}
+
+export async function createDeviceCategory(
+  input: Omit<Category, "id" | "createdAt" | "updatedAt">,
+): Promise<Category> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+
+  const now = new Date();
+  const result = await db.runAsync(
+    `INSERT INTO categories
+      (user_id, name, type, parent_id, icon, is_archived, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    input.userId,
+    input.name,
+    input.type,
+    input.parentId,
+    input.icon,
+    input.isArchived,
+    now.toISOString(),
+    now.toISOString(),
+  );
+
+  return {
+    ...input,
+    id: result.lastInsertRowId,
+    createdAt: now,
+    updatedAt: now,
   };
 }
 
