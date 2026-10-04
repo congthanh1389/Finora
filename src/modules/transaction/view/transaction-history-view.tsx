@@ -124,17 +124,19 @@ export function TransactionHistoryView() {
                 const destinationWallet = wallets.find((item) => item.id === transaction.destinationWalletId);
                 return (
                   <View key={transaction.id} className={"flex-row items-center py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
-                    <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
-                      <FinoraMockupIcon name={isIncome ? "01_finance_wallet" : "cat_food"} size={28} />
+                    <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isTransfer ? "bg-[#EFF6FF]" : isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
+                      <FinoraMockupIcon name="01_finance_wallet" size={28} />
                     </View>
                     <View className="ml-3 flex-1">
-                      <Text className="font-semibold text-[#0F2A5F]">{transaction.note || (isIncome ? "Khoản thu" : "Khoản chi")}</Text>
+                      <Text className="font-semibold text-[#0F2A5F]">
+                        {transaction.note || (isTransfer ? "Chuyển tiền" : isIncome ? "Khoản thu" : "Khoản chi")}
+                      </Text>
                       <Text className="mt-1 text-xs text-[#64748B]">
-                        {wallet?.name || "Ví"} · {formatDate(transaction.occurredAt)}
+                        {isTransfer ? (sourceWallet?.name || "Ví nguồn") + " → " + (destinationWallet?.name || "Ví nhận") : (wallet?.name || "Ví")} · {formatDate(transaction.occurredAt)}
                       </Text>
                     </View>
-                    <Text className={"text-sm font-bold " + (isIncome ? "text-[#059669]" : "text-[#E11D48]")}>
-                      {isIncome ? "+" : "−"}{formatVnd(transaction.amount)}
+                    <Text className={"text-sm font-bold " + (isTransfer ? "text-[#0F2A5F]" : isIncome ? "text-[#059669]" : "text-[#E11D48]")}>
+                      {isTransfer ? "" : isIncome ? "+" : "−"}{formatVnd(transaction.amount)}
                     </Text>
                   </View>
                 );
