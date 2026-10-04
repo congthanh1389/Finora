@@ -174,21 +174,32 @@ export async function listDeviceCategories(
 }
 
 export async function ensureDefaultDeviceCategories(userId: number): Promise<Category[]> {
-  const existing = await listDeviceCategories(userId);
-  if (existing.length > 0) return existing;
   const defaults: Array<{ name: string; type: Category["type"]; icon: string }> = [
     { name: "Ăn uống", type: "expense", icon: "cat_food" },
     { name: "Mua sắm", type: "expense", icon: "cat_shopping" },
     { name: "Khác", type: "expense", icon: "01_finance_wallet" },
-    { name: "Lương", type: "income", icon: "cat_food" },
-    { name: "Thưởng", type: "income", icon: "cat_shopping" },
+    { name: "Lương", type: "income", icon: "04_reports_report" },
+    { name: "Thưởng", type: "income", icon: "02_management_budget" },
     { name: "Kinh doanh", type: "income", icon: "01_finance_wallet" },
     { name: "Đầu tư", type: "income", icon: "04_reports_report" },
     { name: "Khác", type: "income", icon: "01_finance_wallet" },
   ];
+
+  const existing = await listDeviceCategories(userId);
+  const existingKeys = new Set(existing.map((item) => `${item.type}:${item.name}`));
+
   for (const item of defaults) {
-    await createDeviceCategory({ userId, name: item.name, type: item.type, parentId: null, icon: item.icon, isArchived: 0 });
+    if (existingKeys.has(`${item.type}:${item.name}`)) continue;
+    await createDeviceCategory({
+      userId,
+      name: item.name,
+      type: item.type,
+      parentId: null,
+      icon: item.icon,
+      isArchived: 0,
+    });
   }
+
   return listDeviceCategories(userId);
 }
 
