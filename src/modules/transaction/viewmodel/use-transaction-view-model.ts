@@ -25,7 +25,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
   const [isCreating, setCreating] = useState(false);
   const [walletsError, setWalletsError] = useState<Error | null>(null);
   const [createError, setCreateError] = useState<Error | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [, setUser] = useState<User | null>(null);
 
   const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
   const categoryRepository = useMemo(() => new CategoryRepository(), []);
