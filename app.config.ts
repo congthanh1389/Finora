@@ -95,6 +95,14 @@ const config: ExpoConfig = {
     "expo-router",
     "expo-sqlite",
     [
+      "expo-splash-screen",
+      {
+        backgroundColor: "#0B1220",
+        image: "./assets/images/icon.png",
+        imageWidth: 120,
+      },
+    ],
+    [
       "expo-audio",
       {
         microphonePermission: "Allow $(PRODUCT_NAME) to access your microphone.",
