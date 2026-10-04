@@ -12,6 +12,7 @@ export type User = {
 const SESSION_TOKEN_KEY = "app_session_token";
 const USER_INFO_KEY = "manus-runtime-user-info";
 const LOCAL_ACCOUNT_KEY = "finora.local.account.v2";
+const LEGACY_LOCAL_ACCOUNT_KEYS = ["finora.local.account.v1", "finora.local.account"];
 
 type LocalAccount = User & { password: string };
 
@@ -59,9 +60,21 @@ export async function clearUserInfo(): Promise<void> {
 
 export async function localGetAccount(): Promise<LocalAccount | null> {
   try {
-    const raw = await SecureStore.getItemAsync(LOCAL_ACCOUNT_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as LocalAccount;
+    const current = await SecureStore.getItemAsync(LOCAL_ACCOUNT_KEY);
+    if (current) return JSON.parse(current) as LocalAccount;
+
+    for (const key of LEGACY_LOCAL_ACCOUNT_KEYS) {
+      const legacy = await SecureStore.getItemAsync(key);
+      if (!legacy) continue;
+
+      const account = JSON.parse(legacy) as LocalAccount;
+      if (account.email && account.password) {
+        await SecureStore.setItemAsync(LOCAL_ACCOUNT_KEY, JSON.stringify(account));
+        return account;
+      }
+    }
+
+    return null;
   } catch {
     return null;
   }
