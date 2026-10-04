@@ -1,12 +1,18 @@
-import { Platform } from "react-native";
-import { createTRPCReact } from "@trpc/react-query";
-import type { AppRouter } from "@/server/routers";
+import type { PropsWithChildren } from "react";
 
-export const trpc = createTRPCReact<AppRouter>();
+type NativeTrpcProviderProps = PropsWithChildren<{
+  client?: unknown;
+  queryClient?: unknown;
+}>;
+
+function NativeTrpcProvider({ children }: NativeTrpcProviderProps) {
+  return children;
+}
+
+export const trpc = {
+  Provider: NativeTrpcProvider,
+};
 
 export function createTRPCClient(): null {
-  if (Platform.OS === "web") {
-    return null;
-  }
   return null;
 }
