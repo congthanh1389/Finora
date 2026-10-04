@@ -74,6 +74,13 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    if (Platform.OS === "web") return;
+    void SplashScreen.hideAsync().catch((error) => {
+      console.warn("[Finora] Splash screen hide failed", error);
+    });
+  }, []);
+
+  useEffect(() => {
     let active = true;
     const runtimeInitialization = initializeDeviceRuntime();
     const timeout = new Promise<never>((_, reject) => {
@@ -95,13 +102,8 @@ export default function RootLayout() {
           error instanceof Error ? error.message : "Không thể khởi tạo bộ nhớ Finora.";
         console.error("[Finora] Device runtime initialization failed", error);
         setRuntimeError(message);
-      })
-      .finally(() => {
-        if (!active || Platform.OS === "web") return;
-        void SplashScreen.hideAsync().catch((error) => {
-          console.warn("[Finora] Splash screen hide failed", error);
-        });
       });
+
     return () => {
       active = false;
     };
