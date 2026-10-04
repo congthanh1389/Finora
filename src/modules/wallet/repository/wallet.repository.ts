@@ -1,8 +1,8 @@
 import type { IWalletRepository, NewWallet } from "../../../core/database/repository-contracts";
 import {
   createDeviceWallet,
-  getDeviceWallet,
-  listDeviceWallets,
+  getDeviceWalletWithBalance,
+  listDeviceWalletsWithBalances,
 } from "../../../core/storage/device-store";
 
 export class WalletRepository implements IWalletRepository {
@@ -17,10 +17,10 @@ export class WalletRepository implements IWalletRepository {
   }
 
   async findById(userId: number, walletId: number) {
-    return getDeviceWallet(userId, walletId);
+    return getDeviceWalletWithBalance(userId, walletId);
   }
 
   async listByUser(userId: number) {
-    return listDeviceWallets(userId);
+    return listDeviceWalletsWithBalances(userId);
   }
 }
