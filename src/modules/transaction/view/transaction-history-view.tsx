@@ -7,8 +7,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import * as Auth from "@/lib/_core/auth";
 import { DeviceTransactionRepository } from "../repository/device-transaction.repository";
 import { DeviceWalletRepository } from "../../wallet/repository/device-wallet.repository";
-import type { TransactionSummary } from "./types/transaction.types";
-import type { WalletSummary } from "../wallet/types/wallet.types";
+import type { Transaction, Wallet } from "../../../../drizzle/schema";
 
 function formatVnd(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value) + " ₫";
