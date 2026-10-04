@@ -18,6 +18,7 @@ export type WalletSummary = {
   type: WalletType;
   currency: string;
   openingBalance: number;
+  balance: number;
   allowNegative: boolean;
   isArchived: boolean;
 };
