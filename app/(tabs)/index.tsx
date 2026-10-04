@@ -87,7 +87,7 @@ export default function HomeScreen() {
       const walletMap = new Map(wallets.map((wallet) => [wallet.id, wallet.name]));
       setRecentTransactions(transactions.slice(0, 3).map((transaction) => ({
         ...transaction,
-        walletName: walletMap.get(transaction.walletId) ?? "Ví",
+        walletName: transaction.walletId == null ? "Ví" : walletMap.get(transaction.walletId) ?? "Ví",
       })));
     } catch {
       setRecentTransactions([]);
