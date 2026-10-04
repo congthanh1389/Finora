@@ -2,6 +2,7 @@ import type { ICategoryRepository, NewCategory } from "../../../core/database/re
 import {
   createDeviceCategory,
   listDeviceCategories,
+  ensureDefaultDeviceCategories,
 } from "../../../core/storage/device-store";
 
 export class CategoryRepository implements ICategoryRepository {
@@ -16,5 +17,9 @@ export class CategoryRepository implements ICategoryRepository {
 
   async listByUser(userId: number, type?: NewCategory["type"]) {
     return listDeviceCategories(userId, type);
+  }
+
+  async ensureDefaults(userId: number) {
+    return ensureDefaultDeviceCategories(userId);
   }
 }
