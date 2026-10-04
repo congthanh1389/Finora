@@ -370,7 +370,7 @@ export async function getDeviceWalletBalance(userId: number, walletId: number): 
   return Number(row.opening_balance) + Number(row.balance_effect ?? 0);
 }
 
-export async function listDeviceWalletsWithBalances(userId: number): Promise<Array<Wallet & { balance: number }>> {
+export async function listDeviceWalletsWithBalances(userId: number): Promise<(Wallet & { balance: number })[]> {
   const db = await getDatabase();
   await migrateDatabase(db);
 
