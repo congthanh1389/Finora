@@ -5,20 +5,6 @@ import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
 import { ScreenContainer } from "@/components/screen-container";
 import { useTransactionViewModel } from "../viewmodel/use-transaction-view-model";
 
-const expenseCategories = [
-  { label: "Ăn uống", icon: "cat_food" },
-  { label: "Mua sắm", icon: "cat_shopping" },
-  { label: "Khác", icon: "01_finance_wallet" },
-] as const;
-
-const incomeSources = [
-  { label: "Lương", icon: "cat_food" },
-  { label: "Thưởng", icon: "cat_shopping" },
-  { label: "Kinh doanh", icon: "01_finance_wallet" },
-  { label: "Đầu tư", icon: "04_reports_report" },
-  { label: "Khác", icon: "01_finance_wallet" },
-] as const;
-
 function formatAmount(value: string) {
   const digits = value.replace(/[^0-9]/g, "");
   if (!digits) return "";
@@ -35,7 +21,7 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
   const initialType = initialTypeProp ?? (params.type === "income" ? "income" : "expense");
   const vm = useTransactionViewModel(initialType);
   const isIncome = vm.type === "income";
-  const options = isIncome ? incomeSources : expenseCategories;
+  const options = vm.categories;
 
   async function save() {
     const ok = await vm.submit(isIncome ? "income" : "expense");
@@ -82,9 +68,9 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
             <Text className="text-base font-bold text-[#0F2A5F]">{isIncome ? "Nguồn thu nhập" : "Danh mục chi tiêu"}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3" contentContainerStyle={{ gap: 8 }}>
               {options.map((item) => (
-                <Pressable key={item.label} onPress={() => vm.setCategory(item.label)} className={`w-[92px] items-center rounded-2xl border p-3 ${vm.category === item.label ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0]"}`}>
-                  <FinoraMockupIcon name={item.icon} size={34} />
-                  <Text className="mt-2 text-center text-xs font-semibold text-[#334155]">{item.label}</Text>
+                <Pressable key={item.id} onPress={() => vm.setCategory(item.name)} className={`w-[92px] items-center rounded-2xl border p-3 ${vm.category === item.name ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0]"}`}>
+                  <FinoraMockupIcon name={item.icon || "01_finance_wallet"} size={34} />
+                  <Text className="mt-2 text-center text-xs font-semibold text-[#334155]">{item.name}</Text>
                 </Pressable>
               ))}
             </ScrollView>
