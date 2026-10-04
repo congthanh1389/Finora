@@ -58,6 +58,8 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
+const DEVICE_RUNTIME_TIMEOUT_MS = 15_000;
+
 export default function RootLayout() {
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
   const initialFrame = initialWindowMetrics?.frame ?? DEFAULT_WEB_FRAME;
@@ -73,7 +75,15 @@ export default function RootLayout() {
 
   useEffect(() => {
     let active = true;
-    void initializeDeviceRuntime()
+    const runtimeInitialization = initializeDeviceRuntime();
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(
+        () => reject(new Error("Khởi tạo bộ nhớ trên thiết bị quá lâu. Vui lòng thử mở lại Finora.")),
+        DEVICE_RUNTIME_TIMEOUT_MS,
+      );
+    });
+
+    void Promise.race([runtimeInitialization, timeout])
       .then((info) => {
         if (!active) return;
         console.log("[Finora] Device runtime ready", info);
@@ -85,18 +95,17 @@ export default function RootLayout() {
           error instanceof Error ? error.message : "Không thể khởi tạo bộ nhớ Finora.";
         console.error("[Finora] Device runtime initialization failed", error);
         setRuntimeError(message);
+      })
+      .finally(() => {
+        if (!active || Platform.OS === "web") return;
+        void SplashScreen.hideAsync().catch((error) => {
+          console.warn("[Finora] Splash screen hide failed", error);
+        });
       });
     return () => {
       active = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (!runtimeReady || Platform.OS === "web") return;
-    void SplashScreen.hideAsync().catch((error) => {
-      console.warn("[Finora] Splash screen hide failed", error);
-    });
-  }, [runtimeReady]);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {
     setInsets(metrics.insets);
