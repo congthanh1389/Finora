@@ -1,6 +1,7 @@
 import "@/global.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, usePathname, useRouter } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -100,6 +101,13 @@ export default function RootLayout() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!runtimeReady || Platform.OS === "web") return;
+    void SplashScreen.hideAsync().catch((error) => {
+      console.warn("[Finora] Splash screen hide failed", error);
+    });
+  }, [runtimeReady]);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {
     setInsets(metrics.insets);
