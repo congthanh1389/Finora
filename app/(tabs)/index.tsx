@@ -94,6 +94,7 @@ export default function HomeScreen() {
     }
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void loadRecentTransactions(); }, [loadRecentTransactions]);
   useFocusEffect(useCallback(() => { void loadRecentTransactions(); }, [loadRecentTransactions]));
 
