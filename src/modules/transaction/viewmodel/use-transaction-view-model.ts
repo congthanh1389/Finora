@@ -65,6 +65,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
     }
   }, [walletService, loadCategories, type]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     void loadWallets();
   }, [loadWallets]);
