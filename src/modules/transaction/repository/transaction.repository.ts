@@ -1,13 +1,16 @@
-import { createLocalTransaction, listLocalTransactions } from "../../../../server/local-store";
+import {
+  createDeviceTransaction,
+  listDeviceTransactions,
+} from "../../../core/storage/device-store";
 import type { CreateTransactionInput, TransactionSummary } from "../types/transaction.types";
 
 export class TransactionRepository {
   async list(userId: number): Promise<TransactionSummary[]> {
-    return listLocalTransactions(userId);
+    return listDeviceTransactions(userId);
   }
 
   async create(input: CreateTransactionInput): Promise<TransactionSummary> {
-    return createLocalTransaction({
+    return createDeviceTransaction({
       userId: input.userId,
       type: input.type,
       amount: input.amount,
