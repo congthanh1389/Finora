@@ -74,13 +74,6 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === "web") return;
-    void SplashScreen.hideAsync().catch((error) => {
-      console.warn("[Finora] Splash screen hide failed", error);
-    });
-  }, []);
-
-  useEffect(() => {
     let active = true;
     const runtimeInitialization = initializeDeviceRuntime();
     const timeout = new Promise<never>((_, reject) => {
@@ -145,29 +138,43 @@ export default function RootLayout() {
     };
   }, [initialInsets, initialFrame]);
 
-  const content = runtimeReady ? (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+  const content = (
+    <GestureHandlerRootView
+      style={{ flex: 1 }}
+      onLayout={() => {
+        if (Platform.OS === "web") return;
+        void SplashScreen.hideAsync().catch((error) => {
+          console.warn("[Finora] Splash screen hide failed", error);
+        });
+      }}
+    >
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <AuthGate />
           <StatusBar style="auto" />
+          {!runtimeReady ? (
+            <View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#F8FAFC",
+              }}
+            >
+              <ActivityIndicator />
+              <Text style={{ marginTop: 12 }}>
+                {runtimeError ?? "Đang khởi tạo bộ nhớ trên thiết bị..."}
+              </Text>
+            </View>
+          ) : null}
         </QueryClientProvider>
       </trpc.Provider>
     </GestureHandlerRootView>
-  ) : (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <Text style={{ fontSize: 28, fontWeight: "700" }}>Finora</Text>
-      {runtimeError ? (
-        <Text style={{ marginTop: 12, textAlign: "center" }}>{runtimeError}</Text>
-      ) : (
-        <>
-          <ActivityIndicator style={{ marginTop: 20 }} />
-          <Text style={{ marginTop: 12, textAlign: "center" }}>
-            Đang khởi tạo bộ nhớ trên thiết bị...
-          </Text>
-        </>
-      )}
-    </View>
   );
 
   const shouldOverrideSafeArea = Platform.OS === "web";
