@@ -99,10 +99,15 @@ export function WalletView() {
                 <Text className="mt-1 text-xs text-[#64748B]">Dữ liệu được lưu trực tiếp trên thiết bị.</Text>
               </View>
               <View className="flex-row gap-2">
-                <Pressable onPress={() => router.push("/transaction/transfer")} className="rounded-full bg-[#EFF6FF] px-4 py-2">
-                  <Text className="text-xs font-bold text-[#0F2A5F]">Chuyển tiền</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Chuyển tiền"
+                  onPress={() => router.push("/transaction/transfer")}
+                  className="rounded-full bg-[#22B8A8] px-4 py-2.5"
+                >
+                  <Text className="text-xs font-bold text-white">Chuyển tiền</Text>
                 </Pressable>
-                <Pressable onPress={() => router.push("/transaction/new")} className="rounded-full bg-[#E6FFFA] px-4 py-2">
+                <Pressable onPress={() => router.push("/transaction/new")} className="rounded-full bg-[#E6FFFA] px-4 py-2.5">
                   <Text className="text-xs font-bold text-[#047857]">+ Giao dịch</Text>
                 </Pressable>
               </View>
