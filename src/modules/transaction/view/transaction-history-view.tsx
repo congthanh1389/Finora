@@ -85,9 +85,14 @@ export function TransactionHistoryView() {
               <Text className="text-[24px] font-bold text-[#0F2A5F]">Tất cả giao dịch</Text>
               <Text className="mt-1 text-xs text-[#64748B]">Các giao dịch đã lưu trên thiết bị</Text>
             </View>
-            <Pressable onPress={() => router.push("/transaction/new")} className="rounded-full bg-[#22B8A8] px-4 py-2">
-              <Text className="text-xs font-bold text-white">+ Giao dịch</Text>
-            </Pressable>
+            <View className="flex-row gap-2">
+              <Pressable onPress={() => router.push("/transaction/transfer")} className="rounded-full bg-[#0F2A5F] px-4 py-2">
+                <Text className="text-xs font-bold text-white">Chuyển tiền</Text>
+              </Pressable>
+              <Pressable onPress={() => router.push("/transaction/new")} className="rounded-full bg-[#22B8A8] px-4 py-2">
+                <Text className="text-xs font-bold text-white">+ Giao dịch</Text>
+              </Pressable>
+            </View>
           </View>
 
           {isLoading ? (
@@ -112,8 +117,11 @@ export function TransactionHistoryView() {
           ) : (
             <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
               {transactions.map((transaction, index) => {
+                const isTransfer = transaction.type === "transfer";
                 const isIncome = transaction.type === "income";
                 const wallet = wallets.find((item) => item.id === transaction.walletId);
+                const sourceWallet = wallets.find((item) => item.id === transaction.sourceWalletId);
+                const destinationWallet = wallets.find((item) => item.id === transaction.destinationWalletId);
                 return (
                   <View key={transaction.id} className={"flex-row items-center py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
                     <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
