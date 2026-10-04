@@ -7,6 +7,8 @@ import { DeviceTransactionRepository } from "../repository/device-transaction.re
 import { TransactionService } from "../service/transaction.service";
 import type { TransactionSummary } from "../types/transaction.types";
 import type { WalletSummary } from "../../wallet/types/wallet.types";
+import { CategoryRepository } from "../../category/repository/category.repository";
+import type { Category } from "../../../../drizzle/schema";
 import { DeviceWalletRepository } from "../../wallet/repository/device-wallet.repository";
 import { WalletService } from "../../wallet/service/wallet.service";
 
@@ -15,6 +17,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
   const [amount, setAmount] = useState("");
   const [walletId, setWalletId] = useState<number | null>(null);
   const [category, setCategory] = useState(initialType === "income" ? "Lương" : "Ăn uống");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [note, setNote] = useState("");
   const [wallets, setWallets] = useState<WalletSummary[]>([]);
   const [transactions, setTransactions] = useState<TransactionSummary[]>([]);
@@ -25,12 +28,23 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
   const [user, setUser] = useState<User | null>(null);
 
   const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
+  const categoryRepository = useMemo(() => new CategoryRepository(), []);
   const walletService = useMemo(() => new WalletService(walletRepository), [walletRepository]);
   const transactionRepository = useMemo(() => new DeviceTransactionRepository(), []);
   const transactionService = useMemo(
     () => new TransactionService(transactionRepository),
     [transactionRepository],
   );
+
+
+  const loadCategories = useCallback(async (userId: number, transactionType: "income" | "expense") => {
+    const all = await categoryRepository.ensureDefaults(userId);
+    const matching = all.filter((item) => item.type === transactionType && item.isArchived === 0);
+    setCategories(matching);
+    if (!matching.some((item) => item.name === category)) {
+      setCategory(matching[0]?.name ?? (transactionType === "income" ? "Lương" : "Ăn uống"));
+    }
+  }, [categoryRepository, category]);
 
   const loadWallets = useCallback(async () => {
     try {
@@ -43,12 +57,13 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
         return;
       }
       setWallets(await walletService.listWallets(currentUser.id));
+      await loadCategories(currentUser.id, type);
     } catch (err) {
       setWalletsError(err instanceof Error ? err : new Error("Không thể tải danh sách ví."));
     } finally {
       setLoadingWallets(false);
     }
-  }, [walletService]);
+  }, [walletService, loadCategories, type]);
 
   useEffect(() => {
     void loadWallets();
@@ -86,6 +101,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
       }
 
       const currentWallets = await walletService.listWallets(currentUser.id);
+      await loadCategories(currentUser.id, transactionType);
       const selectedWalletId = walletId ?? currentWallets[0]?.id;
       if (!selectedWalletId) {
         throw new Error("Bạn cần thêm ví trước khi ghi giao dịch.");
@@ -99,6 +115,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
         type: transactionType,
         amount: parsedAmount,
         walletId: selectedWalletId,
+        categoryId: categories.find((item) => item.name === category)?.id ?? null,
         note: note.trim() || (transactionType === "income" ? category : null),
         occurredAt: new Date(),
       });
@@ -121,6 +138,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
     category,
     note,
     wallets,
+    categories,
     transactions,
     isLoadingWallets,
     walletsError,
