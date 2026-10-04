@@ -20,6 +20,8 @@ export type TransactionSummary = {
   amount: number;
   currency: string;
   walletId: number | null;
+  sourceWalletId: number | null;
+  destinationWalletId: number | null;
   categoryId: number | null;
   note: string | null;
   occurredAt: Date;
