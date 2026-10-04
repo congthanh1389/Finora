@@ -58,17 +58,28 @@ export async function clearUserInfo(): Promise<void> {
   }
 }
 
-export async function localGetAccount(): Promise<LocalAccount | null> {
+export async function localGetAccount(email?: string): Promise<LocalAccount | null> {
   try {
+    const normalizedEmail = email?.trim().toLowerCase();
+
     const current = await SecureStore.getItemAsync(LOCAL_ACCOUNT_KEY);
-    if (current) return JSON.parse(current) as LocalAccount;
+    if (current) {
+      const account = JSON.parse(current) as LocalAccount;
+      if (!normalizedEmail || account.email?.toLowerCase() === normalizedEmail) {
+        return account;
+      }
+    }
 
     for (const key of LEGACY_LOCAL_ACCOUNT_KEYS) {
       const legacy = await SecureStore.getItemAsync(key);
       if (!legacy) continue;
 
       const account = JSON.parse(legacy) as LocalAccount;
-      if (account.email && account.password) {
+      if (
+        account.email &&
+        account.password &&
+        (!normalizedEmail || account.email.toLowerCase() === normalizedEmail)
+      ) {
         await SecureStore.setItemAsync(LOCAL_ACCOUNT_KEY, JSON.stringify(account));
         return account;
       }
@@ -120,7 +131,7 @@ export async function localRegister(input: {
 }
 
 export async function localLogin(email: string, password: string): Promise<User> {
-  const account = await localGetAccount();
+  const account = await localGetAccount(email);
   if (
     !account ||
     account.email?.toLowerCase() !== email.trim().toLowerCase() ||
