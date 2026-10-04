@@ -6,7 +6,7 @@ import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
-import { Platform } from "react-native";
+import { ActivityIndicator, Platform, Text, View } from "react-native";
 import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
 import {
@@ -64,6 +64,8 @@ export default function RootLayout() {
 
   const [insets, setInsets] = useState<EdgeInsets>(initialInsets);
   const [frame, setFrame] = useState<Rect>(initialFrame);
+  const [runtimeReady, setRuntimeReady] = useState(false);
+  const [runtimeError, setRuntimeError] = useState<string | null>(null);
 
   useEffect(() => {
     void SplashScreen.hideAsync();
@@ -74,13 +76,23 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    let active = true;
     void initializeDeviceRuntime()
       .then((info) => {
+        if (!active) return;
         console.log("[Finora] Device runtime ready", info);
+        setRuntimeReady(true);
       })
       .catch((error) => {
+        if (!active) return;
+        const message =
+          error instanceof Error ? error.message : "Không thể khởi tạo bộ nhớ Finora.";
         console.error("[Finora] Device runtime initialization failed", error);
+        setRuntimeError(message);
       });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {
@@ -119,7 +131,7 @@ export default function RootLayout() {
     };
   }, [initialInsets, initialFrame]);
 
-  const content = (
+  const content = runtimeReady ? (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
@@ -128,6 +140,20 @@ export default function RootLayout() {
         </QueryClientProvider>
       </trpc.Provider>
     </GestureHandlerRootView>
+  ) : (
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <Text style={{ fontSize: 28, fontWeight: "700" }}>Finora</Text>
+      {runtimeError ? (
+        <Text style={{ marginTop: 12, textAlign: "center" }}>{runtimeError}</Text>
+      ) : (
+        <>
+          <ActivityIndicator style={{ marginTop: 20 }} />
+          <Text style={{ marginTop: 12, textAlign: "center" }}>
+            Đang khởi tạo bộ nhớ trên thiết bị...
+          </Text>
+        </>
+      )}
+    </View>
   );
 
   const shouldOverrideSafeArea = Platform.OS === "web";
