@@ -4,7 +4,7 @@ import Storage from "expo-sqlite/kv-store";
 
 import type { Wallet, Transaction } from "../../../drizzle/schema";
 
-const STORAGE_KEY = "finora.device.database.v1";
+const STORAGE_KEY = "finora.device.database.v2";
 const STORAGE_SCHEMA_KEY = "finora.device.database.schema";
 const CURRENT_SCHEMA_VERSION = 2;
 export const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
