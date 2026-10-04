@@ -1,7 +1,7 @@
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
+import { FinoraMockupIcon, type FinoraMockupIconName } from "@/components/ui/finora-mockup-icons";
 import { ScreenContainer } from "@/components/screen-container";
 import { useTransactionViewModel } from "../viewmodel/use-transaction-view-model";
 
