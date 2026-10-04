@@ -2,7 +2,7 @@ package space.manus.finora.t138610991084852
 
 import android.os.Build
 import android.os.Bundle
-import android.view.Window
+import android.view.WindowManager
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
