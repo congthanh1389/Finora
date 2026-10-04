@@ -174,7 +174,7 @@ export async function listDeviceCategories(
 }
 
 export async function ensureDefaultDeviceCategories(userId: number): Promise<Category[]> {
-  const defaults: Array<{ name: string; type: Category["type"]; icon: string }> = [
+  const defaults: { name: string; type: Category["type"]; icon: string }[] = [
     { name: "Ăn uống", type: "expense", icon: "cat_food" },
     { name: "Mua sắm", type: "expense", icon: "cat_shopping" },
     { name: "Khác", type: "expense", icon: "01_finance_wallet" },
