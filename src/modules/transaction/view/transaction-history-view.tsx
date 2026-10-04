@@ -25,8 +25,8 @@ function formatDate(value: Date) {
 
 export function TransactionHistoryView() {
   const router = useRouter();
-  const [transactions, setTransactions] = useState<TransactionSummary[]>([]);
-  const [wallets, setWallets] = useState<WalletSummary[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
