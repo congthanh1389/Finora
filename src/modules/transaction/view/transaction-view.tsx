@@ -69,7 +69,7 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3" contentContainerStyle={{ gap: 8 }}>
               {options.map((item) => (
                 <Pressable key={item.id} onPress={() => vm.setCategory(item.name)} className={`w-[92px] items-center rounded-2xl border p-3 ${vm.category === item.name ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0]"}`}>
-                  <FinoraMockupIcon name={item.icon || "01_finance_wallet"} size={34} />
+                  <FinoraMockupIcon name={(item.icon || "01_finance_wallet") as FinoraMockupIconName} size={34} />
                   <Text className="mt-2 text-center text-xs font-semibold text-[#334155]">{item.name}</Text>
                 </Pressable>
               ))}
