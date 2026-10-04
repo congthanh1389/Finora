@@ -1,150 +1,251 @@
 import { DeviceEventEmitter } from "react-native";
-import LegacyAsyncStorage from "@react-native-async-storage/async-storage";
-import Storage from "expo-sqlite/kv-store";
+import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 
 import type { Wallet, Transaction } from "../../../drizzle/schema";
 
-const STORAGE_KEY = "finora.device.database.v2";
-const STORAGE_SCHEMA_KEY = "finora.device.database.schema";
-const CURRENT_SCHEMA_VERSION = 2;
+const DATABASE_NAME = "finora.db";
+const CURRENT_SCHEMA_VERSION = 1;
+
 export const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
-type DeviceData = {
-  nextWalletId: number;
-  nextTransactionId: number;
-  wallets: Wallet[];
-  transactions: Transaction[];
-};
+let databasePromise: Promise<SQLiteDatabase> | null = null;
 
-const emptyData = (): DeviceData => ({
-  nextWalletId: 1,
-  nextTransactionId: 1,
-  wallets: [],
-  transactions: [],
-});
+async function getDatabase(): Promise<SQLiteDatabase> {
+  if (!databasePromise) {
+    databasePromise = openDatabaseAsync(DATABASE_NAME);
+  }
+  return databasePromise;
+}
 
-let initializationPromise: Promise<void> | null = null;
+async function migrateDatabase(db: SQLiteDatabase) {
+  await db.execAsync("PRAGMA foreign_keys = ON;");
 
-async function initializeStorage() {
-  if (!initializationPromise) {
-    initializationPromise = (async () => {
-      const schemaVersion = await Storage.getItem(STORAGE_SCHEMA_KEY);
+  const versionRow = await db.getFirstAsync<{ user_version: number }>("PRAGMA user_version;");
+  const version = versionRow?.user_version ?? 0;
 
-      if (schemaVersion === String(CURRENT_SCHEMA_VERSION)) return;
+  if (version < 1) {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS wallets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        currency TEXT NOT NULL DEFAULT 'VND',
+        opening_balance INTEGER NOT NULL DEFAULT 0,
+        allow_negative INTEGER NOT NULL DEFAULT 0,
+        is_archived INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
 
-      const currentData = await Storage.getItem(STORAGE_KEY);
-      const legacyData = await LegacyAsyncStorage.getItem(STORAGE_KEY);
+      CREATE TABLE IF NOT EXISTS transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        type TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        currency TEXT NOT NULL DEFAULT 'VND',
+        wallet_id INTEGER,
+        source_wallet_id INTEGER,
+        destination_wallet_id INTEGER,
+        category_id INTEGER,
+        note TEXT,
+        occurred_at TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (wallet_id) REFERENCES wallets(id) ON DELETE RESTRICT,
+        FOREIGN KEY (source_wallet_id) REFERENCES wallets(id) ON DELETE RESTRICT,
+        FOREIGN KEY (destination_wallet_id) REFERENCES wallets(id) ON DELETE RESTRICT
+      );
 
-      if (!currentData && legacyData) {
-        await Storage.setItem(STORAGE_KEY, legacyData);
-      }
+      CREATE INDEX IF NOT EXISTS idx_wallets_user_id ON wallets(user_id);
+      CREATE INDEX IF NOT EXISTS idx_transactions_user_id_occurred_at
+        ON transactions(user_id, occurred_at DESC);
 
-      await Storage.setItem(STORAGE_SCHEMA_KEY, String(CURRENT_SCHEMA_VERSION));
-    })();
+      PRAGMA user_version = 1;
+    `);
   }
 
-  await initializationPromise;
+  if (version > CURRENT_SCHEMA_VERSION) {
+    throw new Error("Finora database version is newer than this app.");
+  }
 }
 
 export async function initializeDeviceStorage() {
-  await initializeStorage();
+  const db = await getDatabase();
+  await migrateDatabase(db);
+}
+
+function walletFromRow(row: any): Wallet {
+  return {
+    id: Number(row.id),
+    userId: Number(row.user_id),
+    name: String(row.name),
+    type: row.type,
+    currency: String(row.currency),
+    openingBalance: Number(row.opening_balance),
+    allowNegative: Number(row.allow_negative),
+    isArchived: Number(row.is_archived),
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+}
+
+function transactionFromRow(row: any): Transaction {
+  return {
+    id: Number(row.id),
+    userId: Number(row.user_id),
+    type: row.type,
+    amount: Number(row.amount),
+    currency: String(row.currency),
+    walletId: row.wallet_id == null ? null : Number(row.wallet_id),
+    sourceWalletId: row.source_wallet_id == null ? null : Number(row.source_wallet_id),
+    destinationWalletId:
+      row.destination_wallet_id == null ? null : Number(row.destination_wallet_id),
+    categoryId: row.category_id == null ? null : Number(row.category_id),
+    note: row.note == null ? null : String(row.note),
+    occurredAt: new Date(row.occurred_at),
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
 }
 
 export async function listDeviceUserIds(): Promise<number[]> {
-  const data = await load();
-  return Array.from(new Set([
-    ...data.wallets.map((wallet) => wallet.userId),
-    ...data.transactions.map((transaction) => transaction.userId),
-  ])).filter((id) => Number.isInteger(id) && id > 0).sort((a, b) => a - b);
+  const db = await getDatabase();
+  await migrateDatabase(db);
+
+  const walletRows = await db.getAllAsync<{ user_id: number }>(
+    "SELECT DISTINCT user_id FROM wallets",
+  );
+  const transactionRows = await db.getAllAsync<{ user_id: number }>(
+    "SELECT DISTINCT user_id FROM transactions",
+  );
+
+  return Array.from(
+    new Set([
+      ...walletRows.map((row) => Number(row.user_id)),
+      ...transactionRows.map((row) => Number(row.user_id)),
+    ]),
+  )
+    .filter((id) => Number.isInteger(id) && id > 0)
+    .sort((a, b) => a - b);
 }
 
-async function load(): Promise<DeviceData> {
-  await initializeStorage();
+export async function listDeviceWallets(userId: number): Promise<Wallet[]> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
 
-  const raw = await Storage.getItem(STORAGE_KEY);
-  if (!raw) return emptyData();
+  const rows = await db.getAllAsync(
+    `SELECT * FROM wallets
+     WHERE user_id = ?
+     ORDER BY is_archived DESC, created_at DESC`,
+    userId,
+  );
 
-  try {
-    const parsed = JSON.parse(raw) as Partial<DeviceData>;
-    return {
-      nextWalletId: parsed.nextWalletId ?? 1,
-      nextTransactionId: parsed.nextTransactionId ?? 1,
-      wallets: (parsed.wallets ?? []).map((wallet) => ({
-        ...wallet,
-        createdAt: new Date(wallet.createdAt),
-        updatedAt: new Date(wallet.updatedAt),
-      })),
-      transactions: (parsed.transactions ?? []).map((transaction) => ({
-        ...transaction,
-        occurredAt: new Date(transaction.occurredAt),
-        createdAt: new Date(transaction.createdAt),
-        updatedAt: new Date(transaction.updatedAt),
-      })),
-    };
-  } catch {
-    return emptyData();
-  }
+  return rows.map(walletFromRow);
 }
 
-async function save(data: DeviceData) {
-  await initializeStorage();
-  await Storage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
+export async function getDeviceWallet(userId: number, walletId: number): Promise<Wallet | undefined> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
 
-export async function listDeviceWallets(userId: number) {
-  const data = await load();
-  return data.wallets
-    .filter((wallet) => wallet.userId === userId)
-    .sort((a, b) => b.isArchived - a.isArchived || b.createdAt.getTime() - a.createdAt.getTime());
-}
+  const row = await db.getFirstAsync(
+    "SELECT * FROM wallets WHERE user_id = ? AND id = ?",
+    userId,
+    walletId,
+  );
 
-export async function getDeviceWallet(userId: number, walletId: number) {
-  const data = await load();
-  return data.wallets.find((wallet) => wallet.userId === userId && wallet.id === walletId);
+  return row ? walletFromRow(row) : undefined;
 }
 
 export async function createDeviceWallet(
   input: Omit<Wallet, "id" | "createdAt" | "updatedAt">,
-) {
-  const data = await load();
+): Promise<Wallet> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+
   const now = new Date();
-  const wallet: Wallet = {
+  const result = await db.runAsync(
+    `INSERT INTO wallets
+      (user_id, name, type, currency, opening_balance, allow_negative, is_archived, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    input.userId,
+    input.name,
+    input.type,
+    input.currency,
+    input.openingBalance,
+    input.allowNegative,
+    input.isArchived,
+    now.toISOString(),
+    now.toISOString(),
+  );
+
+  return {
     ...input,
-    id: data.nextWalletId++,
+    id: result.lastInsertRowId,
     createdAt: now,
     updatedAt: now,
   };
-  data.wallets.push(wallet);
-  await save(data);
-  return wallet;
 }
 
-export async function listDeviceTransactions(userId: number) {
-  const data = await load();
-  return data.transactions
-    .filter((transaction) => transaction.userId === userId)
-    .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime());
+export async function listDeviceTransactions(userId: number): Promise<Transaction[]> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+
+  const rows = await db.getAllAsync(
+    `SELECT * FROM transactions
+     WHERE user_id = ?
+     ORDER BY occurred_at DESC`,
+    userId,
+  );
+
+  return rows.map(transactionFromRow);
 }
 
 export async function createDeviceTransaction(
   input: Omit<Transaction, "id" | "createdAt" | "updatedAt">,
-) {
-  const data = await load();
-  const wallet = data.wallets.find(
-    (item) => item.userId === input.userId && item.id === input.walletId,
-  );
-  if (!wallet) throw new Error("Wallet not found.");
+): Promise<Transaction> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+
+  if (input.walletId != null) {
+    const wallet = await db.getFirstAsync(
+      "SELECT id FROM wallets WHERE user_id = ? AND id = ?",
+      input.userId,
+      input.walletId,
+    );
+    if (!wallet) throw new Error("Wallet not found.");
+  }
 
   const now = new Date();
+  const occurredAt = input.occurredAt ?? now;
+
+  const result = await db.runAsync(
+    `INSERT INTO transactions
+      (user_id, type, amount, currency, wallet_id, source_wallet_id, destination_wallet_id,
+       category_id, note, occurred_at, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    input.userId,
+    input.type,
+    input.amount,
+    input.currency,
+    input.walletId,
+    input.sourceWalletId,
+    input.destinationWalletId,
+    input.categoryId,
+    input.note,
+    occurredAt.toISOString(),
+    now.toISOString(),
+    now.toISOString(),
+  );
+
   const transaction: Transaction = {
     ...input,
-    id: data.nextTransactionId++,
+    id: result.lastInsertRowId,
     createdAt: now,
     updatedAt: now,
-    occurredAt: input.occurredAt ?? now,
+    occurredAt,
   };
-  data.transactions.push(transaction);
-  await save(data);
+
   DeviceEventEmitter.emit(DEVICE_TRANSACTIONS_CHANGED_EVENT, transaction);
   return transaction;
 }
