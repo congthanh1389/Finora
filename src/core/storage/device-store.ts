@@ -50,6 +50,14 @@ export async function initializeDeviceStorage() {
   await initializeStorage();
 }
 
+export async function listDeviceUserIds(): Promise<number[]> {
+  const data = await load();
+  return Array.from(new Set([
+    ...data.wallets.map((wallet) => wallet.userId),
+    ...data.transactions.map((transaction) => transaction.userId),
+  ])).filter((id) => Number.isInteger(id) && id > 0).sort((a, b) => a - b);
+}
+
 async function load(): Promise<DeviceData> {
   await initializeStorage();
 
