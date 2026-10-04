@@ -16,6 +16,16 @@ const run = (command, args, env = {}) =>
       });
 
 console.log("[finora] Android build: local-first mode (no API server).");
+console.log("[finora] Regenerating Android native project from Expo config...");
+
+const prebuild = run("npx", ["expo", "prebuild", "--platform", "android", "--clean"]);
+
+const prebuildCode = await new Promise((resolve) => prebuild.once("exit", resolve));
+if (prebuildCode !== 0) {
+  process.exit(typeof prebuildCode === "number" ? prebuildCode : 1);
+}
+
+console.log("[finora] Native project regenerated. Building and installing Android app...");
 
 const expo = run("npx", ["expo", "run:android"]);
 
