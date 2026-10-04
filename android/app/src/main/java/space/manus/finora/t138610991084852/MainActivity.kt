@@ -1,9 +1,9 @@
 package space.manus.finora.t138610991084852
 
+import expo.modules.splashscreen.SplashScreenManager
+
 import android.os.Build
 import android.os.Bundle
-import android.view.WindowManager
-
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
@@ -14,7 +14,7 @@ import expo.modules.ReactActivityDelegateWrapper
 class MainActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     setTheme(R.style.AppTheme)
-    window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+    SplashScreenManager.registerOnActivity(this)
     super.onCreate(null)
   }
 
