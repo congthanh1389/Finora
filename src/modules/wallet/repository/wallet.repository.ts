@@ -1,13 +1,13 @@
 import type { IWalletRepository, NewWallet } from "../../../core/database/repository-contracts";
 import {
-  createLocalWallet,
-  getLocalWallet,
-  listLocalWallets,
-} from "../../../../server/local-store";
+  createDeviceWallet,
+  getDeviceWallet,
+  listDeviceWallets,
+} from "../../../core/storage/device-store";
 
 export class WalletRepository implements IWalletRepository {
   async create(input: NewWallet) {
-    return createLocalWallet({
+    return createDeviceWallet({
       ...input,
       currency: input.currency ?? "VND",
       openingBalance: input.openingBalance ?? 0,
@@ -17,10 +17,10 @@ export class WalletRepository implements IWalletRepository {
   }
 
   async findById(userId: number, walletId: number) {
-    return getLocalWallet(userId, walletId);
+    return getDeviceWallet(userId, walletId);
   }
 
   async listByUser(userId: number) {
-    return listLocalWallets(userId);
+    return listDeviceWallets(userId);
   }
 }
