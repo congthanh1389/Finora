@@ -45,24 +45,35 @@ export function useAuth(options?: UseAuthOptions) {
         return;
       }
 
-      // Native platform: use token-based auth
-      console.log("[useAuth] Native platform: checking for session token...");
+      // Native platform: validate the local account and its device session.
+      console.log("[useAuth] Native platform: validating local session...");
       const sessionToken = await Auth.getSessionToken();
-      if (!sessionToken) {
-        console.log("[useAuth] No session token, setting user to null");
+      const localAccount = await Auth.localGetAccount();
+      if (!sessionToken || !localAccount) {
+        console.log("[useAuth] Local session/account missing, setting user to null");
         setUser(null);
         return;
       }
 
-      // Use cached user info for native (token validates the session)
-      const cachedUser = await Auth.getUserInfo();
-      if (cachedUser) {
-        console.log("[useAuth] Using cached user info");
-        setUser(cachedUser);
-      } else {
-        console.log("[useAuth] No cached user, setting user to null");
+      const expectedToken = `local-session-${localAccount.id}`;
+      if (sessionToken !== expectedToken) {
+        console.log("[useAuth] Local session token is invalid, clearing session");
+        await Auth.removeSessionToken();
+        await Auth.clearUserInfo();
         setUser(null);
+        return;
       }
+
+      const user: Auth.User = {
+        id: localAccount.id,
+        openId: localAccount.openId,
+        name: localAccount.name,
+        email: localAccount.email,
+        loginMethod: localAccount.loginMethod,
+        lastSignedIn: new Date(localAccount.lastSignedIn),
+      };
+      await Auth.setUserInfo(user);
+      setUser(user);
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to fetch user");
       console.error("[useAuth] fetchUser error");
