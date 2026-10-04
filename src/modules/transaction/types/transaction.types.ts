@@ -4,9 +4,11 @@ export type TransactionType = Transaction["type"];
 
 export type CreateTransactionInput = {
   userId: number;
-  type: Exclude<TransactionType, "transfer">;
+  type: TransactionType;
   amount: number;
-  walletId: number;
+  walletId?: number | null;
+  sourceWalletId?: number | null;
+  destinationWalletId?: number | null;
   categoryId?: number | null;
   note?: string | null;
   occurredAt?: Date;
