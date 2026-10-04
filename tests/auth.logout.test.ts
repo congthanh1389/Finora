@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appRouter } from "../server/routers";
 import type { TrpcContext } from "../server/_core/context";
-import { getSessionCookieName } from "../server/_core/cookies";
 
 type CookieCall = {
   name: string;
@@ -18,6 +16,7 @@ function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] }
     openId: "sample-user",
     email: "sample@example.com",
     name: "Sample User",
+    passwordHash: null,
     loginMethod: "manus",
     role: "user",
     createdAt: new Date(),
@@ -45,6 +44,10 @@ function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] }
 describe.skip("auth.logout", () => {
   it("clears the session cookie and reports success", async () => {
     const { ctx, clearedCookies } = createAuthContext();
+    const [{ appRouter }, { getSessionCookieName }] = await Promise.all([
+      import("../server/routers"),
+      import("../server/_core/cookies"),
+    ]);
     const caller = appRouter.createCaller(ctx);
 
     const result = await caller.auth.logout();

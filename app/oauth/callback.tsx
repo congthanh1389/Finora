@@ -1,10 +1,9 @@
 import { ThemedView } from "@/components/themed-view";
-import * as Api from "@/lib/_core/api";
 import * as Auth from "@/lib/_core/auth";
 import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Text } from "react-native";
+import { ActivityIndicator, Platform, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function OAuthCallback() {
@@ -23,6 +22,11 @@ export default function OAuthCallback() {
     const handleCallback = async () => {
       console.log("[OAuth] Callback handler triggered");
       try {
+        if (Platform.OS !== "web") {
+          setStatus("error");
+          setErrorMessage("Android uses local Finora authentication. Please return to the login screen.");
+          return;
+        }
         // Check for sessionToken in params first (web OAuth callback from server redirect)
         if (params.sessionToken) {
           console.log("[OAuth] Session token found in params (web callback)");
@@ -153,9 +157,10 @@ export default function OAuthCallback() {
           return;
         }
 
-        // Exchange code for session token
+        // Web-only OAuth exchange.
+        const { exchangeOAuthCode } = await import("@/lib/_core/api");
         console.log("[OAuth] Exchanging code for session token...");
-        const result = await Api.exchangeOAuthCode(code, state);
+        const result = await exchangeOAuthCode(code, state);
         console.log("[OAuth] Exchange completed");
 
         if (result.sessionToken) {

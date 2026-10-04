@@ -45,24 +45,35 @@ export function useAuth(options?: UseAuthOptions) {
         return;
       }
 
-      // Native platform: use token-based auth
-      console.log("[useAuth] Native platform: checking for session token...");
+      // Native platform: validate the local account and its device session.
+      console.log("[useAuth] Native platform: validating local session...");
       const sessionToken = await Auth.getSessionToken();
-      if (!sessionToken) {
-        console.log("[useAuth] No session token, setting user to null");
+      const localAccount = await Auth.localGetAccount();
+      if (!sessionToken || !localAccount) {
+        console.log("[useAuth] Local session/account missing, setting user to null");
         setUser(null);
         return;
       }
 
-      // Use cached user info for native (token validates the session)
-      const cachedUser = await Auth.getUserInfo();
-      if (cachedUser) {
-        console.log("[useAuth] Using cached user info");
-        setUser(cachedUser);
-      } else {
-        console.log("[useAuth] No cached user, setting user to null");
+      const expectedToken = `local-session-${localAccount.id}`;
+      if (sessionToken !== expectedToken) {
+        console.log("[useAuth] Local session token is invalid, clearing session");
+        await Auth.removeSessionToken();
+        await Auth.clearUserInfo();
         setUser(null);
+        return;
       }
+
+      const user: Auth.User = {
+        id: localAccount.id,
+        openId: localAccount.openId,
+        name: localAccount.name,
+        email: localAccount.email,
+        loginMethod: localAccount.loginMethod,
+        lastSignedIn: new Date(localAccount.lastSignedIn),
+      };
+      await Auth.setUserInfo(user);
+      setUser(user);
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to fetch user");
       console.error("[useAuth] fetchUser error");
@@ -76,13 +87,18 @@ export function useAuth(options?: UseAuthOptions) {
 
   const logout = useCallback(async () => {
     try {
-      await Api.logout();
+      if (Platform.OS === "web") {
+        await Api.logout();
+      } else {
+        await Auth.localLogout();
+      }
     } catch {
-      console.error("[Auth] Logout API call failed");
-      // Continue with logout even if API call fails
+      console.error("[Auth] Logout failed");
     } finally {
-      await Auth.removeSessionToken();
-      await Auth.clearUserInfo();
+      if (Platform.OS !== "web") {
+        await Auth.removeSessionToken();
+        await Auth.clearUserInfo();
+      }
       setUser(null);
       setError(null);
     }
@@ -98,17 +114,9 @@ export function useAuth(options?: UseAuthOptions) {
         console.log("[useAuth] Web: fetching user from API...");
         fetchUser();
       } else {
-        // Native: check for cached user info first for faster initial load
-        Auth.getUserInfo().then((cachedUser) => {
-          if (cachedUser) {
-            console.log("[useAuth] Native: setting cached user immediately");
-            setUser(cachedUser);
-            setLoading(false);
-          } else {
-            // No cached user, check session token
-            fetchUser();
-          }
-        });
+        // Native: always validate the local session token before restoring the cached user.
+        // This prevents a stale cached user from bypassing the login screen.
+        fetchUser();
       }
     } else {
       console.log("[useAuth] autoFetch disabled, setting loading to false");

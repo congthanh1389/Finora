@@ -27,28 +27,21 @@ export const OWNER_OPEN_ID = env.ownerId;
 export const OWNER_NAME = env.ownerName;
 export const API_BASE_URL = env.apiBaseUrl;
 
-/**
- * Get the API base URL, deriving from current hostname if not set.
- * Metro runs on 8081, API server runs on 3000.
- * URL pattern: https://PORT-sandboxid.region.domain
- */
+/** Get the API base URL supplied by the current development/build environment. */
 export function getApiBaseUrl(): string {
-  // If API_BASE_URL is set, use it
   if (API_BASE_URL) {
     return API_BASE_URL.replace(/\/$/, "");
   }
 
-  // On web, derive from current hostname by replacing port 8081 with 3000
-  if (ReactNative.Platform.OS === "web" && typeof window !== "undefined" && window.location) {
-    const { protocol, hostname } = window.location;
-    // Pattern: 8081-sandboxid.region.domain -> 3000-sandboxid.region.domain
-    const apiHostname = hostname.replace(/^8081-/, "3000-");
-    if (apiHostname !== hostname) {
-      return `${protocol}//${apiHostname}`;
-    }
+  if (ReactNative.Platform.OS === "android") {
+    return "";
   }
 
-  // Fallback to empty (will use relative URL)
+  if (ReactNative.Platform.OS === "web" && typeof window !== "undefined" && window.location) {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}`;
+  }
+
   return "";
 }
 
@@ -111,7 +104,6 @@ export async function startOAuthLogin(): Promise<string | null> {
   const loginUrl = getLoginUrl();
 
   if (ReactNative.Platform.OS === "web") {
-    // On web, just redirect
     if (typeof window !== "undefined") {
       window.location.href = loginUrl;
     }
@@ -121,7 +113,6 @@ export async function startOAuthLogin(): Promise<string | null> {
   const supported = await Linking.canOpenURL(loginUrl);
   if (!supported) {
     console.warn("[OAuth] Cannot open login URL: URL scheme not supported");
-    // 可考虑抛出错误或返回错误状态，让调用方处理
     return null;
   }
 
@@ -129,9 +120,7 @@ export async function startOAuthLogin(): Promise<string | null> {
     await Linking.openURL(loginUrl);
   } catch {
     console.error("[OAuth] Failed to open login URL");
-    // 可考虑抛出错误让调用方处理
   }
 
-  // The OAuth callback will reopen the app via deep link.
   return null;
 }
