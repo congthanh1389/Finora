@@ -125,8 +125,8 @@ export async function clearUserInfo(): Promise<void> {
 }
 
 
-const LOCAL_ACCOUNT_KEY = "finora.local.account.v1";
-const LOCAL_SESSION_KEY = "finora.local.session.v1";
+const LOCAL_ACCOUNT_KEY = "finora.local.account.v2";
+const LOCAL_SESSION_KEY = "finora.local.session.v2";
 
 type LocalAccount = User & { password: string };
 
