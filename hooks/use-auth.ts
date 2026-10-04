@@ -103,17 +103,9 @@ export function useAuth(options?: UseAuthOptions) {
         console.log("[useAuth] Web: fetching user from API...");
         fetchUser();
       } else {
-        // Native: check for cached user info first for faster initial load
-        Auth.getUserInfo().then((cachedUser) => {
-          if (cachedUser) {
-            console.log("[useAuth] Native: setting cached user immediately");
-            setUser(cachedUser);
-            setLoading(false);
-          } else {
-            // No cached user, check session token
-            fetchUser();
-          }
-        });
+        // Native: always validate the local session token before restoring the cached user.
+        // This prevents a stale cached user from bypassing the login screen.
+        fetchUser();
       }
     } else {
       console.log("[useAuth] autoFetch disabled, setting loading to false");
