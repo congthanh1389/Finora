@@ -1,4 +1,3 @@
-import * as Api from "@/lib/_core/api";
 import * as Auth from "@/lib/_core/auth";
 import { ThemedView } from "@/components/themed-view";
 import { useRouter } from "expo-router";
@@ -20,19 +19,11 @@ export default function LoginScreen() {
       setLoading(true);
       setError(null);
 
-      const result = registerMode
-        ? await Api.localRegister(email, name, password)
-        : await Api.localLogin(email, password);
-
-      await Auth.setSessionToken(result.app_session_id);
-      await Auth.setUserInfo({
-        id: result.user.id,
-        openId: result.user.openId,
-        name: result.user.name,
-        email: result.user.email,
-        loginMethod: result.user.loginMethod,
-        lastSignedIn: new Date(result.user.lastSignedIn),
-      });
+      if (registerMode) {
+        await Auth.localRegister({ email, name, password });
+      } else {
+        await Auth.localLogin(email, password);
+      }
 
       router.replace("/(tabs)");
     } catch (err) {
