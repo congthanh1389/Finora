@@ -2,7 +2,7 @@ name: Finora CI
 
 on:
   push:
-    branches: [main, feature/database-repository, feature/wallet-ui]
+    branches: [main, feature/database-repository, feature/wallet-ui, feature/local-financial-transaction-integrity]
   pull_request:
     branches: [main]
 
