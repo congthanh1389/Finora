@@ -176,8 +176,8 @@ export async function localLogin(email: string, password: string): Promise<User>
   if (!account || account.email?.toLowerCase() !== email.trim().toLowerCase() || account.password !== password) {
     throw new Error("Email hoặc mật khẩu không đúng.");
   }
-  const user: User = { ...account, password: undefined as never, lastSignedIn: new Date() };
-  delete (user as Partial<LocalAccount>).password;
+  const { password: _storedPassword, ...storedUser } = account;
+  const user: User = { ...storedUser, lastSignedIn: new Date() };
   await SecureStore.setItemAsync(LOCAL_ACCOUNT_KEY, JSON.stringify({ ...account, lastSignedIn: user.lastSignedIn }));
   await setSessionToken(`local-session-${user.id}`);
   await setUserInfo(user);
