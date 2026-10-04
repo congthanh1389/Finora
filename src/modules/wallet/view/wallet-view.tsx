@@ -86,7 +86,7 @@ export function WalletView() {
                     <Text className="text-base font-bold text-[#0F2A5F]">{wallet.name}</Text>
                     <Text className="mt-1 text-xs text-[#64748B]">{wallet.type} · {wallet.currency}</Text>
                   </View>
-                  <Text className="text-base font-bold text-[#0F172A]">{formatVnd(wallet.openingBalance)}</Text>
+                  <Text className="text-base font-bold text-[#0F172A]">{formatVnd(wallet.balance)}</Text>
                 </View>
               ))}
             </View>
