@@ -84,7 +84,7 @@ export function useWalletViewModel() {
   }, [loadData]);
 
   const totalBalance = useMemo(
-    () => wallets.reduce((sum, wallet) => sum + wallet.openingBalance, 0),
+    () => wallets.reduce((sum, wallet) => sum + wallet.balance, 0),
     [wallets],
   );
 
