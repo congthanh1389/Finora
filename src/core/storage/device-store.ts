@@ -124,7 +124,7 @@ async function migrateDatabase(db: SQLiteDatabase) {
 }
 
 export async function initializeDeviceStorage() {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
 }
 
@@ -180,7 +180,7 @@ export async function listDeviceCategories(
   userId: number,
   type?: Category["type"],
 ): Promise<Category[]> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
 
   const rows = type
@@ -204,7 +204,7 @@ export async function listDeviceCategories(
 export async function createDeviceCategory(
   input: Omit<Category, "id" | "createdAt" | "updatedAt">,
 ): Promise<Category> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
 
   const now = new Date();
@@ -235,7 +235,7 @@ export async function updateDeviceCategory(
   categoryId: number,
   name: string,
 ): Promise<Category> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
   const current = await db.getFirstAsync(
     "SELECT * FROM categories WHERE user_id = ? AND id = ?",
@@ -264,7 +264,7 @@ export async function updateDeviceCategory(
 }
 
 export async function archiveDeviceCategory(userId: number, categoryId: number): Promise<Category> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
   const current = await db.getFirstAsync(
     "SELECT * FROM categories WHERE user_id = ? AND id = ?",
@@ -289,7 +289,7 @@ export async function archiveDeviceCategory(userId: number, categoryId: number):
 }
 
 export async function deleteDeviceUserData(userId: number): Promise<void> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
   await db.withTransactionAsync(async () => {
     await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId);
@@ -310,7 +310,7 @@ export type DeviceLocalAccount = {
 };
 
 export async function listDeviceLocalAccounts(): Promise<DeviceLocalAccount[]> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
   const rows = await db.getAllAsync<any>(
     "SELECT id, open_id, name, email, login_method, last_signed_in FROM local_accounts ORDER BY last_signed_in DESC, id ASC",
@@ -326,7 +326,7 @@ export async function listDeviceLocalAccounts(): Promise<DeviceLocalAccount[]> {
 }
 
 export async function upsertDeviceLocalAccount(account: DeviceLocalAccount): Promise<void> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
   await db.runAsync(
     `INSERT INTO local_accounts (id, open_id, name, email, login_method, last_signed_in)
@@ -347,13 +347,13 @@ export async function upsertDeviceLocalAccount(account: DeviceLocalAccount): Pro
 }
 
 export async function deleteDeviceLocalAccount(userId: number): Promise<void> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
   await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId);
 }
 
 export async function listDeviceUserIds(): Promise<number[]> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
   const walletRows = await db.getAllAsync<{ user_id: number }>(
     "SELECT DISTINCT user_id FROM wallets",
@@ -377,7 +377,7 @@ export async function listDeviceUserIds(): Promise<number[]> {
 }
 
 export async function listDeviceWallets(userId: number): Promise<Wallet[]> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
 
   const rows = await db.getAllAsync(
@@ -391,7 +391,7 @@ export async function listDeviceWallets(userId: number): Promise<Wallet[]> {
 }
 
 export async function getDeviceWallet(userId: number, walletId: number): Promise<Wallet | undefined> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
 
   const row = await db.getFirstAsync(
@@ -414,7 +414,7 @@ export async function getDeviceWalletWithBalance(
 export async function createDeviceWallet(
   input: Omit<Wallet, "id" | "createdAt" | "updatedAt">,
 ): Promise<Wallet> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
 
   const now = new Date();
@@ -446,7 +446,7 @@ export async function updateDeviceWallet(
   walletId: number,
   input: Partial<Pick<Wallet, "name" | "type" | "allowNegative">>,
 ): Promise<Wallet> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
 
   const current = await getDeviceWallet(userId, walletId);
@@ -465,7 +465,7 @@ export async function updateDeviceWallet(
 }
 
 export async function archiveDeviceWallet(userId: number, walletId: number): Promise<Wallet> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
   const current = await getDeviceWallet(userId, walletId);
   if (!current) throw new Error("Wallet not found.");
@@ -476,7 +476,7 @@ export async function archiveDeviceWallet(userId: number, walletId: number): Pro
   return (await getDeviceWallet(userId, walletId))!;
 }
 export async function listDeviceTransactions(userId: number): Promise<Transaction[]> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
 
   const rows = await db.getAllAsync(
@@ -490,7 +490,7 @@ export async function listDeviceTransactions(userId: number): Promise<Transactio
 }
 
 export async function getDeviceWalletBalance(userId: number, walletId: number): Promise<number> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
 
   const row = await db.getFirstAsync<{ opening_balance: number; balance_effect: number | null }>(
@@ -524,7 +524,7 @@ export async function getDeviceWalletBalance(userId: number, walletId: number): 
 }
 
 export async function listDeviceWalletsWithBalances(userId: number): Promise<(Wallet & { balance: number })[]> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
 
   const rows = await db.getAllAsync(
@@ -585,7 +585,7 @@ function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | 
 export async function createDeviceTransaction(
   input: Omit<Transaction, "id" | "createdAt" | "updatedAt">,
 ): Promise<Transaction> {
-  const db = await getDatabase();
+  const db = await getDeviceDatabase();
   await migrateDatabase(db);
   validateTransactionInput(input);
 
