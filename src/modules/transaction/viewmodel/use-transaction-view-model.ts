@@ -102,7 +102,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
       }
 
       const currentWallets = await walletService.listWallets(currentUser.id);
-      await loadCategories(currentUser.id, transactionType);
+      const matchingCategories = await loadCategories(currentUser.id, transactionType);
       const selectedWalletId = walletId ?? currentWallets[0]?.id;
       if (!selectedWalletId) {
         throw new Error("Bạn cần thêm ví trước khi ghi giao dịch.");
@@ -116,7 +116,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
         type: transactionType,
         amount: parsedAmount,
         walletId: selectedWalletId,
-        categoryId: categories.find((item) => item.name === category)?.id ?? null,
+        categoryId: matchingCategories.find((item) => item.name === category)?.id ?? null,
         note: note.trim() || (transactionType === "income" ? category : null),
         occurredAt: new Date(),
       });
