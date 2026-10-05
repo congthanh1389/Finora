@@ -28,11 +28,7 @@ const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
 function AuthGate() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading, refresh } = useAuth();
-
-  useEffect(() => {
-    refresh();
-  }, [pathname, refresh]);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     if (loading) return;
