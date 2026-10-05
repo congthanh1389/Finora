@@ -121,7 +121,7 @@ async function readDeviceAccounts(): Promise<LocalAccount[]> {
   for (const secure of secureAccounts) {
     const index = merged.findIndex((account) => account.id === secure.id);
     if (index >= 0) {
-      merged[index] = secure;
+      merged[index] = { ...secure, email: secure.email ?? "" };
       continue;
     }
 
@@ -136,7 +136,7 @@ async function readDeviceAccounts(): Promise<LocalAccount[]> {
       });
     } catch {}
 
-    merged.push(secure);
+    merged.push({ ...secure, email: secure.email ?? "" });
   }
 
   if (merged.length > 0) return merged;
@@ -268,3 +268,4 @@ export async function localDeleteAccount(userId: number): Promise<void> {
   const token = await getSessionToken();
   if (token === `local-session-${userId}`) await localLogout();
 }
+
