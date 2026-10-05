@@ -18,11 +18,7 @@ const LOCAL_ACCOUNTS_KEY = "finora.local.accounts.v3";
 const LEGACY_LOCAL_ACCOUNT_KEYS = ["finora.local.account.v1", "finora.local.account"];
 
 export async function getSessionToken(): Promise<string | null> {
-  try {
-    return await SecureStore.getItemAsync(SESSION_TOKEN_KEY);
-  } catch {
-    return null;
-  }
+  try { return await SecureStore.getItemAsync(SESSION_TOKEN_KEY); } catch { return null; }
 }
 
 export async function setSessionToken(token: string): Promise<void> {
@@ -30,9 +26,7 @@ export async function setSessionToken(token: string): Promise<void> {
 }
 
 export async function removeSessionToken(): Promise<void> {
-  try {
-    await SecureStore.deleteItemAsync(SESSION_TOKEN_KEY);
-  } catch {}
+  try { await SecureStore.deleteItemAsync(SESSION_TOKEN_KEY); } catch {}
 }
 
 export async function getUserInfo(): Promise<User | null> {
@@ -40,9 +34,7 @@ export async function getUserInfo(): Promise<User | null> {
     const info = await SecureStore.getItemAsync(USER_INFO_KEY);
     if (!info) return null;
     return JSON.parse(info) as User;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 export async function setUserInfo(user: User): Promise<void> {
@@ -50,12 +42,10 @@ export async function setUserInfo(user: User): Promise<void> {
 }
 
 export async function clearUserInfo(): Promise<void> {
-  try {
-    await SecureStore.deleteItemAsync(USER_INFO_KEY);
-  } catch {}
+  try { await SecureStore.deleteItemAsync(USER_INFO_KEY); } catch {}
 }
 
-async function readAccounts(): Promise<LocalAccount[]> {
+async function readSecureAccounts(): Promise<LocalAccount[]> {
   try {
     const stored = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_KEY);
     if (stored) {
@@ -85,30 +75,75 @@ async function readAccounts(): Promise<LocalAccount[]> {
   return [];
 }
 
-async function writeAccounts(accounts: LocalAccount[]): Promise<void> {
+async function writeSecureAccounts(accounts: LocalAccount[]): Promise<void> {
   await SecureStore.setItemAsync(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
-  try {
-    await SecureStore.deleteItemAsync(LOCAL_ACCOUNT_KEY);
-  } catch {}
+  try { await SecureStore.deleteItemAsync(LOCAL_ACCOUNT_KEY); } catch {}
   for (const key of LEGACY_LOCAL_ACCOUNT_KEYS) {
-    try {
-      await SecureStore.deleteItemAsync(key);
-    } catch {}
+    try { await SecureStore.deleteItemAsync(key); } catch {}
   }
 }
 
+async function syncAccountsToDeviceStore(accounts: LocalAccount[]): Promise<void> {
+  const { upsertDeviceLocalAccount } = await import("@/src/core/storage/device-store");
+  for (const account of accounts) {
+    await upsertDeviceLocalAccount({
+      id: account.id,
+      openId: account.openId,
+      name: account.name,
+      email: account.email ?? "",
+      loginMethod: account.loginMethod,
+      lastSignedIn: new Date(account.lastSignedIn),
+    });
+  }
+}
+
+async function readDeviceAccounts(): Promise<LocalAccount[]> {
+  const { listDeviceLocalAccounts, upsertDeviceLocalAccount } =
+    await import("@/src/core/storage/device-store");
+  const stored = await listDeviceLocalAccounts();
+  if (stored.length > 0) {
+    const secureAccounts = await readSecureAccounts();
+    return stored.map((account) => {
+      const secure = secureAccounts.find((item) => item.id === account.id);
+      return {
+        ...account,
+        password: secure?.password ?? "",
+      };
+    });
+  }
+
+  const secureAccounts = await readSecureAccounts();
+  if (secureAccounts.length > 0) {
+    await syncAccountsToDeviceStore(secureAccounts);
+    return secureAccounts;
+  }
+
+  const currentUser = await getUserInfo();
+  if (currentUser?.email) {
+    await upsertDeviceLocalAccount({
+      id: currentUser.id,
+      openId: currentUser.openId,
+      name: currentUser.name,
+      email: currentUser.email,
+      loginMethod: currentUser.loginMethod,
+      lastSignedIn: new Date(currentUser.lastSignedIn),
+    });
+    return [{ ...currentUser, password: "" }];
+  }
+
+  return [];
+}
+
 export async function localGetAccounts(): Promise<LocalAccount[]> {
-  return readAccounts();
+  return readDeviceAccounts();
 }
 
 export async function localGetAccount(email?: string): Promise<LocalAccount | null> {
-  const accounts = await readAccounts();
+  const accounts = await readDeviceAccounts();
   const normalizedEmail = email?.trim().toLowerCase();
 
   if (normalizedEmail) {
-    return (
-      accounts.find((account) => account.email?.trim().toLowerCase() === normalizedEmail) ?? null
-    );
+    return accounts.find((account) => account.email?.trim().toLowerCase() === normalizedEmail) ?? null;
   }
 
   const token = await getSessionToken();
@@ -138,13 +173,8 @@ export async function localRegister(input: {
   if (!name) throw new Error("Vui lòng nhập họ và tên.");
   if (input.password.length < 6) throw new Error("Mật khẩu phải có ít nhất 6 ký tự.");
 
-  const accounts = await readAccounts();
-  const storedEmailExists = accounts.some(
-    (account) => account.email?.trim().toLowerCase() === email,
-  );
-  const currentUser = await getUserInfo();
-  const currentEmailExists = currentUser?.email?.trim().toLowerCase() === email;
-  if (storedEmailExists || currentEmailExists) {
+  const accounts = await readDeviceAccounts();
+  if (accounts.some((account) => account.email?.trim().toLowerCase() === email)) {
     throw new Error("Email này đã được đăng ký trên thiết bị.");
   }
 
@@ -164,7 +194,9 @@ export async function localRegister(input: {
     lastSignedIn: now,
   };
 
-  await writeAccounts([...accounts, { ...user, password: input.password }]);
+  const nextAccounts = [...accounts, { ...user, password: input.password }];
+  await writeSecureAccounts(nextAccounts);
+  await syncAccountsToDeviceStore(nextAccounts);
   await setSessionToken(`local-session-${id}`);
   await setUserInfo(user);
   return user;
@@ -172,22 +204,21 @@ export async function localRegister(input: {
 
 export async function localLogin(email: string, password: string): Promise<User> {
   const normalizedEmail = email.trim().toLowerCase();
-  const accounts = await readAccounts();
-  const account = accounts.find(
+  const secureAccounts = await readSecureAccounts();
+  const account = secureAccounts.find(
     (item) =>
-      item.email?.trim().toLowerCase() === normalizedEmail && item.password === password,
+      item.email?.trim().toLowerCase() === normalizedEmail &&
+      item.password === password,
   );
 
-  if (!account) {
-    throw new Error("Email hoặc mật khẩu không đúng.");
-  }
+  if (!account) throw new Error("Email hoặc mật khẩu không đúng.");
 
   const user: User = { ...account, lastSignedIn: new Date() };
-  await writeAccounts(
-    accounts.map((item) =>
-      item.id === account.id ? { ...item, lastSignedIn: user.lastSignedIn } : item,
-    ),
+  const nextAccounts = secureAccounts.map((item) =>
+    item.id === account.id ? { ...item, lastSignedIn: user.lastSignedIn } : item,
   );
+  await writeSecureAccounts(nextAccounts);
+  await syncAccountsToDeviceStore(nextAccounts);
   await setSessionToken(`local-session-${user.id}`);
   await setUserInfo(user);
   return user;
@@ -199,16 +230,14 @@ export async function localLogout(): Promise<void> {
 }
 
 export async function localDeleteAccount(userId: number): Promise<void> {
-  const accounts = await readAccounts();
+  const accounts = await readDeviceAccounts();
   const exists = accounts.some((account) => account.id === userId);
   if (!exists) return;
 
   const { deleteDeviceUserData } = await import("@/src/core/storage/device-store");
   await deleteDeviceUserData(userId);
-  await writeAccounts(accounts.filter((account) => account.id !== userId));
+  await writeSecureAccounts(accounts.filter((account) => account.id !== userId));
 
   const token = await getSessionToken();
-  if (token === `local-session-${userId}`) {
-    await localLogout();
-  }
+  if (token === `local-session-${userId}`) await localLogout();
 }
