@@ -28,4 +28,28 @@ export class CategoryService {
       isArchived: 0,
     });
   }
+
+  async updateCategory(userId: number, categoryId: number, name: string) {
+    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id");
+
+    const trimmed = name.trim();
+    if (!trimmed) throw new Error("Tên danh mục không được để trống.");
+
+    const current = await this.repository.listByUser(userId);
+    const category = current.find((item) => item.id === categoryId && item.isArchived === 0);
+    if (!category) throw new Error("Không tìm thấy danh mục.");
+
+    if (current.some((item) => item.id !== categoryId && item.isArchived === 0 && item.type === category.type && item.name.toLowerCase() === trimmed.toLowerCase())) {
+      throw new Error("Danh mục này đã tồn tại.");
+    }
+
+    return this.repository.update(userId, categoryId, trimmed);
+  }
+
+  async archiveCategory(userId: number, categoryId: number) {
+    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id");
+    return this.repository.archive(userId, categoryId);
+  }
 }
