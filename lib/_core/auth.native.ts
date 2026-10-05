@@ -50,7 +50,7 @@ async function readSecureAccounts(): Promise<LocalAccount[]> {
     const stored = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_KEY);
     if (stored) {
       const accounts = JSON.parse(stored) as LocalAccount[];
-      if (Array.isArray(accounts) && accounts.length > 0) return accounts;
+      if (Array.isArray(accounts)) return accounts;
     }
 
     const single = await SecureStore.getItemAsync(LOCAL_ACCOUNT_KEY);
@@ -100,8 +100,15 @@ async function syncAccountsToDeviceStore(accounts: LocalAccount[]): Promise<void
 async function readDeviceAccounts(): Promise<LocalAccount[]> {
   const { listDeviceLocalAccounts, upsertDeviceLocalAccount } =
     await import("@/src/core/storage/device-store");
-  const stored = await listDeviceLocalAccounts();
+
   const secureAccounts = await readSecureAccounts();
+  let stored: Awaited<ReturnType<typeof listDeviceLocalAccounts>> = [];
+
+  try {
+    stored = await listDeviceLocalAccounts();
+  } catch {
+    // SecureStore remains the source of truth for local login accounts.
+  }
 
   const merged = stored.map((account) => {
     const secure = secureAccounts.find((item) => item.id === account.id);
@@ -112,17 +119,23 @@ async function readDeviceAccounts(): Promise<LocalAccount[]> {
   });
 
   for (const secure of secureAccounts) {
-    const exists = stored.some((account) => account.id === secure.id);
-    if (exists) continue;
+    const index = merged.findIndex((account) => account.id === secure.id);
+    if (index >= 0) {
+      merged[index] = secure;
+      continue;
+    }
 
-    await upsertDeviceLocalAccount({
-      id: secure.id,
-      openId: secure.openId,
-      name: secure.name,
-      email: secure.email ?? "",
-      loginMethod: secure.loginMethod,
-      lastSignedIn: new Date(secure.lastSignedIn),
-    });
+    try {
+      await upsertDeviceLocalAccount({
+        id: secure.id,
+        openId: secure.openId,
+        name: secure.name,
+        email: secure.email ?? "",
+        loginMethod: secure.loginMethod,
+        lastSignedIn: new Date(secure.lastSignedIn),
+      });
+    } catch {}
+
     merged.push(secure);
   }
 
@@ -130,14 +143,16 @@ async function readDeviceAccounts(): Promise<LocalAccount[]> {
 
   const currentUser = await getUserInfo();
   if (currentUser?.email) {
-    await upsertDeviceLocalAccount({
-      id: currentUser.id,
-      openId: currentUser.openId,
-      name: currentUser.name,
-      email: currentUser.email,
-      loginMethod: currentUser.loginMethod,
-      lastSignedIn: new Date(currentUser.lastSignedIn),
-    });
+    try {
+      await upsertDeviceLocalAccount({
+        id: currentUser.id,
+        openId: currentUser.openId,
+        name: currentUser.name,
+        email: currentUser.email,
+        loginMethod: currentUser.loginMethod,
+        lastSignedIn: new Date(currentUser.lastSignedIn),
+      });
+    } catch {}
     return [{ ...currentUser, password: "" }];
   }
 
