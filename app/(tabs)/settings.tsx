@@ -1,5 +1,5 @@
 import { Link, useRouter } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,6 +9,7 @@ export default function SettingsScreen() {
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
+    Alert.alert("TEST", "Nút Đăng xuất đã nhận lệnh");
     await logout();
     router.replace("/login" as never);
   };
