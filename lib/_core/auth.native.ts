@@ -236,7 +236,9 @@ export async function localDeleteAccount(userId: number): Promise<void> {
 
   const { deleteDeviceUserData } = await import("@/src/core/storage/device-store");
   await deleteDeviceUserData(userId);
-  await writeSecureAccounts(accounts.filter((account) => account.id !== userId));
+
+  const secureAccounts = await readSecureAccounts();
+  await writeSecureAccounts(secureAccounts.filter((account) => account.id !== userId));
 
   const token = await getSessionToken();
   if (token === `local-session-${userId}`) await localLogout();
