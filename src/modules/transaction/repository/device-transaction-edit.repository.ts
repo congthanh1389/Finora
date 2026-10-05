@@ -46,6 +46,32 @@ export async function getDeviceTransaction(
   return row ? transactionFromRow(row) : undefined;
 }
 
+export async function deleteDeviceTransaction(userId: number, transactionId: number): Promise<Transaction> {
+  const db = await openDatabaseAsync(DATABASE_NAME);
+  let deleted: Transaction | undefined;
+
+  await db.withTransactionAsync(async () => {
+    const row = await db.getFirstAsync(
+      "SELECT * FROM transactions WHERE user_id = ? AND id = ?",
+      userId,
+      transactionId,
+    );
+    if (!row) throw new Error("Không tìm thấy giao dịch.");
+
+    const current = transactionFromRow(row);
+    deleted = current;
+
+    await db.runAsync(
+      "DELETE FROM transactions WHERE user_id = ? AND id = ?",
+      userId,
+      transactionId,
+    );
+  });
+
+  DeviceEventEmitter.emit(DEVICE_TRANSACTIONS_CHANGED_EVENT, deleted!);
+  return deleted!;
+}
+
 export async function updateDeviceTransaction(input: UpdateTransactionInput): Promise<Transaction> {
   const db = await openDatabaseAsync(DATABASE_NAME);
   let updated: Transaction | undefined;
