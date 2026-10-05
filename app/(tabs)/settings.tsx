@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { user, logout } = useAuth({ autoFetch: false });
+  const { user, logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
