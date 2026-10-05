@@ -23,8 +23,6 @@ export class TransactionEditService {
       note: input.note?.trim() || null,
     });
   }
-}
-
 
   async deleteTransaction(userId: number, transactionId: number): Promise<Transaction> {
     if (!Number.isInteger(userId) || userId <= 0) throw new Error("Người dùng không hợp lệ.");
@@ -32,3 +30,4 @@ export class TransactionEditService {
 
     return deleteDeviceTransaction(userId, transactionId);
   }
+}
