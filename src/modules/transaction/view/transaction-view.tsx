@@ -56,7 +56,8 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
             </Pressable>
             <Pressable
               onPress={() => router.push("/transaction/transfer")}
-              style={{ backgroundColor: "#0F2A5F" }}
+              style={{ backgroundColor: "#0F2A5F", opacity: 1, elevation: 2 }}
+              android_ripple={{ color: "#1E3A8A" }}
               className="flex-1 rounded-xl px-2 py-3"
             >
               <Text className="text-center text-sm font-bold text-white">Chuyển tiền</Text>
