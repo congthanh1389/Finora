@@ -41,11 +41,9 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
     const all = await categoryRepository.listByUser(userId, transactionType);
     const matching = all.filter((item) => item.type === transactionType && item.isArchived === 0);
     setCategories(matching);
-    if (!matching.some((item) => item.name === category)) {
-      setCategory("");
-    }
+    setCategory((current) => matching.some((item) => item.name === current) ? current : "");
     return matching;
-  }, [categoryRepository, category]);
+  }, [categoryRepository]);
 
   const loadWallets = useCallback(async () => {
     try {
@@ -58,24 +56,29 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
         return;
       }
       setWallets(await walletService.listWallets(currentUser.id));
-      await loadCategories(currentUser.id, type);
     } catch (err) {
       setWalletsError(err instanceof Error ? err : new Error("Không thể tải danh sách ví."));
     } finally {
       setLoadingWallets(false);
     }
-  }, [walletService, loadCategories, type]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadWallets();
-  }, [loadWallets]);
+  }, [walletService]);
 
   useFocusEffect(
     useCallback(() => {
       void loadWallets();
     }, [loadWallets]),
   );
+
+  useEffect(() => {
+    let active = true;
+    void Auth.getUserInfo().then((currentUser) => {
+      if (!active || !currentUser) return;
+      void loadCategories(currentUser.id, type);
+    });
+    return () => {
+      active = false;
+    };
+  }, [loadCategories, type]);
 
   function resetForm() {
     setType(initialType);
