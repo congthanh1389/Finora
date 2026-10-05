@@ -10,6 +10,7 @@ import { TransactionService } from "../../transaction/service/transaction.servic
 import type { TransactionSummary } from "../../transaction/types/transaction.types";
 import { DeviceWalletRepository } from "../repository/device-wallet.repository";
 import { WalletService } from "../service/wallet.service";
+import { CategoryRepository } from "../../category/repository/category.repository";
 import type { WalletType, WalletSummary } from "../types/wallet.types";
 
 export function useWalletViewModel() {
@@ -19,6 +20,7 @@ export function useWalletViewModel() {
   const [openingBalance, setOpeningBalance] = useState("");
   const [wallets, setWallets] = useState<WalletSummary[]>([]);
   const [transactions, setTransactions] = useState<TransactionSummary[]>([]);
+  const [categories, setCategories] = useState<Awaited<ReturnType<CategoryRepository["listByUser"]>>>([]);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setLoading] = useState(true);
   const [isLoadingTransactions, setLoadingTransactions] = useState(true);
@@ -38,6 +40,7 @@ export function useWalletViewModel() {
     () => new TransactionService(transactionRepository),
     [transactionRepository],
   );
+  const categoryRepository = useMemo(() => new CategoryRepository(), []);
 
   const loadData = useCallback(async () => {
     try {
@@ -52,19 +55,21 @@ export function useWalletViewModel() {
         return;
       }
 
-      const [walletList, transactionList] = await Promise.all([
+      const [walletList, transactionList, categoryList] = await Promise.all([
         service.listWallets(currentUser.id),
         transactionService.listTransactions(currentUser.id),
+        categoryRepository.listByUser(currentUser.id),
       ]);
       setWallets(walletList);
       setTransactions(transactionList);
+      setCategories(categoryList);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to load local data"));
     } finally {
       setLoading(false);
       setLoadingTransactions(false);
     }
-  }, [service, transactionService]);
+  }, [service, transactionService, categoryRepository]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -176,6 +181,7 @@ export function useWalletViewModel() {
     activeWallets,
     archivedWallets,
     transactions,
+    categories,
     totalBalance,
     isLoading,
     isLoadingTransactions,
