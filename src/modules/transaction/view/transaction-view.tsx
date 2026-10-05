@@ -43,26 +43,67 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
           </View>
 
           <View className="flex-row rounded-2xl bg-[#E2E8F0] p-1">
-            <Pressable onPress={() => { vm.setType("expense"); vm.setCategory(""); router.setParams({ type: "expense" }); }} style={{ backgroundColor: !isTransfer && !isIncome ? "#22B8A8" : "transparent" }} className="flex-1 rounded-xl px-2 py-3">
+            <Pressable onPress={() => { vm.setType("expense"); vm.setCategory(""); router.setParams({ type: "expense" }); }} style={{ backgroundColor: !isTransfer && !isIncome ? "#22B8A8" : "transparent" }}
+              className="flex-1 rounded-xl px-2 py-3"
+            >
               <Text className={`text-center text-sm font-bold ${!isTransfer && !isIncome ? "text-white" : "text-[#64748B]"}`}>Chi tiêu</Text>
             </Pressable>
-            <Pressable onPress={() => { vm.setType("income"); vm.setCategory(""); router.setParams({ type: "income" }); }} style={{ backgroundColor: !isTransfer && isIncome ? "#22B8A8" : "transparent" }} className="flex-1 rounded-xl px-2 py-3">
+            <Pressable onPress={() => { vm.setType("income"); vm.setCategory(""); router.setParams({ type: "income" }); }} style={{ backgroundColor: !isTransfer && isIncome ? "#22B8A8" : "transparent" }}
+              className="flex-1 rounded-xl px-2 py-3"
+            >
               <Text className={`text-center text-sm font-bold ${!isTransfer && isIncome ? "text-white" : "text-[#64748B]"}`}>Thu nhập</Text>
             </Pressable>
-            <Pressable onPress={() => router.setParams({ type: "transfer" })} style={{ backgroundColor: isTransfer ? "#22B8A8" : "transparent" }} className="flex-1 rounded-xl px-2 py-3">
+            <Pressable onPress={() => router.setParams({ type: "transfer" })} style={{ backgroundColor: isTransfer ? "#22B8A8" : "transparent" }}
+              className="flex-1 rounded-xl px-2 py-3"
+            >
               <Text className={`text-center text-sm font-bold ${isTransfer ? "text-white" : "text-[#64748B]"}`}>Chuyển tiền</Text>
             </Pressable>
           </View>
 
           {isTransfer ? (
-            <>
-              <View className="items-center rounded-3xl bg-white p-6">
-                <Text className="text-sm font-medium text-[#64748B]">Số tiền chuyển</Text>
-                <View className="mt-2 flex-row items-center">
-                  <TextInput value={formatAmount(transferVm.amount)} onChangeText={transferVm.setAmount} placeholder="0" placeholderTextColor="#CBD5E1" keyboardType="numeric" textAlign="right" className="max-w-[280px] text-[38px] font-bold text-[#0F2A5F]" />
-                  <Text className="ml-2 text-xl font-bold text-[#64748B]">₫</Text>
-                </View>
+            <View className="items-center rounded-3xl bg-white p-6">
+              <Text className="text-sm font-medium text-[#64748B]">Số tiền chuyển</Text>
+              <View className="mt-2 flex-row items-center">
+                <TextInput value={formatAmount(transferVm.amount)} onChangeText={transferVm.setAmount} placeholder="0" placeholderTextColor="#CBD5E1" keyboardType="numeric" textAlign="right" className="max-w-[280px] text-[38px] font-bold text-[#0F2A5F]" />
+                <Text className="ml-2 text-xl font-bold text-[#64748B]">₫</Text>
               </View>
+            </View>
+          ) : (
+            <View className={`items-center rounded-3xl p-6 ${isIncome ? "bg-[#ECFDF5]" : "bg-white"}`}>
+              <Te          {!isTransfer ? (
+            <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5">
+              <Text className="text-base font-bold text-[#0F2A5F]">{isIncome ? "Nguồn thu nhập" : "Danh mục chi tiêu"}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3" contentContainerStyle={{ gap: 8 }}>
+                {options.map((item) => (
+                  <Pressable key={item.id} onPress={() => vm.setCategory(item.name)} className={`w-[92px] items-center rounded-2xl border p-3 ${vm.category === item.name ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0]"}`}>
+                    <FinoraMockupIcon name={(item.icon || "01_finance_wallet") as FinoraMockupIconName} size={34} />
+                    <Text className="mt-2 text-center text-xs font-semibold text-[#334155]">{item.name}</Text>
+                  </Pressable>
+                ))}
+                {options.length === 0 ? <View className="w-full py-3"><Text className="text-sm text-[#64748B]">Chưa có mục nào. Hãy tạo mục trong Cài đặt → Danh mục.</Text></View> : null}
+              </ScrollView>
+            </View>
+          ) : null}
+
+          <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5">
+            <Text className="text-base font-bold text-[#0F2A5F]">{isIncome ? "Nguồn thu nhập" : "Danh mục chi tiêu"}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3" contentContainerStyle={{ gap: 8 }}>
+              {options.map((item) => (
+                <Pressable key={item.id} onPress={() => vm.setCategory(item.name)} className={`w-[92px] items-center rounded-2xl border p-3 ${vm.category === item.name ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0]"}`}>
+                  <FinoraMockupIcon name={(item.icon || "01_finance_wallet") as FinoraMockupIconName} size={34} />
+                  <Text className="mt-2 text-center text-xs font-semibold text-[#334155]">{item.name}</Text>
+                </Pressable>
+              ))}
+              {options.length === 0 ? (
+                <View className="w-full py-3">
+                  <Text className="text-sm text-[#64748B]">Chưa có mục nào. Hãy tạo mục trong Cài đặt → Danh mục.</Text>
+                </View>
+              ) : null}
+            </ScrollView>
+          </View>
+
+          {isTransfer ? (
+            <>
               <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5">
                 <Text className="text-base font-bold text-[#0F2A5F]">Ví nguồn</Text>
                 {transferVm.isLoading ? <ActivityIndicator className="mt-4" /> : <View className="mt-3 gap-2">{transferVm.wallets.map((wallet) => (
@@ -83,10 +124,17 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
               </View>
             </>
           ) : (
-            <>
-            </>
+            <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5">
+              <Text className="text-base font-bold text-[#0F2A5F]">{isIncome ? "Ví nhận tiền" : "Ví"}</Text>
+              {vm.isLoadingWallets ? <ActivityIndicator className="mt-4" /> : vm.wallets.length === 0 ? <Text className="mt-3 text-sm text-[#64748B]">Bạn cần thêm ví trước khi ghi giao dịch.</Text> : <View className="mt-3 gap-2">{vm.wallets.map((wallet) => (
+                <Pressable key={wallet.id} onPress={() => vm.setWalletId(wallet.id)} className={`flex-row items-center rounded-2xl border p-3 ${(vm.walletId ?? vm.wallets[0]?.id) === wallet.id ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0]"}`}>
+                  <FinoraMockupIcon name="01_finance_wallet" size={34} />
+                  <View className="ml-3 flex-1"><Text className="font-bold text-[#0F2A5F]">{wallet.name}</Text><Text className="mt-0.5 text-xs text-[#64748B]">{wallet.currency}</Text></View>
+                  <Text className="text-sm font-bold text-[#0F172A]">Số dư: {new Intl.NumberFormat("vi-VN").format(wallet.balance)} ₫</Text>
+                </Pressable>
+              ))}</View>}
+            </View>
           )}
-          
           {isTransfer && transferVm.error ? <Text className="text-sm text-[#DC2626]">{transferVm.error.message}</Text> : null}
           {!isTransfer && vm.createError ? <Text className="text-sm text-[#DC2626]">{vm.createError.message}</Text> : null}
 
