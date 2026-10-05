@@ -43,16 +43,22 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
             <Pressable
               onPress={() => { vm.setType("expense"); vm.setCategory(""); }}
               style={{ backgroundColor: !isIncome ? "#22B8A8" : "transparent" }}
-              className="flex-1 rounded-xl px-4 py-3"
+              className="flex-1 rounded-xl px-2 py-3"
             >
-              <Text className={`text-center font-bold ${!isIncome ? "text-white" : "text-[#64748B]"}`}>Chi tiêu</Text>
+              <Text className={`text-center text-sm font-bold ${!isIncome ? "text-white" : "text-[#64748B]"}`}>Chi tiêu</Text>
             </Pressable>
             <Pressable
               onPress={() => { vm.setType("income"); vm.setCategory(""); }}
               style={{ backgroundColor: isIncome ? "#059669" : "transparent" }}
-              className="flex-1 rounded-xl px-4 py-3"
+              className="flex-1 rounded-xl px-2 py-3"
             >
-              <Text className={`text-center font-bold ${isIncome ? "text-white" : "text-[#64748B]"}`}>Thu nhập</Text>
+              <Text className={`text-center text-sm font-bold ${isIncome ? "text-white" : "text-[#64748B]"}`}>Thu nhập</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push("/transaction/transfer")}
+              className="flex-1 rounded-xl px-2 py-3"
+            >
+              <Text className="text-center text-sm font-bold text-[#64748B]">Chuyển tiền</Text>
             </Pressable>
           </View>
 
