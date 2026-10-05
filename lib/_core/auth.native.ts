@@ -101,22 +101,32 @@ async function readDeviceAccounts(): Promise<LocalAccount[]> {
   const { listDeviceLocalAccounts, upsertDeviceLocalAccount } =
     await import("@/src/core/storage/device-store");
   const stored = await listDeviceLocalAccounts();
-  if (stored.length > 0) {
-    const secureAccounts = await readSecureAccounts();
-    return stored.map((account) => {
-      const secure = secureAccounts.find((item) => item.id === account.id);
-      return {
-        ...account,
-        password: secure?.password ?? "",
-      };
+  const secureAccounts = await readSecureAccounts();
+
+  const merged = stored.map((account) => {
+    const secure = secureAccounts.find((item) => item.id === account.id);
+    return {
+      ...account,
+      password: secure?.password ?? "",
+    };
+  });
+
+  for (const secure of secureAccounts) {
+    const exists = stored.some((account) => account.id === secure.id);
+    if (exists) continue;
+
+    await upsertDeviceLocalAccount({
+      id: secure.id,
+      openId: secure.openId,
+      name: secure.name,
+      email: secure.email ?? "",
+      loginMethod: secure.loginMethod,
+      lastSignedIn: new Date(secure.lastSignedIn),
     });
+    merged.push(secure);
   }
 
-  const secureAccounts = await readSecureAccounts();
-  if (secureAccounts.length > 0) {
-    await syncAccountsToDeviceStore(secureAccounts);
-    return secureAccounts;
-  }
+  if (merged.length > 0) return merged;
 
   const currentUser = await getUserInfo();
   if (currentUser?.email) {
