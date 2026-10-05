@@ -38,6 +38,19 @@ function createRepository(): IWalletRepository {
     async listByUser(userId) {
       return rows.filter((row) => row.userId === userId);
     },
+    async update(userId, walletId, input) {
+      const row = rows.find((item) => item.userId === userId && item.id === walletId);
+      if (!row) throw new Error("Wallet not found.");
+      Object.assign(row, input, { updatedAt: new Date() });
+      return row;
+    },
+    async archive(userId, walletId) {
+      const row = rows.find((item) => item.userId === userId && item.id === walletId);
+      if (!row) throw new Error("Wallet not found.");
+      row.isArchived = 1;
+      row.updatedAt = new Date();
+      return row;
+    },
   };
 }
 
@@ -79,6 +92,29 @@ describe("WalletService", () => {
     await expect(
       service.createWallet({ userId: 1, name: "Ví", type: "cash", currency: "VN" }),
     ).rejects.toThrow("Currency must be a 3-letter code");
+  });
+
+  it("updates a wallet without changing its opening balance", async () => {
+    const service = new WalletService(createRepository());
+    const created = await service.createWallet({ userId: 1, name: "Ví cũ", type: "cash", openingBalance: 500000 });
+    const updated = await service.updateWallet(1, created.id, {
+      name: "Ví mới",
+      type: "bank",
+      allowNegative: true,
+    });
+    expect(updated).toMatchObject({
+      name: "Ví mới",
+      type: "bank",
+      openingBalance: 500000,
+      allowNegative: true,
+    });
+  });
+
+  it("archives a wallet", async () => {
+    const service = new WalletService(createRepository());
+    const created = await service.createWallet({ userId: 1, name: "Ví cần lưu trữ", type: "cash" });
+    const archived = await service.archiveWallet(1, created.id);
+    expect(archived.isArchived).toBe(true);
   });
 
   it("lists wallets through the repository", async () => {
