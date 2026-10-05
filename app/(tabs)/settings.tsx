@@ -1,5 +1,5 @@
 import { Link, useRouter } from "expo-router";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,7 +9,6 @@ export default function SettingsScreen() {
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
-    Alert.alert("TEST", "Nút Đăng xuất đã nhận lệnh");
     await logout();
     router.replace("/login" as never);
   };
@@ -31,12 +30,20 @@ export default function SettingsScreen() {
           </Pressable>
         </Link>
 
-        <Pressable
+        <TouchableOpacity
           onPress={handleLogout}
-          className="mt-3 h-12 items-center justify-center rounded-2xl bg-[#DC2626] active:opacity-80"
+          activeOpacity={0.8}
+          style={{
+            marginTop: 12,
+            height: 48,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 16,
+            backgroundColor: "#DC2626",
+          }}
         >
-          <Text className="text-base font-bold text-white">Đăng xuất</Text>
-        </Pressable>
+          <Text style={{ fontSize: 16, fontWeight: "700", color: "#FFFFFF" }}>Đăng xuất</Text>
+        </TouchableOpacity>
       </View>
     </ScreenContainer>
   );
