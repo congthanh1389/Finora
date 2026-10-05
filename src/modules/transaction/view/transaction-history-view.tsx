@@ -7,11 +7,25 @@ import { ScreenContainer } from "@/components/screen-container";
 import * as Auth from "@/lib/_core/auth";
 import { DeviceTransactionRepository } from "../repository/device-transaction.repository";
 import { DeviceWalletRepository } from "../../wallet/repository/device-wallet.repository";
+import { CategoryRepository } from "../../category/repository/category.repository";
+import type { WalletType } from "../../wallet/types/wallet.types";
 import type { Transaction, Wallet } from "../../../../drizzle/schema";
 
 function formatVnd(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value) + " ₫";
 }
+
+const walletTypeLabels: Record<WalletType, string> = {
+  cash: "Tiền mặt",
+  bank: "Ngân hàng",
+  ewallet: "Ví điện tử",
+  credit_card: "Thẻ tín dụng",
+  savings: "Tiết kiệm",
+  investment: "Đầu tư",
+  other_asset: "Tài sản khác",
+  receivable: "Khoản phải thu",
+  payable: "Khoản phải trả",
+};
 
 function formatDate(value: Date) {
   return new Intl.DateTimeFormat("vi-VN", {
@@ -27,11 +41,13 @@ export function TransactionHistoryView() {
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [categories, setCategories] = useState<Awaited<ReturnType<CategoryRepository["listByUser"]>>>([]);
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   const transactionRepository = useMemo(() => new DeviceTransactionRepository(), []);
   const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
+  const categoryRepository = useMemo(() => new CategoryRepository(), []);
 
   useEffect(() => {
     let active = true;
@@ -45,18 +61,21 @@ export function TransactionHistoryView() {
           if (active) {
             setTransactions([]);
             setWallets([]);
+            setCategories([]);
           }
           return;
         }
 
-        const [transactionData, walletData] = await Promise.all([
+        const [transactionData, walletData, categoryData] = await Promise.all([
           transactionRepository.list(user.id),
           walletRepository.listByUser(user.id),
+          categoryRepository.listByUser(user.id),
         ]);
 
         if (active) {
           setTransactions(transactionData);
           setWallets(walletData);
+          setCategories(categoryData);
         }
       } catch (err) {
         if (active) {
@@ -71,7 +90,7 @@ export function TransactionHistoryView() {
     return () => {
       active = false;
     };
-  }, [transactionRepository, walletRepository]);
+  }, [transactionRepository, walletRepository, categoryRepository]);
 
   return (
     <ScreenContainer className="bg-[#F8FAFC]">
@@ -122,6 +141,7 @@ export function TransactionHistoryView() {
                 const wallet = wallets.find((item) => item.id === transaction.walletId);
                 const sourceWallet = wallets.find((item) => item.id === transaction.sourceWalletId);
                 const destinationWallet = wallets.find((item) => item.id === transaction.destinationWalletId);
+                const category = categories.find((item) => item.id === transaction.categoryId);
                 return (
                   <View key={transaction.id} className={"flex-row items-center py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
                     <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isTransfer ? "bg-[#EFF6FF]" : isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
@@ -129,11 +149,14 @@ export function TransactionHistoryView() {
                     </View>
                     <View className="ml-3 flex-1">
                       <Text className="font-semibold text-[#0F2A5F]">
-                        {transaction.note || (isTransfer ? "Chuyển tiền" : isIncome ? "Khoản thu" : "Khoản chi")}
+                        {isTransfer ? (transaction.note || "Chuyển tiền") : (category?.name || (isIncome ? "Khoản thu" : "Khoản chi"))}
                       </Text>
                       <Text className="mt-1 text-xs text-[#64748B]">
-                        {isTransfer ? (sourceWallet?.name || "Ví nguồn") + " → " + (destinationWallet?.name || "Ví nhận") : (wallet?.name || "Ví")} · {formatDate(transaction.occurredAt)}
+                        {isTransfer
+                          ? (sourceWallet?.name || "Ví nguồn") + " → " + (destinationWallet?.name || "Ví nhận")
+                          : (wallet?.name || "Ví") + " · " + (wallet ? walletTypeLabels[wallet.type] : "Không rõ loại ví")}
                       </Text>
+                      <Text className="mt-1 text-[11px] text-[#94A3B8]">{formatDate(transaction.occurredAt)}</Text>
                     </View>
                     <Text className={"text-sm font-bold " + (isTransfer ? "text-[#0F2A5F]" : isIncome ? "text-[#059669]" : "text-[#E11D48]")}>
                       {isTransfer ? "" : isIncome ? "+" : "−"}{formatVnd(transaction.amount)}
