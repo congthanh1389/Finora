@@ -144,7 +144,7 @@ export async function updateDeviceTransaction(input: UpdateTransactionInput): Pr
   return updated!;
 }
 
-async function getBalance(db: Awaited<ReturnType<typeof openDatabaseAsync>>, userId: number, walletId: number) {
+async function getBalance(db: Awaited<ReturnType<typeof getDeviceDatabase>>, userId: number, walletId: number) {
   const row = await db.getFirstAsync<{ opening_balance: number; balance_effect: number | null }>(
     `SELECT w.opening_balance,
        COALESCE(SUM(CASE
