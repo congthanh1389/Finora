@@ -41,14 +41,14 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
 
           <View className="flex-row rounded-2xl bg-[#E2E8F0] p-1">
             <Pressable
-              onPress={() => { vm.setType("expense"); vm.setCategory("Ăn uống"); }}
+              onPress={() => { vm.setType("expense"); vm.setCategory(""); }}
               style={{ backgroundColor: !isIncome ? "#22B8A8" : "transparent" }}
               className="flex-1 rounded-xl px-4 py-3"
             >
               <Text className={`text-center font-bold ${!isIncome ? "text-white" : "text-[#64748B]"}`}>Chi tiêu</Text>
             </Pressable>
             <Pressable
-              onPress={() => { vm.setType("income"); vm.setCategory("Lương"); }}
+              onPress={() => { vm.setType("income"); vm.setCategory(""); }}
               style={{ backgroundColor: isIncome ? "#059669" : "transparent" }}
               className="flex-1 rounded-xl px-4 py-3"
             >
@@ -73,6 +73,11 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
                   <Text className="mt-2 text-center text-xs font-semibold text-[#334155]">{item.name}</Text>
                 </Pressable>
               ))}
+              {options.length === 0 ? (
+                <View className="w-full py-3">
+                  <Text className="text-sm text-[#64748B]">Chưa có mục nào. Hãy tạo mục trong Cài đặt → Danh mục.</Text>
+                </View>
+              ) : null}
             </ScrollView>
           </View>
 
