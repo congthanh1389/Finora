@@ -5,10 +5,24 @@ import { useFocusEffect, useRouter } from "expo-router";
 import * as Auth from "@/lib/_core/auth";
 import { DeviceTransactionRepository } from "@/src/modules/transaction/repository/device-transaction.repository";
 import { DeviceWalletRepository } from "@/src/modules/wallet/repository/device-wallet.repository";
+import { CategoryRepository } from "@/src/modules/category/repository/category.repository";
+import type { WalletType } from "@/src/modules/wallet/types/wallet.types";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
 import { ScreenContainer } from "@/components/screen-container";
+
+const walletTypeLabels: Record<WalletType, string> = {
+  cash: "Tiền mặt",
+  bank: "Ngân hàng",
+  ewallet: "Ví điện tử",
+  credit_card: "Thẻ tín dụng",
+  savings: "Tiết kiệm",
+  investment: "Đầu tư",
+  other_asset: "Tài sản khác",
+  receivable: "Khoản phải thu",
+  payable: "Khoản phải trả",
+};
 
 const quickActions = [
   { icon: "01_finance_wallet", label: "Ví của tôi", box: "bg-[#EFF6FF]" },
@@ -83,12 +97,23 @@ export default function HomeScreen() {
       if (!user) return setRecentTransactions([]);
       const tr = new DeviceTransactionRepository();
       const wr = new DeviceWalletRepository();
-      const [transactions, wallets] = await Promise.all([tr.list(user.id), wr.listByUser(user.id)]);
-      const walletMap = new Map(wallets.map((wallet) => [wallet.id, wallet.name]));
-      setRecentTransactions(transactions.slice(0, 3).map((transaction) => ({
-        ...transaction,
-        walletName: transaction.walletId == null ? "Ví" : walletMap.get(transaction.walletId) ?? "Ví",
-      })));
+      const cr = new CategoryRepository();
+      const [transactions, wallets, categories] = await Promise.all([
+        tr.list(user.id),
+        wr.listByUser(user.id),
+        cr.listByUser(user.id),
+      ]);
+      const walletMap = new Map(wallets.map((wallet) => [wallet.id, wallet]));
+      const categoryMap = new Map(categories.map((category) => [category.id, category.name]));
+      setRecentTransactions(transactions.slice(0, 3).map((transaction) => {
+        const wallet = transaction.walletId == null ? undefined : walletMap.get(transaction.walletId);
+        return {
+          ...transaction,
+          walletName: wallet?.name ?? "Ví",
+          walletType: wallet ? walletTypeLabels[wallet.type] : "Không rõ loại ví",
+          categoryName: transaction.categoryId == null ? undefined : categoryMap.get(transaction.categoryId),
+        };
+      }));
     } catch {
       setRecentTransactions([]);
     }
@@ -135,7 +160,7 @@ export default function HomeScreen() {
             <View className="mt-4 gap-3">
               {recentTransactions.length === 0 ? <Text className="py-4 text-sm text-[#64748B]">Chưa có giao dịch nào.</Text> : recentTransactions.map((transaction) => {
                 const isIncome = transaction.type === "income";
-                return <View key={transaction.id} className="flex-row items-center"><View className={"h-10 w-10 items-center justify-center rounded-full " + (isIncome ? "bg-[#DCFCE7]" : "bg-[#FFE4E6]")}><Text className={"text-lg font-bold " + (isIncome ? "text-[#16A34A]" : "text-[#E11D48]")}>{isIncome ? "↓" : "↑"}</Text></View><View className="ml-3 flex-1"><Text className="text-sm font-semibold text-[#334155]">{transaction.note || (isIncome ? "Thu nhập" : "Chi tiêu")}</Text><Text className="mt-1 text-xs text-[#64748B]">{transaction.walletName}</Text></View><View className="items-end">
+                return <View key={transaction.id} className="flex-row items-center"><View className={"h-10 w-10 items-center justify-center rounded-full " + (isIncome ? "bg-[#DCFCE7]" : "bg-[#FFE4E6]")}><Text className={"text-lg font-bold " + (isIncome ? "text-[#16A34A]" : "text-[#E11D48]")}>{isIncome ? "↓" : "↑"}</Text></View><View className="ml-3 flex-1"><Text className="text-sm font-semibold text-[#334155]">{transaction.categoryName || (isIncome ? "Thu nhập" : "Chi tiêu")}</Text><Text className="mt-1 text-xs text-[#64748B]">{transaction.walletName} · {transaction.walletType}</Text></View><View className="items-end">
                 <Text className={"text-sm font-bold " + (isIncome ? "text-[#047857]" : "text-[#E11D48]")}>{isIncome ? "+" : "−"}{new Intl.NumberFormat("vi-VN").format(transaction.amount)} ₫</Text>
                 <Text className="mt-1 text-[10px] text-[#64748B]">
                   {new Date(transaction.occurredAt).toLocaleString("vi-VN", {
