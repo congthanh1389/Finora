@@ -87,7 +87,7 @@ export function TransactionEditView() {
         categoryId,
         note,
       });
-      router.back();
+      router.replace("/transaction");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể lưu thay đổi.");
     } finally {
