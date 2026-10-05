@@ -230,6 +230,64 @@ export async function createDeviceCategory(
   };
 }
 
+export async function updateDeviceCategory(
+  userId: number,
+  categoryId: number,
+  name: string,
+): Promise<Category> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+  const current = await db.getFirstAsync(
+    "SELECT * FROM categories WHERE user_id = ? AND id = ?",
+    userId,
+    categoryId,
+  );
+  if (!current) throw new Error("Không tìm thấy danh mục.");
+
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Tên danh mục không được để trống.");
+
+  await db.runAsync(
+    "UPDATE categories SET name = ?, updated_at = ? WHERE user_id = ? AND id = ?",
+    trimmed,
+    new Date().toISOString(),
+    userId,
+    categoryId,
+  );
+
+  const updated = await db.getFirstAsync(
+    "SELECT * FROM categories WHERE user_id = ? AND id = ?",
+    userId,
+    categoryId,
+  );
+  return categoryFromRow(updated);
+}
+
+export async function archiveDeviceCategory(userId: number, categoryId: number): Promise<Category> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+  const current = await db.getFirstAsync(
+    "SELECT * FROM categories WHERE user_id = ? AND id = ?",
+    userId,
+    categoryId,
+  );
+  if (!current) throw new Error("Không tìm thấy danh mục.");
+
+  await db.runAsync(
+    "UPDATE categories SET is_archived = 1, updated_at = ? WHERE user_id = ? AND id = ?",
+    new Date().toISOString(),
+    userId,
+    categoryId,
+  );
+
+  const archived = await db.getFirstAsync(
+    "SELECT * FROM categories WHERE user_id = ? AND id = ?",
+    userId,
+    categoryId,
+  );
+  return categoryFromRow(archived);
+}
+
 export async function deleteDeviceUserData(userId: number): Promise<void> {
   const db = await getDatabase();
   await migrateDatabase(db);
@@ -297,7 +355,6 @@ export async function deleteDeviceLocalAccount(userId: number): Promise<void> {
 export async function listDeviceUserIds(): Promise<number[]> {
   const db = await getDatabase();
   await migrateDatabase(db);
-
   const walletRows = await db.getAllAsync<{ user_id: number }>(
     "SELECT DISTINCT user_id FROM wallets",
   );
