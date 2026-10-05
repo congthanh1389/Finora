@@ -6,7 +6,6 @@ import { useRouter } from "expo-router";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Text,
   TextInput,
   TouchableOpacity,
@@ -57,12 +56,13 @@ export default function LoginScreen() {
     <SafeAreaView className="flex-1">
       <ThemedView className="flex-1 px-6">
         <View className="flex-1 items-center justify-center">
-          <Image
-            source={require("@/assets/images/icon.png")}
-            className="h-32 w-32"
-            resizeMode="contain"
+          <Text
+            className="font-bold text-primary"
+            style={{ fontSize: 120, lineHeight: 120 }}
             accessibilityLabel="Logo Finora"
-          />
+          >
+            F
+          </Text>
 
           <Text className="mt-3 text-4xl font-bold text-foreground">Finora</Text>
 
