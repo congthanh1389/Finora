@@ -59,7 +59,7 @@ export default function LoginScreen() {
         <View className="flex-1 items-center justify-center">
           <Image
             source={require("@/assets/images/icon.png")}
-            style={{ width: 148, height: 148, borderRadius: 32 }}
+            style={{ width: 180, height: 180, borderRadius: 90 }}
             resizeMode="contain"
             accessibilityLabel="Logo Finora"
           />
