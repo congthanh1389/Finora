@@ -57,12 +57,23 @@ export default function LoginScreen() {
     <SafeAreaView className="flex-1">
       <ThemedView className="flex-1 px-6">
         <View className="flex-1 items-center justify-center">
-          <Image
-            source={require("@/assets/images/icon.png")}
-            style={{ width: 220, height: 220 }}
-            resizeMode="contain"
-            accessibilityLabel="Logo Finora"
-          />
+          <View
+            style={{
+              width: 180,
+              height: 180,
+              borderRadius: 90,
+              overflow: "hidden",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Image
+              source={require("@/assets/images/icon.png")}
+              style={{ width: 300, height: 300 }}
+              resizeMode="contain"
+              accessibilityLabel="Logo Finora"
+            />
+          </View>
 
           <Text className="mt-3 text-4xl font-bold text-foreground">Finora</Text>
 
