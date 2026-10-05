@@ -88,9 +88,11 @@ export function useWalletViewModel() {
     return () => subscription.remove();
   }, [loadData]);
 
+  const activeWallets = useMemo(() => wallets.filter((wallet) => !wallet.isArchived), [wallets]);
+  const archivedWallets = useMemo(() => wallets.filter((wallet) => wallet.isArchived), [wallets]);
   const totalBalance = useMemo(
-    () => wallets.reduce((sum, wallet) => sum + wallet.balance, 0),
-    [wallets],
+    () => activeWallets.reduce((sum, wallet) => sum + wallet.balance, 0),
+    [activeWallets],
   );
 
   function openEdit(wallet: WalletSummary) {
@@ -171,6 +173,8 @@ export function useWalletViewModel() {
 
   return {
     wallets,
+    activeWallets,
+    archivedWallets,
     transactions,
     totalBalance,
     isLoading,
