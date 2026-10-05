@@ -114,7 +114,7 @@ export function WalletView() {
                         <FinoraMockupIcon name="01_finance_wallet" size={28} />
                         <View className="ml-3 flex-1">
                           <Text className="font-semibold text-[#475569]">{wallet.name}</Text>
-                          <Text className="mt-1 text-xs text-[#94A3B8]">{wallet.type} · {wallet.currency}</Text>
+                          <Text className="mt-1 text-xs text-[#94A3B8]">{walletTypeLabel(wallet.type)} · {wallet.currency}</Text>
                         </View>
                         <Text className="text-sm font-bold text-[#64748B]">{formatVnd(wallet.balance)}</Text>
                       </View>
