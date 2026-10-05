@@ -60,7 +60,7 @@ async function readAccounts(): Promise<LocalAccount[]> {
     const stored = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_KEY);
     if (stored) {
       const accounts = JSON.parse(stored) as LocalAccount[];
-      return Array.isArray(accounts) ? accounts : [];
+      if (Array.isArray(accounts) && accounts.length > 0) return accounts;
     }
 
     const single = await SecureStore.getItemAsync(LOCAL_ACCOUNT_KEY);
