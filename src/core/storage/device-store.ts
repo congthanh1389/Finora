@@ -254,7 +254,8 @@ export async function deleteDeviceUserData(userId: number): Promise<void> {
   await db.withTransactionAsync(async () => {
     await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId);
     await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId);
-    await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId);\n    await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId);
+    await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId);
+    await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId);
   });
   await db.execAsync("VACUUM");
 }
