@@ -121,7 +121,7 @@ export function useWalletViewModel() {
       await loadData();
       closeEdit();
     } catch (err) {
-      setCreateError(err instanceof Error ? err : new Error("Failed to update wallet"));
+      setError(err instanceof Error ? err : new Error("Failed to update wallet"));
     } finally {
       setSavingEdit(false);
     }
