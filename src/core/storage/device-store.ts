@@ -232,6 +232,17 @@ export async function createDeviceCategory(
   };
 }
 
+export async function deleteDeviceUserData(userId: number): Promise<void> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+  await db.withTransactionAsync(async () => {
+    await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId);
+    await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId);
+    await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId);
+  });
+  await db.execAsync("VACUUM");
+}
+
 export async function listDeviceUserIds(): Promise<number[]> {
   const db = await getDatabase();
   await migrateDatabase(db);
