@@ -1,5 +1,6 @@
 import * as Auth from "@/lib/_core/auth";
 import { ThemedView } from "@/components/themed-view";
+import { notifyAuthState } from "@/hooks/use-auth";
 import { useRouter } from "expo-router";
 import { ActivityIndicator, Pressable, Text, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,12 +20,14 @@ export default function LoginScreen() {
       setLoading(true);
       setError(null);
 
+      let user: Auth.User;
       if (registerMode) {
-        await Auth.localRegister({ email, name, password });
+        user = await Auth.localRegister({ email, name, password });
       } else {
-        await Auth.localLogin(email, password);
+        user = await Auth.localLogin(email, password);
       }
 
+      notifyAuthState(user);
       router.replace("/(tabs)");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể đăng nhập");
