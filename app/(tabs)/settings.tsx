@@ -25,6 +25,27 @@ export default function SettingsScreen() {
         </Text>
 
         <TouchableOpacity
+          onPress={() => router.push("/category" as never)}
+          activeOpacity={0.8}
+          style={{
+            marginTop: 24,
+            height: 48,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: "#CBD5E1",
+            backgroundColor: "#FFFFFF",
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Quản lý danh mục"
+        >
+          <Text style={{ fontSize: 16, fontWeight: "700", color: "#0F2A5F" }}>
+            Danh mục chi tiêu & nguồn thu
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           onPress={() => router.push("/account-list" as never)}
           activeOpacity={0.8}
           style={{
