@@ -14,6 +14,10 @@ const walletTypes: { value: WalletType; label: string; icon: string }[] = [
   { value: "savings", label: "Tiết kiệm", icon: "01_finance_wallet" },
 ];
 
+function walletTypeLabel(type: WalletType) {
+  return walletTypes.find((item) => item.value === type)?.label ?? type;
+}
+
 function formatVnd(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value) + " ₫";
 }
@@ -66,7 +70,7 @@ export function WalletView() {
               <Text className="text-base font-bold text-[#991B1B]">Không thể tải dữ liệu cục bộ</Text>
               <Text className="mt-1 text-sm text-[#64748B]">Vui lòng thử lại.</Text>
             </View>
-          ) : vm.wallets.length === 0 ? (
+          ) : vm.activeWallets.length === 0 && vm.archivedWallets.length === 0 ? (
             <View className="items-center rounded-3xl border border-dashed border-[#CBD5E1] bg-white px-6 py-12">
               <FinoraMockupIcon name="01_finance_wallet" size={52} />
               <Text className="mt-4 text-lg font-bold text-[#0F2A5F]">Chưa có ví nào</Text>
@@ -80,24 +84,24 @@ export function WalletView() {
               {vm.activeWallets.map((wallet) => (
                 <View key={wallet.id} className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
                   <View className="flex-row items-center">
-                  <View className="h-12 w-12 items-center justify-center rounded-2xl bg-[#EFF6FF]">
-                    <FinoraMockupIcon name="01_finance_wallet" size={32} />
-                  </View>
-                  <View className="ml-3 flex-1">
-                    <Text className="text-base font-bold text-[#0F2A5F]">{wallet.name}</Text>
-                    <Text className="mt-1 text-xs text-[#64748B]">{wallet.type} · {wallet.currency}</Text>
-                  </View>
-                  <View className="items-end">
-                    <Text className="text-base font-bold text-[#0F172A]">{formatVnd(wallet.balance)}</Text>
-                    <View className="mt-2 flex-row gap-2">
+                    <View className="h-12 w-12 items-center justify-center rounded-2xl bg-[#EFF6FF]">
+                      <FinoraMockupIcon name="01_finance_wallet" size={32} />
+                    </View>
+                    <View className="ml-3 flex-1">
+                      <Text className="text-base font-bold text-[#0F2A5F]">{wallet.name}</Text>
+                      <Text className="mt-1 text-xs text-[#64748B]">{walletTypeLabel(wallet.type)} · {wallet.currency}</Text>
+                    </View>
+                    <View className="items-end">
+                      <Text className="text-base font-bold text-[#0F172A]">{formatVnd(wallet.balance)}</Text>
+                      <View className="mt-2 flex-row gap-2">
                       <Pressable onPress={() => vm.openEdit(wallet)} className="rounded-full bg-[#EFF6FF] px-3 py-1.5">
                         <Text className="text-xs font-bold text-[#2563EB]">Sửa</Text>
                       </Pressable>
                       <Pressable onPress={() => void vm.archiveWallet(wallet)} className="rounded-full bg-[#FFF7ED] px-3 py-1.5">
                         <Text className="text-xs font-bold text-[#C2410C]">Lưu trữ</Text>
                       </Pressable>
+                      </View>
                     </View>
-                  </View>
                   </View>
                 </View>
               ))}
