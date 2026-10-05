@@ -7,6 +7,13 @@ type UseAuthOptions = {
   autoFetch?: boolean;
 };
 
+type AuthStateListener = (user: Auth.User | null) => void;
+const authStateListeners = new Set<AuthStateListener>();
+
+function notifyAuthState(user: Auth.User | null) {
+  authStateListeners.forEach((listener) => listener(user));
+}
+
 export function useAuth(options?: UseAuthOptions) {
   const { autoFetch = true } = options ?? {};
   const [user, setUser] = useState<Auth.User | null>(null);
@@ -101,10 +108,23 @@ export function useAuth(options?: UseAuthOptions) {
       }
       setUser(null);
       setError(null);
+      notifyAuthState(null);
     }
   }, []);
 
   const isAuthenticated = useMemo(() => Boolean(user), [user]);
+
+  useEffect(() => {
+    const listener = (nextUser: Auth.User | null) => {
+      setUser(nextUser);
+      setError(null);
+      setLoading(false);
+    };
+    authStateListeners.add(listener);
+    return () => {
+      authStateListeners.delete(listener);
+    };
+  }, []);
 
   useEffect(() => {
     console.log("[useAuth] useEffect triggered");
