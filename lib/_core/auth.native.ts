@@ -139,7 +139,12 @@ export async function localRegister(input: {
   if (input.password.length < 6) throw new Error("Mật khẩu phải có ít nhất 6 ký tự.");
 
   const accounts = await readAccounts();
-  if (accounts.some((account) => account.email?.trim().toLowerCase() === email)) {
+  const storedEmailExists = accounts.some(
+    (account) => account.email?.trim().toLowerCase() === email,
+  );
+  const currentUser = await getUserInfo();
+  const currentEmailExists = currentUser?.email?.trim().toLowerCase() === email;
+  if (storedEmailExists || currentEmailExists) {
     throw new Error("Email này đã được đăng ký trên thiết bị.");
   }
 
