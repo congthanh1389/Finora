@@ -45,6 +45,7 @@ export function TransactionHistoryView() {
   const [categories, setCategories] = useState<Awaited<ReturnType<CategoryRepository["listByUser"]>>>([]);
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense" | "transfer">("all");
 
   const transactionRepository = useMemo(() => new DeviceTransactionRepository(), []);
   const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
@@ -94,6 +95,10 @@ export function TransactionHistoryView() {
     };
   }, [transactionRepository, walletRepository, categoryRepository]);
 
+  const filteredTransactions = typeFilter === "all"
+    ? transactions
+    : transactions.filter((transaction) => transaction.type === typeFilter);
+
   return (
     <ScreenContainer className="bg-[#F8FAFC]">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
@@ -116,6 +121,19 @@ export function TransactionHistoryView() {
             </View>
           </View>
 
+          <View className="flex-row rounded-2xl bg-[#E2E8F0] p-1">
+            {([
+              ["all", "Tất cả"],
+              ["income", "Thu"],
+              ["expense", "Chi"],
+              ["transfer", "Chuyển"],
+            ] as const).map(([value, label]) => (
+              <Pressable key={value} onPress={() => setTypeFilter(value)} className="flex-1 rounded-xl px-2 py-2.5" style={{ backgroundColor: typeFilter === value ? "#0F2A5F" : "transparent" }}>
+                <Text className={"text-center text-xs font-bold " + (typeFilter === value ? "text-white" : "text-[#64748B]")}>{label}</Text>
+              </Pressable>
+            ))}
+          </View>
+
           {isLoading ? (
             <View className="items-center rounded-3xl border border-[#E2E8F0] bg-white py-12">
               <ActivityIndicator />
@@ -126,7 +144,7 @@ export function TransactionHistoryView() {
               <Text className="text-base font-bold text-[#991B1B]">Không thể tải giao dịch</Text>
               <Text className="mt-1 text-sm text-[#64748B]">Vui lòng thử lại.</Text>
             </View>
-          ) : transactions.length === 0 ? (
+          ) : filteredTransactions.length === 0 ? (
             <View className="items-center rounded-3xl border border-dashed border-[#CBD5E1] bg-white px-6 py-12">
               <FinoraMockupIcon name="07_navigation_transactions" size={52} />
               <Text className="mt-4 text-lg font-bold text-[#0F2A5F]">Chưa có giao dịch</Text>
@@ -137,7 +155,7 @@ export function TransactionHistoryView() {
             </View>
           ) : (
             <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
-              {transactions.map((transaction, index) => {
+              {filteredTransactions.map((transaction, index) => {
                 const isTransfer = transaction.type === "transfer";
                 const isIncome = transaction.type === "income";
                 const wallet = wallets.find((item) => item.id === transaction.walletId);
@@ -145,7 +163,7 @@ export function TransactionHistoryView() {
                 const destinationWallet = wallets.find((item) => item.id === transaction.destinationWalletId);
                 const category = categories.find((item) => item.id === transaction.categoryId);
                 return (
-                  <View key={transaction.id} className={"flex-row items-center py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
+                  <View key={transaction.id} className={"flex-row items-center py-4 " + (index !== filteredTransactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
                     <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isTransfer ? "bg-[#EFF6FF]" : isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
                       <FinoraMockupIcon name="01_finance_wallet" size={28} />
                     </View>
