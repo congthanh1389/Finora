@@ -31,6 +31,8 @@ export interface IWalletRepository {
 export interface ICategoryRepository {
   create(input: NewCategory): Promise<Category>;
   listByUser(userId: number, type?: Category["type"]): Promise<Category[]>;
+  update(userId: number, categoryId: number, name: string): Promise<Category>;
+  archive(userId: number, categoryId: number): Promise<Category>;
 }
 
 export interface ITransactionRepository {
