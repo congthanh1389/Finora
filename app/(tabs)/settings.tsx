@@ -1,4 +1,4 @@
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
@@ -24,11 +24,26 @@ export default function SettingsScreen() {
           {user?.email ?? "Chưa có thông tin tài khoản"}
         </Text>
 
-        <Link href="/account-list" asChild>
-          <Pressable className="mt-6 h-12 items-center justify-center rounded-2xl border border-[#CBD5E1] bg-white active:opacity-80">
-            <Text className="text-base font-bold text-[#0F2A5F]">Danh sách tài khoản</Text>
-          </Pressable>
-        </Link>
+        <TouchableOpacity
+          onPress={() => router.push("/account-list" as never)}
+          activeOpacity={0.8}
+          style={{
+            marginTop: 24,
+            height: 48,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: "#CBD5E1",
+            backgroundColor: "#FFFFFF",
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Danh sách tài khoản"
+        >
+          <Text style={{ fontSize: 16, fontWeight: "700", color: "#0F2A5F" }}>
+            Danh sách tài khoản
+          </Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           onPress={handleLogout}
