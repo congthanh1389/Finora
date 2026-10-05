@@ -1,9 +1,8 @@
 import { DeviceEventEmitter } from "react-native";
-import { openDatabaseAsync } from "expo-sqlite";
+import { getDeviceDatabase } from "../../../core/storage/device-store";
 
 import type { Transaction } from "../../../../drizzle/schema";
 
-const DATABASE_NAME = "finora.db";
 const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
 function transactionFromRow(row: any): Transaction {
@@ -37,7 +36,7 @@ export async function getDeviceTransaction(
   userId: number,
   transactionId: number,
 ): Promise<Transaction | undefined> {
-  const db = await openDatabaseAsync(DATABASE_NAME);
+  const db = await getDeviceDatabase();
   const row = await db.getFirstAsync(
     "SELECT * FROM transactions WHERE user_id = ? AND id = ?",
     userId,
@@ -47,7 +46,7 @@ export async function getDeviceTransaction(
 }
 
 export async function deleteDeviceTransaction(userId: number, transactionId: number): Promise<Transaction> {
-  const db = await openDatabaseAsync(DATABASE_NAME);
+  const db = await getDeviceDatabase();
   let deleted: Transaction | undefined;
 
   await db.withTransactionAsync(async () => {
@@ -73,7 +72,7 @@ export async function deleteDeviceTransaction(userId: number, transactionId: num
 }
 
 export async function updateDeviceTransaction(input: UpdateTransactionInput): Promise<Transaction> {
-  const db = await openDatabaseAsync(DATABASE_NAME);
+  const db = await getDeviceDatabase();
   let updated: Transaction | undefined;
 
   await db.withTransactionAsync(async () => {
