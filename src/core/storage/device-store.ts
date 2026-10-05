@@ -112,11 +112,7 @@ async function migrateDatabase(db: SQLiteDatabase) {
        SET is_archived = 1, updated_at = ?
        WHERE is_archived = 0
          AND ((type = 'expense' AND name IN ('Ăn uống', 'Mua sắm', 'Khác'))
-           OR (type = 'income' AND name IN ('Lương', 'Thưởng', 'Kinh doanh', 'Đầu tư', 'Khác')))
-         AND NOT EXISTS (
-           SELECT 1 FROM transactions t
-           WHERE t.category_id = categories.id
-         )`,
+           OR (type = 'income' AND name IN ('Lương', 'Thưởng', 'Kinh doanh', 'Đầu tư', 'Khác')))`,
       new Date().toISOString(),
     );
     await db.execAsync("PRAGMA user_version = 5;");
