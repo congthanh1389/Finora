@@ -25,8 +25,15 @@ export default function SettingsScreen() {
         </Text>
 
         <Pressable
+          onPress={() => router.push("/account-list" as never)}
+          className="mt-6 h-12 items-center justify-center rounded-2xl border border-[#CBD5E1] bg-white active:opacity-80"
+        >
+          <Text className="text-base font-bold text-[#0F2A5F]">Danh sách tài khoản</Text>
+        </Pressable>
+
+        <Pressable
           onPress={handleLogout}
-          className="mt-6 h-12 items-center justify-center rounded-2xl bg-[#DC2626] active:opacity-80"
+          className="mt-3 h-12 items-center justify-center rounded-2xl bg-[#DC2626] active:opacity-80"
         >
           <Text className="text-base font-bold text-white">Đăng xuất</Text>
         </Pressable>
