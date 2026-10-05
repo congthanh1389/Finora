@@ -55,13 +55,12 @@ export class WalletService {
     if (!Number.isInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id");
     if (input.name !== undefined && !input.name.trim()) throw new Error("Wallet name is required");
 
-    const repositoryInput: Partial<Pick<Wallet, "name" | "type" | "allowNegative">> = {
-      ...input,
-      ...(input.name !== undefined ? { name: input.name.trim() } : {}),
-      ...(input.allowNegative !== undefined
-        ? { allowNegative: input.allowNegative ? 1 : 0 }
-        : {}),
-    };
+    const repositoryInput: Partial<Pick<Wallet, "name" | "type" | "allowNegative">> = {};
+    if (input.name !== undefined) repositoryInput.name = input.name.trim();
+    if (input.type !== undefined) repositoryInput.type = input.type;
+    if (input.allowNegative !== undefined) {
+      repositoryInput.allowNegative = input.allowNegative ? 1 : 0;
+    }
 
     return this.toSummary(await this.repository.update(userId, walletId, repositoryInput));
   }
