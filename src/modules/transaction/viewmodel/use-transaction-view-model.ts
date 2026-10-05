@@ -16,7 +16,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
   const [type, setType] = useState<"income" | "expense">(initialType);
   const [amount, setAmount] = useState("");
   const [walletId, setWalletId] = useState<number | null>(null);
-  const [category, setCategory] = useState(initialType === "income" ? "Lương" : "Ăn uống");
+  const [category, setCategory] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [note, setNote] = useState("");
   const [wallets, setWallets] = useState<WalletSummary[]>([]);
@@ -38,7 +38,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
 
 
   const loadCategories = useCallback(async (userId: number, transactionType: "income" | "expense") => {
-    const all = await categoryRepository.ensureDefaults(userId);
+    const all = await categoryRepository.listByUser(userId, transactionType);
     const matching = all.filter((item) => item.type === transactionType && item.isArchived === 0);
     setCategories(matching);
     if (!matching.some((item) => item.name === category)) {
@@ -80,7 +80,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
     setType(initialType);
     setAmount("");
     setWalletId(null);
-    setCategory(initialType === "income" ? "Lương" : "Ăn uống");
+    setCategory("");
     setNote("");
     setCreateError(null);
   }
@@ -111,7 +111,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
       setUser(currentUser);
       setWallets(currentWallets);
 
-      const transaction = await transactionService.createTransaction({
+      if (!category) {\n        throw new Error(transactionType === "income" ? "Vui lòng chọn nguồn thu nhập." : "Vui lòng chọn danh mục chi tiêu.");\n      }\n\n      const transaction = await transactionService.createTransaction({
         userId: currentUser.id,
         type: transactionType,
         amount: parsedAmount,
