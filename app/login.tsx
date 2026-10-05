@@ -10,10 +10,10 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
-import Svg, { Circle, Path } from "react-native-svg";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -57,19 +57,12 @@ export default function LoginScreen() {
     <SafeAreaView className="flex-1">
       <ThemedView className="flex-1 px-6">
         <View className="flex-1 items-center justify-center">
-          <View
-            className="items-center justify-center rounded-full bg-primary"
-            style={{ width: 148, height: 148 }}
+          <Image
+            source={require("@/assets/images/icon.png")}
+            style={{ width: 148, height: 148, borderRadius: 32 }}
+            resizeMode="contain"
             accessibilityLabel="Logo Finora"
-          >
-            <Svg width={108} height={108} viewBox="0 0 108 108">
-              <Circle cx="54" cy="54" r="54" fill="transparent" />
-              <Path
-                d="M72 28H46c-12.2 0-22 9.8-22 22v30h14V67h24V53H38v-3c0-4.4 3.6-8 8-8h26V28Z"
-                fill="#FFFFFF"
-              />
-            </Svg>
-          </View>
+          />
 
           <Text className="mt-3 text-4xl font-bold text-foreground">Finora</Text>
 
