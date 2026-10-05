@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, FlatList, Pressable, Text, View } from "react-native";
+import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import * as Auth from "@/lib/_core/auth";
 
@@ -26,43 +26,56 @@ export default function AccountListScreen() {
   useFocusEffect(useCallback(() => { loadAccounts(); }, [loadAccounts]));
 
   const handleDelete = (account: Auth.LocalAccount) => {
-    Alert.alert("Xóa tài khoản", `Xóa tài khoản ${account.email}? Toàn bộ ví, giao dịch, danh mục và dữ liệu cục bộ của tài khoản này sẽ bị xóa vĩnh viễn.`, [
-      { text: "Hủy", style: "cancel" },
-      { text: "Xóa", style: "destructive", onPress: async () => {
-        try {
-          const isCurrent = (await Auth.getSessionToken()) === `local-session-${account.id}`;
-          await Auth.localDeleteAccount(account.id);
-          if (isCurrent) router.replace("/login" as never);
-          else await loadAccounts();
-        } catch (error) {
-          Alert.alert("Không thể xóa", error instanceof Error ? error.message : "Đã xảy ra lỗi khi xóa tài khoản.");
-        }
-      }},
-    ]);
+    Alert.alert(
+      "Xóa tài khoản",
+      `Xóa tài khoản ${account.email}? Toàn bộ dữ liệu của tài khoản này gồm ví, giao dịch, danh mục và thông tin đăng nhập sẽ bị xóa vĩnh viễn.`,
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Xóa",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const isCurrent = (await Auth.getSessionToken()) === `local-session-${account.id}`;
+              await Auth.localDeleteAccount(account.id);
+              if (isCurrent) {
+                router.replace("/login" as never);
+                return;
+              }
+              await loadAccounts();
+            } catch (error) {
+              Alert.alert("Không thể xóa", error instanceof Error ? error.message : "Đã xảy ra lỗi khi xóa tài khoản.");
+            }
+          },
+        },
+      ],
+    );
   };
 
   return (
     <ScreenContainer className="bg-[#F8FAFC] px-5 pt-6">
       <View className="mb-5 flex-row items-center">
-        <Pressable onPress={() => router.back()} className="mr-3 px-1 py-2">
-          <Text className="text-base font-semibold text-[#0F2A5F]">‹ Quay lại</Text>
-        </Pressable>
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={{ marginRight: 12, paddingVertical: 8, paddingHorizontal: 4 }}>
+          <Text style={{ fontSize: 16, fontWeight: "600", color: "#0F2A5F" }}>‹ Quay lại</Text>
+        </TouchableOpacity>
         <Text className="text-2xl font-bold text-[#0F2A5F]">Danh sách tài khoản</Text>
       </View>
       {loading ? <Text className="text-sm text-[#64748B]">Đang tải...</Text> : error ? (
         <View className="rounded-3xl border border-[#FECACA] bg-[#FEF2F2] p-5">
           <Text className="text-base font-semibold text-[#B91C1C]">Không thể tải danh sách tài khoản</Text>
           <Text className="mt-2 text-sm text-[#B91C1C]">{error}</Text>
-          <Pressable onPress={loadAccounts} className="mt-4 self-start rounded-xl bg-[#0F2A5F] px-4 py-2 active:opacity-70">
-            <Text className="font-semibold text-white">Thử lại</Text>
-          </Pressable>
+          <TouchableOpacity onPress={loadAccounts} activeOpacity={0.8} style={{ marginTop: 16, alignSelf: "flex-start", borderRadius: 12, backgroundColor: "#0F2A5F", paddingHorizontal: 16, paddingVertical: 8 }}>
+            <Text style={{ fontWeight: "600", color: "#FFFFFF" }}>Thử lại</Text>
+          </TouchableOpacity>
         </View>
       ) : accounts.length === 0 ? (
         <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5">
           <Text className="text-base text-[#64748B]">Chưa có tài khoản nào được lưu.</Text>
         </View>
       ) : (
-        <FlatList data={accounts} keyExtractor={(item) => String(item.id)}
+        <FlatList
+          data={accounts}
+          keyExtractor={(item) => String(item.id)}
           contentContainerStyle={{ gap: 10, paddingBottom: 24 }}
           renderItem={({ item }) => (
             <View className="flex-row items-center rounded-2xl border border-[#E2E8F0] bg-white p-4">
@@ -70,11 +83,15 @@ export default function AccountListScreen() {
                 <Text className="text-base font-semibold text-[#0F172A]">{item.name || "Tài khoản Finora"}</Text>
                 <Text className="mt-1 text-sm text-[#64748B]">{item.email}</Text>
               </View>
-              <Pressable onPress={() => handleDelete(item)}
-                className="ml-3 h-10 w-10 items-center justify-center rounded-xl bg-[#FEE2E2] active:opacity-70"
-                accessibilityLabel={`Xóa tài khoản ${item.email}`}>
-                <Text className="text-xl">🗑️</Text>
-              </Pressable>
+              <TouchableOpacity
+                onPress={() => handleDelete(item)}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={`Xóa tài khoản ${item.email}`}
+                style={{ marginLeft: 12, height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: "#FEE2E2" }}
+              >
+                <Text style={{ fontSize: 20 }}>🗑️</Text>
+              </TouchableOpacity>
             </View>
           )}
         />
