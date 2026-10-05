@@ -50,6 +50,7 @@ function AuthGate() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="login" />
       <Stack.Screen name="oauth/callback" />
+      <Stack.Screen name="account-list" />
     </Stack>
   );
 }
