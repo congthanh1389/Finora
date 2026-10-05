@@ -4,7 +4,7 @@ import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 import type { Category, Wallet, Transaction } from "../../../drizzle/schema";
 
 const DATABASE_NAME = "finora.db";
-const CURRENT_SCHEMA_VERSION = 3;
+const CURRENT_SCHEMA_VERSION = 4;
 
 export const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
@@ -88,6 +88,22 @@ async function migrateDatabase(db: SQLiteDatabase) {
 
   if (version < 3) {
     await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_transactions_category_id ON transactions(category_id); PRAGMA user_version = 3;`);
+  }
+
+  if (version < 4) {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS local_accounts (
+        id INTEGER PRIMARY KEY,
+        open_id TEXT NOT NULL,
+        name TEXT,
+        email TEXT NOT NULL,
+        login_method TEXT,
+        last_signed_in TEXT NOT NULL
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_local_accounts_email
+        ON local_accounts(email);
+      PRAGMA user_version = 4;
+    `);
   }
 
   if (version > CURRENT_SCHEMA_VERSION) {
@@ -238,9 +254,61 @@ export async function deleteDeviceUserData(userId: number): Promise<void> {
   await db.withTransactionAsync(async () => {
     await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId);
     await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId);
-    await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId);
+    await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId);\n    await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId);
   });
   await db.execAsync("VACUUM");
+}
+
+export type DeviceLocalAccount = {
+  id: number;
+  openId: string;
+  name: string | null;
+  email: string;
+  loginMethod: string | null;
+  lastSignedIn: Date;
+};
+
+export async function listDeviceLocalAccounts(): Promise<DeviceLocalAccount[]> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+  const rows = await db.getAllAsync<any>(
+    "SELECT id, open_id, name, email, login_method, last_signed_in FROM local_accounts ORDER BY last_signed_in DESC, id ASC",
+  );
+  return rows.map((row: any) => ({
+    id: Number(row.id),
+    openId: String(row.open_id),
+    name: row.name == null ? null : String(row.name),
+    email: String(row.email),
+    loginMethod: row.login_method == null ? null : String(row.login_method),
+    lastSignedIn: new Date(row.last_signed_in),
+  }));
+}
+
+export async function upsertDeviceLocalAccount(account: DeviceLocalAccount): Promise<void> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+  await db.runAsync(
+    `INSERT INTO local_accounts (id, open_id, name, email, login_method, last_signed_in)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       open_id = excluded.open_id,
+       name = excluded.name,
+       email = excluded.email,
+       login_method = excluded.login_method,
+       last_signed_in = excluded.last_signed_in`,
+    account.id,
+    account.openId,
+    account.name,
+    account.email,
+    account.loginMethod,
+    account.lastSignedIn.toISOString(),
+  );
+}
+
+export async function deleteDeviceLocalAccount(userId: number): Promise<void> {
+  const db = await getDatabase();
+  await migrateDatabase(db);
+  await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId);
 }
 
 export async function listDeviceUserIds(): Promise<number[]> {
