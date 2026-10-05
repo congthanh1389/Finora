@@ -1,5 +1,6 @@
 import type { Transaction } from "../../../../drizzle/schema";
 import {
+  deleteDeviceTransaction,
   getDeviceTransaction,
   updateDeviceTransaction,
   type UpdateTransactionInput,
@@ -23,3 +24,11 @@ export class TransactionEditService {
     });
   }
 }
+
+
+  async deleteTransaction(userId: number, transactionId: number): Promise<Transaction> {
+    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Người dùng không hợp lệ.");
+    if (!Number.isInteger(transactionId) || transactionId <= 0) throw new Error("Giao dịch không hợp lệ.");
+
+    return deleteDeviceTransaction(userId, transactionId);
+  }
