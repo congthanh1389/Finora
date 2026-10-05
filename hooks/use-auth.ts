@@ -10,7 +10,7 @@ type UseAuthOptions = {
 type AuthStateListener = (user: Auth.User | null) => void;
 const authStateListeners = new Set<AuthStateListener>();
 
-function notifyAuthState(user: Auth.User | null) {
+export function notifyAuthState(user: Auth.User | null) {
   authStateListeners.forEach((listener) => listener(user));
 }
 
@@ -26,7 +26,6 @@ export function useAuth(options?: UseAuthOptions) {
       setLoading(true);
       setError(null);
 
-      // Web platform: use cookie-based auth, fetch user from API
       if (Platform.OS === "web") {
         console.log("[useAuth] Web platform: fetching user from API...");
         const apiUser = await Api.getMe();
@@ -41,7 +40,6 @@ export function useAuth(options?: UseAuthOptions) {
             lastSignedIn: new Date(apiUser.lastSignedIn),
           };
           setUser(userInfo);
-          // Cache user info in localStorage for faster subsequent loads
           await Auth.setUserInfo(userInfo);
           console.log("[useAuth] Web user set from API");
         } else {
@@ -52,7 +50,6 @@ export function useAuth(options?: UseAuthOptions) {
         return;
       }
 
-      // Native platform: validate the local account and its device session.
       console.log("[useAuth] Native platform: validating local session...");
       const sessionToken = await Auth.getSessionToken();
       const localAccount = await Auth.localGetAccount();
@@ -129,15 +126,7 @@ export function useAuth(options?: UseAuthOptions) {
   useEffect(() => {
     console.log("[useAuth] useEffect triggered");
     if (autoFetch) {
-      if (Platform.OS === "web") {
-        // Web: fetch user from API directly (user will login manually if needed)
-        console.log("[useAuth] Web: fetching user from API...");
-        fetchUser();
-      } else {
-        // Native: always validate the local session token before restoring the cached user.
-        // This prevents a stale cached user from bypassing the login screen.
-        fetchUser();
-      }
+      fetchUser();
     } else {
       console.log("[useAuth] autoFetch disabled, setting loading to false");
       setLoading(false);
