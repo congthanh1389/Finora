@@ -5,7 +5,8 @@ export class CategoryService {
   constructor(private readonly repository = new CategoryRepository()) {}
 
   async listCategories(userId: number, type?: Category["type"]) {
-    return this.repository.listByUser(userId, type);
+    const categories = await this.repository.listByUser(userId, type);
+    return categories.filter((item) => item.isArchived === 0);
   }
 
   async createCategory(userId: number, name: string, type: Category["type"]) {
