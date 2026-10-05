@@ -601,7 +601,7 @@ export async function createDeviceTransaction(
       if (Number(sourceWallet.allow_negative) !== 1) {
         const balance = await getDeviceWalletBalance(input.userId, sourceWalletId);
         if (balance - input.amount < 0) {
-          throw new Error("Insufficient wallet balance.");
+          throw new Error("Số dư ví không đủ để thực hiện khoản chi này.");
         }
       }
     }
