@@ -109,7 +109,7 @@ async function migrateDatabase(db: SQLiteDatabase) {
   if (version < 5) {
     await db.execAsync(`
       UPDATE categories
-      SET is_archived = 1, updated_at = ?
+      SET is_archived = 1, updated_at = '2026-10-05T18:53:56.829Z'
       WHERE is_archived = 0
         AND ((type = 'expense' AND name IN ('Ăn uống', 'Mua sắm', 'Khác'))
           OR (type = 'income' AND name IN ('Lương', 'Thưởng', 'Kinh doanh', 'Đầu tư', 'Khác')))
@@ -118,7 +118,7 @@ async function migrateDatabase(db: SQLiteDatabase) {
           WHERE t.category_id = categories.id
         );
       PRAGMA user_version = 5;
-    `, new Date().toISOString());
+    `);
   }
 
   if (version > CURRENT_SCHEMA_VERSION) {
