@@ -158,6 +158,7 @@ export function WalletView() {
                 {vm.transactions.slice(0, 20).map((transaction) => {
                   const isIncome = transaction.type === "income";
                   const wallet = vm.wallets.find((item) => item.id === transaction.walletId);
+                  const category = vm.categories.find((item) => item.id === transaction.categoryId);
                   return (
                     <View key={transaction.id} className="flex-row items-center rounded-2xl border border-[#E2E8F0] p-3">
                       <View className={"h-10 w-10 items-center justify-center rounded-xl " + (isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
@@ -166,10 +167,11 @@ export function WalletView() {
                         </Text>
                       </View>
                       <View className="ml-3 flex-1">
-                        <Text className="font-semibold text-[#0F2A5F]">{transaction.note || (isIncome ? "Khoản thu" : "Khoản chi")}</Text>
+                        <Text className="font-semibold text-[#0F2A5F]">{category?.name || (isIncome ? "Khoản thu" : "Khoản chi")}</Text>
                         <Text className="mt-1 text-xs text-[#64748B]">
-                          {wallet?.name || "Ví"} · {formatDate(transaction.occurredAt)}
+                          {wallet?.name || "Ví"} · {wallet ? walletTypeLabel(wallet.type) : "Không rõ loại ví"}
                         </Text>
+                        <Text className="mt-1 text-[11px] text-[#94A3B8]">{formatDate(transaction.occurredAt)}</Text>
                       </View>
                       <Text className={"text-sm font-bold " + (isIncome ? "text-[#059669]" : "text-[#E11D48]")}>
                         {isIncome ? "+" : "−"}{formatVnd(transaction.amount)}
