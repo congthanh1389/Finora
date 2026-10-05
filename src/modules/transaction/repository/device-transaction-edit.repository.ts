@@ -1,8 +1,10 @@
+import { DeviceEventEmitter } from "react-native";
 import { openDatabaseAsync } from "expo-sqlite";
 
 import type { Transaction } from "../../../../drizzle/schema";
 
 const DATABASE_NAME = "finora.db";
+const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
 function transactionFromRow(row: any): Transaction {
   return {
@@ -113,6 +115,7 @@ export async function updateDeviceTransaction(input: UpdateTransactionInput): Pr
     updated = transactionFromRow(row);
   });
 
+  DeviceEventEmitter.emit(DEVICE_TRANSACTIONS_CHANGED_EVENT, updated!);
   return updated!;
 }
 
