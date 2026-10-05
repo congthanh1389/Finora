@@ -42,8 +42,9 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
     const matching = all.filter((item) => item.type === transactionType && item.isArchived === 0);
     setCategories(matching);
     if (!matching.some((item) => item.name === category)) {
-      setCategory(matching[0]?.name ?? (transactionType === "income" ? "Lương" : "Ăn uống"));
+      setCategory("");
     }
+    return matching;
   }, [categoryRepository, category]);
 
   const loadWallets = useCallback(async () => {
@@ -111,7 +112,15 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
       setUser(currentUser);
       setWallets(currentWallets);
 
-      if (!category) {\n        throw new Error(transactionType === "income" ? "Vui lòng chọn nguồn thu nhập." : "Vui lòng chọn danh mục chi tiêu.");\n      }\n\n      const transaction = await transactionService.createTransaction({
+      if (!category) {
+        throw new Error(
+          transactionType === "income"
+            ? "Vui lòng chọn nguồn thu nhập."
+            : "Vui lòng chọn danh mục chi tiêu.",
+        );
+      }
+
+      const transaction = await transactionService.createTransaction({
         userId: currentUser.id,
         type: transactionType,
         amount: parsedAmount,
