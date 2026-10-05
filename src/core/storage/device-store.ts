@@ -4,7 +4,7 @@ import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 import type { Category, Wallet, Transaction } from "../../../drizzle/schema";
 
 const DATABASE_NAME = "finora.db";
-const CURRENT_SCHEMA_VERSION = 4;
+const CURRENT_SCHEMA_VERSION = 5;
 
 export const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
@@ -104,6 +104,21 @@ async function migrateDatabase(db: SQLiteDatabase) {
         ON local_accounts(email);
       PRAGMA user_version = 4;
     `);
+  }
+
+  if (version < 5) {
+    await db.execAsync(`
+      UPDATE categories
+      SET is_archived = 1, updated_at = ?
+      WHERE is_archived = 0
+        AND ((type = 'expense' AND name IN ('Ăn uống', 'Mua sắm', 'Khác'))
+          OR (type = 'income' AND name IN ('Lương', 'Thưởng', 'Kinh doanh', 'Đầu tư', 'Khác')))
+        AND NOT EXISTS (
+          SELECT 1 FROM transactions t
+          WHERE t.category_id = categories.id
+        );
+      PRAGMA user_version = 5;
+    `, new Date().toISOString());
   }
 
   if (version > CURRENT_SCHEMA_VERSION) {
