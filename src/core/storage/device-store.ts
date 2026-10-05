@@ -10,7 +10,7 @@ export const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
 let databasePromise: Promise<SQLiteDatabase> | null = null;
 
-async function getDatabase(): Promise<SQLiteDatabase> {
+export async function getDeviceDatabase(): Promise<SQLiteDatabase> {
   if (!databasePromise) {
     databasePromise = openDatabaseAsync(DATABASE_NAME);
   }
