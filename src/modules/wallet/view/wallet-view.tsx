@@ -53,7 +53,7 @@ export function WalletView() {
           <View className="rounded-[28px] bg-[#0F2A5F] p-6">
             <Text className="text-xs font-semibold tracking-wider text-white/70">TỔNG SỐ DƯ</Text>
             <Text className="mt-2 text-[32px] font-bold text-white">{formatVnd(vm.totalBalance)}</Text>
-            <Text className="mt-1 text-xs text-white/70">{vm.wallets.length} ví đang được quản lý</Text>
+            <Text className="mt-1 text-xs text-white/70">{vm.activeWallets.length} ví đang được quản lý</Text>
           </View>
 
           {vm.isLoading ? (
@@ -77,8 +77,9 @@ export function WalletView() {
             </View>
           ) : (
             <View className="gap-3">
-              {vm.wallets.map((wallet) => (
-                <View key={wallet.id} className="flex-row items-center rounded-3xl border border-[#E2E8F0] bg-white p-4">
+              {vm.activeWallets.map((wallet) => (
+                <View key={wallet.id} className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
+                  <View className="flex-row items-center">
                   <View className="h-12 w-12 items-center justify-center rounded-2xl bg-[#EFF6FF]">
                     <FinoraMockupIcon name="01_finance_wallet" size={32} />
                   </View>
@@ -86,9 +87,37 @@ export function WalletView() {
                     <Text className="text-base font-bold text-[#0F2A5F]">{wallet.name}</Text>
                     <Text className="mt-1 text-xs text-[#64748B]">{wallet.type} · {wallet.currency}</Text>
                   </View>
-                  <Text className="text-base font-bold text-[#0F172A]">{formatVnd(wallet.balance)}</Text>
+                  <View className="items-end">
+                    <Text className="text-base font-bold text-[#0F172A]">{formatVnd(wallet.balance)}</Text>
+                    <View className="mt-2 flex-row gap-2">
+                      <Pressable onPress={() => vm.openEdit(wallet)} className="rounded-full bg-[#EFF6FF] px-3 py-1.5">
+                        <Text className="text-xs font-bold text-[#2563EB]">Sửa</Text>
+                      </Pressable>
+                      <Pressable onPress={() => void vm.archiveWallet(wallet)} className="rounded-full bg-[#FFF7ED] px-3 py-1.5">
+                        <Text className="text-xs font-bold text-[#C2410C]">Lưu trữ</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                  </View>
                 </View>
               ))}
+              {vm.archivedWallets.length > 0 ? (
+                <View className="mt-2 rounded-3xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] p-4">
+                  <Text className="text-sm font-bold text-[#475569]">Ví đã lưu trữ</Text>
+                  <View className="mt-3 gap-2">
+                    {vm.archivedWallets.map((wallet) => (
+                      <View key={wallet.id} className="flex-row items-center rounded-2xl bg-white p-3 opacity-70">
+                        <FinoraMockupIcon name="01_finance_wallet" size={28} />
+                        <View className="ml-3 flex-1">
+                          <Text className="font-semibold text-[#475569]">{wallet.name}</Text>
+                          <Text className="mt-1 text-xs text-[#94A3B8]">{wallet.type} · {wallet.currency}</Text>
+                        </View>
+                        <Text className="text-sm font-bold text-[#64748B]">{formatVnd(wallet.balance)}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
             </View>
           )}
 
@@ -149,6 +178,55 @@ export function WalletView() {
           </View>
         </View>
       </ScrollView>
+
+      <Modal visible={vm.editingWallet !== null} transparent animationType="slide" onRequestClose={vm.closeEdit}>
+        <View className="flex-1 justify-end bg-black/30">
+          <View className="rounded-t-[30px] bg-white px-5 pb-8 pt-5">
+            <View className="flex-row items-center">
+              <Text className="flex-1 text-xl font-bold text-[#0F2A5F]">Sửa ví</Text>
+              <Pressable onPress={vm.closeEdit} className="h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9]">
+                <Text className="text-lg text-[#475569]">×</Text>
+              </Pressable>
+            </View>
+            <Text className="mt-5 text-sm font-semibold text-[#334155]">Tên ví</Text>
+            <TextInput
+              value={vm.editName}
+              onChangeText={vm.setEditName}
+              placeholder="Tên ví"
+              placeholderTextColor="#94A3B8"
+              className="mt-2 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3.5 text-base text-[#0F172A]"
+            />
+            <Text className="mt-4 text-sm font-semibold text-[#334155]">Loại ví</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
+              <View className="flex-row gap-2">
+                {walletTypes.map((item) => (
+                  <Pressable
+                    key={item.value}
+                    onPress={() => vm.setEditType(item.value)}
+                    className={"rounded-2xl border px-4 py-3 " + (vm.editType === item.value ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0] bg-white")}
+                  >
+                    <Text className={vm.editType === item.value ? "font-bold text-[#047857]" : "font-semibold text-[#475569]"}>{item.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+            <Pressable
+              onPress={() => vm.setEditAllowNegative(!vm.editAllowNegative)}
+              className="mt-4 flex-row items-center rounded-2xl bg-[#F8FAFC] p-4"
+            >
+              <View className={"h-5 w-5 rounded-md border-2 " + (vm.editAllowNegative ? "border-[#22B8A8] bg-[#22B8A8]" : "border-[#CBD5E1]")} />
+              <Text className="ml-3 text-sm font-semibold text-[#334155]">Cho phép số dư âm</Text>
+            </Pressable>
+            <Pressable
+              disabled={vm.isSavingEdit || !vm.editName.trim()}
+              onPress={() => void vm.saveEdit()}
+              className={"mt-5 items-center rounded-full px-5 py-4 " + (vm.isSavingEdit || !vm.editName.trim() ? "bg-[#CBD5E1]" : "bg-[#22B8A8]")}
+            >
+              {vm.isSavingEdit ? <ActivityIndicator color="#FFFFFF" /> : <Text className="font-bold text-white">Lưu thay đổi</Text>}
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={vm.isCreateOpen} transparent animationType="slide" onRequestClose={vm.resetForm}>
         <View className="flex-1 justify-end bg-black/30">
