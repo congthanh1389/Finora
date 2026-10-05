@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
 
@@ -10,6 +10,7 @@ import { DeviceWalletRepository } from "../../wallet/repository/device-wallet.re
 import { CategoryRepository } from "../../category/repository/category.repository";
 import type { WalletType } from "../../wallet/types/wallet.types";
 import type { Transaction, Wallet } from "../../../../drizzle/schema";
+import { TransactionEditService } from "../service/transaction-edit.service";
 
 function formatVnd(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value) + " ₫";
@@ -48,6 +49,7 @@ export function TransactionHistoryView() {
   const transactionRepository = useMemo(() => new DeviceTransactionRepository(), []);
   const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
   const categoryRepository = useMemo(() => new CategoryRepository(), []);
+  const editService = useMemo(() => new TransactionEditService(), []);
 
   useEffect(() => {
     let active = true;
@@ -162,11 +164,47 @@ export function TransactionHistoryView() {
                       <Text className={"text-sm font-bold " + (isTransfer ? "text-[#0F2A5F]" : isIncome ? "text-[#059669]" : "text-[#E11D48]")}>
                         {isTransfer ? "" : isIncome ? "+" : "−"}{formatVnd(transaction.amount)}
                       </Text>
-                      {!isTransfer ? (
-                        <Pressable onPress={() => router.push(`/transaction/edit?id=${transaction.id}`)} className="rounded-full bg-[#E6FFFA] px-3 py-1.5">
-                          <Text className="text-xs font-bold text-[#0F766E]">Sửa</Text>
+                      <View className="flex-row gap-2">
+                        {!isTransfer ? (
+                          <Pressable onPress={() => router.push(`/transaction/edit?id=${transaction.id}`)} className="rounded-full bg-[#E6FFFA] px-3 py-1.5">
+                            <Text className="text-xs font-bold text-[#0F766E]">Sửa</Text>
+                          </Pressable>
+                        ) : null}
+                        <Pressable
+                          onPress={() => {
+                            Alert.alert(
+                              "Xóa giao dịch",
+                              "Bạn có chắc muốn xóa giao dịch này không?",
+                              [
+                                { text: "Hủy", style: "cancel" },
+                                {
+                                  text: "Xóa",
+                                  style: "destructive",
+                                  onPress: async () => {
+                                    try {
+                                      const user = await Auth.getUserInfo();
+                                      if (!user) {
+                                        Alert.alert("Không thể xóa", "Không tìm thấy người dùng hiện tại.");
+                                        return;
+                                      }
+                                      await editService.deleteTransaction(user.id, transaction.id);
+                                      setTransactions((current) => current.filter((item) => item.id !== transaction.id));
+                                    } catch (err) {
+                                      Alert.alert(
+                                        "Không thể xóa",
+                                        err instanceof Error ? err.message : "Đã xảy ra lỗi.",
+                                      );
+                                    }
+                                  },
+                                },
+                              ],
+                            );
+                          }}
+                          className="rounded-full bg-[#FFF1F2] px-3 py-1.5"
+                        >
+                          <Text className="text-xs font-bold text-[#BE123C]">Xóa</Text>
                         </Pressable>
-                      ) : null}
+                      </View>
                     </View>
                   </View>
                 );
