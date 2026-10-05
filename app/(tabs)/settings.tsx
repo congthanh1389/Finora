@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
@@ -24,12 +24,11 @@ export default function SettingsScreen() {
           {user?.email ?? "Chưa có thông tin tài khoản"}
         </Text>
 
-        <Pressable
-          onPress={() => router.push("/account-list" as never)}
-          className="mt-6 h-12 items-center justify-center rounded-2xl border border-[#CBD5E1] bg-white active:opacity-80"
-        >
-          <Text className="text-base font-bold text-[#0F2A5F]">Danh sách tài khoản</Text>
-        </Pressable>
+        <Link href="/account-list" asChild>
+          <Pressable className="mt-6 h-12 items-center justify-center rounded-2xl border border-[#CBD5E1] bg-white active:opacity-80">
+            <Text className="text-base font-bold text-[#0F2A5F]">Danh sách tài khoản</Text>
+          </Pressable>
+        </Link>
 
         <Pressable
           onPress={handleLogout}
