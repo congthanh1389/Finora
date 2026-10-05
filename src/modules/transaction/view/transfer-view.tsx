@@ -79,8 +79,8 @@ export function TransferView() {
           <Pressable
             disabled={vm.isCreating || vm.wallets.length < 2}
             onPress={() => void vm.submit().then((ok) => { if (ok) router.back(); })}
-            style={{ opacity: vm.isCreating ? 0.7 : 1 }}
-            className={"items-center rounded-full py-4 " + (vm.wallets.length < 2 ? "bg-[#CBD5E1]" : "bg-[#0F2A5F]")}
+            style={{ backgroundColor: "#22B8A8", opacity: vm.isCreating ? 0.7 : 1 }}
+            className="items-center rounded-full py-4"
           >
             {vm.isCreating ? <ActivityIndicator color="#FFFFFF" /> : <Text className="font-bold text-white">Lưu chuyển tiền</Text>}
           </Pressable>
