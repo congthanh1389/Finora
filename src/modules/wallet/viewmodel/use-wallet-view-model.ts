@@ -25,6 +25,11 @@ export function useWalletViewModel() {
   const [error, setError] = useState<Error | null>(null);
   const [createError, setCreateError] = useState<Error | null>(null);
   const [isCreating, setCreating] = useState(false);
+  const [editingWallet, setEditingWallet] = useState<WalletSummary | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editType, setEditType] = useState<WalletType>("cash");
+  const [editAllowNegative, setEditAllowNegative] = useState(false);
+  const [isSavingEdit, setSavingEdit] = useState(false);
 
   const repository = useMemo(() => new DeviceWalletRepository(), []);
   const service = useMemo(() => new WalletService(repository), [repository]);
@@ -88,6 +93,48 @@ export function useWalletViewModel() {
     [wallets],
   );
 
+  function openEdit(wallet: WalletSummary) {
+    setEditingWallet(wallet);
+    setEditName(wallet.name);
+    setEditType(wallet.type);
+    setEditAllowNegative(wallet.allowNegative);
+  }
+
+  function closeEdit() {
+    setEditingWallet(null);
+    setEditName("");
+    setEditType("cash");
+    setEditAllowNegative(false);
+  }
+
+  async function saveEdit() {
+    if (!user || !editingWallet || !editName.trim()) return;
+    try {
+      setSavingEdit(true);
+      await service.updateWallet(user.id, editingWallet.id, {
+        name: editName,
+        type: editType,
+        allowNegative: editAllowNegative,
+      });
+      await loadData();
+      closeEdit();
+    } catch (err) {
+      setCreateError(err instanceof Error ? err : new Error("Failed to update wallet"));
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  async function archiveWallet(wallet: WalletSummary) {
+    if (!user || wallet.isArchived) return;
+    try {
+      await service.archiveWallet(user.id, wallet.id);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Failed to archive wallet"));
+    }
+  }
+
   function resetForm() {
     setName("");
     setType("cash");
@@ -135,7 +182,19 @@ export function useWalletViewModel() {
     openingBalance,
     isCreating,
     createError,
+    editingWallet,
+    editName,
+    editType,
+    editAllowNegative,
+    isSavingEdit,
     setCreateOpen,
+    setEditName,
+    setEditType,
+    setEditAllowNegative,
+    openEdit,
+    closeEdit,
+    saveEdit,
+    archiveWallet,
     setName,
     setType,
     setOpeningBalance,
