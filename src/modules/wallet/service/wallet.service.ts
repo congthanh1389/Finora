@@ -46,6 +46,23 @@ export class WalletService {
     return wallet ? this.toSummary(wallet) : undefined;
   }
 
+  async updateWallet(
+    userId: number,
+    walletId: number,
+    input: Partial<Pick<WalletSummary, "name" | "type" | "allowNegative">>,
+  ): Promise<WalletSummary> {
+    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id");
+    if (input.name !== undefined && !input.name.trim()) throw new Error("Wallet name is required");
+    return this.toSummary(await this.repository.update(userId, walletId, input));
+  }
+
+  async archiveWallet(userId: number, walletId: number): Promise<WalletSummary> {
+    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id");
+    return this.toSummary(await this.repository.archive(userId, walletId));
+  }
+
   async listWallets(userId: number): Promise<WalletSummary[]> {
     if (!Number.isInteger(userId) || userId <= 0) {
       throw new Error("Invalid user id");
