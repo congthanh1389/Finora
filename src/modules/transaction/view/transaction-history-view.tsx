@@ -158,9 +158,16 @@ export function TransactionHistoryView() {
                       </Text>
                       <Text className="mt-1 text-[11px] text-[#94A3B8]">{formatDate(transaction.occurredAt)}</Text>
                     </View>
-                    <Text className={"text-sm font-bold " + (isTransfer ? "text-[#0F2A5F]" : isIncome ? "text-[#059669]" : "text-[#E11D48]")}>
-                      {isTransfer ? "" : isIncome ? "+" : "−"}{formatVnd(transaction.amount)}
-                    </Text>
+                    <View className="items-end gap-2">
+                      <Text className={"text-sm font-bold " + (isTransfer ? "text-[#0F2A5F]" : isIncome ? "text-[#059669]" : "text-[#E11D48]")}>
+                        {isTransfer ? "" : isIncome ? "+" : "−"}{formatVnd(transaction.amount)}
+                      </Text>
+                      {!isTransfer ? (
+                        <Pressable onPress={() => router.push(`/transaction/edit?id=${transaction.id}`)} className="rounded-full bg-[#E6FFFA] px-3 py-1.5">
+                          <Text className="text-xs font-bold text-[#0F766E]">Sửa</Text>
+                        </Pressable>
+                      ) : null}
+                    </View>
                   </View>
                 );
               })}
