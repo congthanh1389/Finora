@@ -1,0 +1,138 @@
+import { openDatabaseAsync } from "expo-sqlite";
+
+import type { Transaction } from "../../../../drizzle/schema";
+
+const DATABASE_NAME = "finora.db";
+
+function transactionFromRow(row: any): Transaction {
+  return {
+    id: Number(row.id),
+    userId: Number(row.user_id),
+    type: row.type,
+    amount: Number(row.amount),
+    currency: String(row.currency),
+    walletId: row.wallet_id == null ? null : Number(row.wallet_id),
+    sourceWalletId: row.source_wallet_id == null ? null : Number(row.source_wallet_id),
+    destinationWalletId: row.destination_wallet_id == null ? null : Number(row.destination_wallet_id),
+    categoryId: row.category_id == null ? null : Number(row.category_id),
+    note: row.note == null ? null : String(row.note),
+    occurredAt: new Date(row.occurred_at),
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+}
+
+export type UpdateTransactionInput = {
+  userId: number;
+  transactionId: number;
+  amount: number;
+  walletId: number;
+  categoryId: number;
+  note: string | null;
+};
+
+export async function getDeviceTransaction(
+  userId: number,
+  transactionId: number,
+): Promise<Transaction | undefined> {
+  const db = await openDatabaseAsync(DATABASE_NAME);
+  const row = await db.getFirstAsync(
+    "SELECT * FROM transactions WHERE user_id = ? AND id = ?",
+    userId,
+    transactionId,
+  );
+  return row ? transactionFromRow(row) : undefined;
+}
+
+export async function updateDeviceTransaction(input: UpdateTransactionInput): Promise<Transaction> {
+  const db = await openDatabaseAsync(DATABASE_NAME);
+  let updated: Transaction | undefined;
+
+  await db.withTransactionAsync(async () => {
+    const currentRow = await db.getFirstAsync(
+      "SELECT * FROM transactions WHERE user_id = ? AND id = ?",
+      input.userId,
+      input.transactionId,
+    );
+    if (!currentRow) throw new Error("Không tìm thấy giao dịch.");
+
+    const current = transactionFromRow(currentRow);
+    if (current.type === "transfer") {
+      throw new Error("Chưa hỗ trợ sửa giao dịch chuyển tiền.");
+    }
+
+    if (!Number.isSafeInteger(input.amount) || input.amount <= 0) {
+      throw new Error("Vui lòng nhập số tiền hợp lệ.");
+    }
+
+    const category = await db.getFirstAsync<{ id: number; type: string; is_archived: number }>(
+      "SELECT id, type, is_archived FROM categories WHERE user_id = ? AND id = ?",
+      input.userId,
+      input.categoryId,
+    );
+    if (!category || Number(category.is_archived) === 1) throw new Error("Danh mục không còn hoạt động.");
+    if (category.type !== current.type) throw new Error("Danh mục không phù hợp với loại giao dịch.");
+
+    const newWallet = await db.getFirstAsync<{ id: number; currency: string; allow_negative: number }>(
+      "SELECT id, currency, allow_negative FROM wallets WHERE user_id = ? AND id = ?",
+      input.userId,
+      input.walletId,
+    );
+    if (!newWallet) throw new Error("Không tìm thấy ví.");
+    if (newWallet.currency !== current.currency) throw new Error("Đơn vị tiền của giao dịch không khớp với ví.");
+
+    if (current.type === "expense" && Number(newWallet.allow_negative) !== 1) {
+      let newWalletBalance = await getBalance(db, input.userId, input.walletId);
+      if (current.walletId === input.walletId) {
+        newWalletBalance += current.amount;
+      }
+      if (newWalletBalance - input.amount < 0) {
+        throw new Error("Số dư ví không đủ để thực hiện khoản chi này.");
+      }
+    }
+
+    const now = new Date();
+    await db.runAsync(
+      `UPDATE transactions
+       SET amount = ?, wallet_id = ?, category_id = ?, note = ?, updated_at = ?
+       WHERE user_id = ? AND id = ?`,
+      input.amount,
+      input.walletId,
+      input.categoryId,
+      input.note,
+      now.toISOString(),
+      input.userId,
+      input.transactionId,
+    );
+
+    const row = await db.getFirstAsync(
+      "SELECT * FROM transactions WHERE user_id = ? AND id = ?",
+      input.userId,
+      input.transactionId,
+    );
+    updated = transactionFromRow(row);
+  });
+
+  return updated!;
+}
+
+async function getBalance(db: Awaited<ReturnType<typeof openDatabaseAsync>>, userId: number, walletId: number) {
+  const row = await db.getFirstAsync<{ opening_balance: number; balance_effect: number | null }>(
+    `SELECT w.opening_balance,
+       COALESCE(SUM(CASE
+         WHEN t.type = 'income' AND t.wallet_id = w.id THEN t.amount
+         WHEN t.type = 'expense' AND t.wallet_id = w.id THEN -t.amount
+         WHEN t.type = 'transfer' AND t.destination_wallet_id = w.id THEN t.amount
+         WHEN t.type = 'transfer' AND t.source_wallet_id = w.id THEN -t.amount
+         ELSE 0 END), 0) AS balance_effect
+     FROM wallets w
+     LEFT JOIN transactions t ON t.user_id = w.user_id
+       AND (t.wallet_id = w.id OR t.source_wallet_id = w.id OR t.destination_wallet_id = w.id)
+     WHERE w.user_id = ? AND w.id = ?
+     GROUP BY w.id, w.opening_balance`,
+    userId,
+    walletId,
+  );
+  if (!row) throw new Error("Không tìm thấy ví.");
+  return Number(row.opening_balance) + Number(row.balance_effect ?? 0);
+}
