@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import * as Auth from "@/lib/_core/auth";
 import { ScreenContainer } from "@/components/screen-container";
@@ -13,6 +13,8 @@ export default function CategoryScreen() {
   const [type, setType] = useState<Category["type"]>("expense");
   const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingName, setEditingName] = useState("");
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
@@ -36,6 +38,54 @@ export default function CategoryScreen() {
     }
   }
 
+  function startEdit(category: Category) {
+    setEditingId(category.id);
+    setEditingName(category.name);
+    setError("");
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditingName("");
+    setError("");
+  }
+
+  async function saveEdit(categoryId: number) {
+    try {
+      const user = await Auth.getUserInfo();
+      if (!user) throw new Error("Không tìm thấy người dùng hiện tại.");
+      const updated = await service.updateCategory(user.id, categoryId, editingName);
+      setCategories((current) => current.map((item) => item.id === categoryId ? updated : item).sort((a, b) => a.name.localeCompare(b.name, "vi")));
+      cancelEdit();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không thể sửa danh mục.");
+    }
+  }
+
+  function confirmDelete(category: Category) {
+    Alert.alert(
+      "Xóa danh mục",
+      `Bạn có chắc muốn xóa “${category.name}” khỏi danh sách?`,
+      [
+        { text: "Hủy", style: "cancel" },
+        { text: "Xóa", style: "destructive", onPress: () => void deleteCategory(category.id) },
+      ],
+    );
+  }
+
+  async function deleteCategory(categoryId: number) {
+    try {
+      const user = await Auth.getUserInfo();
+      if (!user) throw new Error("Không tìm thấy người dùng hiện tại.");
+      await service.archiveCategory(user.id, categoryId);
+      setCategories((current) => current.filter((item) => item.id !== categoryId));
+      if (editingId === categoryId) cancelEdit();
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không thể xóa danh mục.");
+    }
+  }
+
   return (
     <ScreenContainer className="bg-[#F8FAFC]">
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 36 }}>
@@ -50,10 +100,10 @@ export default function CategoryScreen() {
         </View>
 
         <View className="mt-6 flex-row rounded-2xl bg-[#E2E8F0] p-1">
-          <Pressable onPress={() => { setType("expense"); setName(""); setError(""); }} className="flex-1 rounded-xl px-3 py-3" style={{ backgroundColor: type === "expense" ? "#22B8A8" : "transparent" }}>
+          <Pressable onPress={() => { setType("expense"); setName(""); setEditingId(null); setEditingName(""); setError(""); }} className="flex-1 rounded-xl px-3 py-3" style={{ backgroundColor: type === "expense" ? "#22B8A8" : "transparent" }}>
             <Text className={type === "expense" ? "text-center font-bold text-white" : "text-center font-bold text-[#64748B]"}>Mục chi tiêu</Text>
           </Pressable>
-          <Pressable onPress={() => { setType("income"); setName(""); setError(""); }} className="flex-1 rounded-xl px-3 py-3" style={{ backgroundColor: type === "income" ? "#059669" : "transparent" }}>
+          <Pressable onPress={() => { setType("income"); setName(""); setEditingId(null); setEditingName(""); setError(""); }} className="flex-1 rounded-xl px-3 py-3" style={{ backgroundColor: type === "income" ? "#059669" : "transparent" }}>
             <Text className={type === "income" ? "text-center font-bold text-white" : "text-center font-bold text-[#64748B]"}>Nguồn thu nhập</Text>
           </Pressable>
         </View>
@@ -72,11 +122,44 @@ export default function CategoryScreen() {
           {categories.length === 0 ? (
             <Text className="mt-4 text-sm text-[#64748B]">Chưa có mục nào. Hãy thêm mục đầu tiên.</Text>
           ) : categories.map((item) => (
-            <View key={item.id} className="mt-3 flex-row items-center rounded-2xl bg-[#F8FAFC] p-3">
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-white"><Text className="text-lg">{type === "expense" ? "↑" : "↓"}</Text></View>
-              <Text className="ml-3 flex-1 font-semibold text-[#334155]">{item.name}</Text>
+            <View key={item.id} className="mt-3 rounded-2xl bg-[#F8FAFC] p-3">
+              <View className="flex-row items-center">
+                <View className="h-10 w-10 items-center justify-center rounded-full bg-white"><Text className="text-lg">{type === "expense" ? "↑" : "↓"}</Text></View>
+                {editingId === item.id ? (
+                  <TextInput
+                    value={editingName}
+                    onChangeText={(value) => { setEditingName(value); setError(""); }}
+                    autoFocus
+                    className="ml-3 flex-1 rounded-xl border border-[#CBD5E1] bg-white px-3 py-2 font-semibold text-[#334155]"
+                  />
+                ) : (
+                  <Text className="ml-3 flex-1 font-semibold text-[#334155]">{item.name}</Text>
+                )}
+              </View>
+              <View className="mt-2 flex-row justify-end gap-2">
+                {editingId === item.id ? (
+                  <>
+                    <Pressable onPress={cancelEdit} className="rounded-xl bg-[#E2E8F0] px-3 py-2">
+                      <Text className="text-sm font-bold text-[#475569]">Hủy</Text>
+                    </Pressable>
+                    <Pressable onPress={() => void saveEdit(item.id)} className="rounded-xl bg-[#22B8A8] px-3 py-2">
+                      <Text className="text-sm font-bold text-white">Lưu</Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <>
+                    <Pressable onPress={() => startEdit(item)} className="rounded-xl bg-[#DBEAFE] px-3 py-2">
+                      <Text className="text-sm font-bold text-[#2563EB]">Sửa</Text>
+                    </Pressable>
+                    <Pressable onPress={() => confirmDelete(item)} className="rounded-xl bg-[#FEE2E2] px-3 py-2">
+                      <Text className="text-sm font-bold text-[#DC2626]">Xóa</Text>
+                    </Pressable>
+                  </>
+                )}
+              </View>
             </View>
           ))}
+          {error ? <Text className="mt-3 text-sm text-[#DC2626]">{error}</Text> : null}
         </View>
       </ScrollView>
     </ScreenContainer>
