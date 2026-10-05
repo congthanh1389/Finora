@@ -8,10 +8,19 @@ export default function AccountListScreen() {
   const router = useRouter();
   const [accounts, setAccounts] = useState<Auth.LocalAccount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadAccounts = useCallback(async () => {
     setLoading(true);
-    try { setAccounts(await Auth.localGetAccounts()); } finally { setLoading(false); }
+    setError(null);
+    try {
+      setAccounts(await Auth.localGetAccounts());
+    } catch (error) {
+      setAccounts([]);
+      setError(error instanceof Error ? error.message : "Không thể đọc danh sách tài khoản.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useFocusEffect(useCallback(() => { loadAccounts(); }, [loadAccounts]));
@@ -40,7 +49,15 @@ export default function AccountListScreen() {
         </Pressable>
         <Text className="text-2xl font-bold text-[#0F2A5F]">Danh sách tài khoản</Text>
       </View>
-      {loading ? <Text className="text-sm text-[#64748B]">Đang tải...</Text> : accounts.length === 0 ? (
+      {loading ? <Text className="text-sm text-[#64748B]">Đang tải...</Text> : error ? (
+        <View className="rounded-3xl border border-[#FECACA] bg-[#FEF2F2] p-5">
+          <Text className="text-base font-semibold text-[#B91C1C]">Không thể tải danh sách tài khoản</Text>
+          <Text className="mt-2 text-sm text-[#B91C1C]">{error}</Text>
+          <Pressable onPress={loadAccounts} className="mt-4 self-start rounded-xl bg-[#0F2A5F] px-4 py-2 active:opacity-70">
+            <Text className="font-semibold text-white">Thử lại</Text>
+          </Pressable>
+        </View>
+      ) : accounts.length === 0 ? (
         <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5">
           <Text className="text-base text-[#64748B]">Chưa có tài khoản nào được lưu.</Text>
         </View>
