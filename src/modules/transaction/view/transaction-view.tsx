@@ -56,9 +56,10 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
             </Pressable>
             <Pressable
               onPress={() => router.push("/transaction/transfer")}
+              style={{ backgroundColor: "#0F2A5F" }}
               className="flex-1 rounded-xl px-2 py-3"
             >
-              <Text className="text-center text-sm font-bold text-[#64748B]">Chuyển tiền</Text>
+              <Text className="text-center text-sm font-bold text-white">Chuyển tiền</Text>
             </Pressable>
           </View>
 
