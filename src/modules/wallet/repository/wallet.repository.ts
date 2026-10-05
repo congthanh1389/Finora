@@ -3,6 +3,8 @@ import {
   createDeviceWallet,
   getDeviceWalletWithBalance,
   listDeviceWalletsWithBalances,
+  updateDeviceWallet,
+  archiveDeviceWallet,
 } from "../../../core/storage/device-store";
 
 export class WalletRepository implements IWalletRepository {
@@ -22,5 +24,13 @@ export class WalletRepository implements IWalletRepository {
 
   async listByUser(userId: number) {
     return listDeviceWalletsWithBalances(userId);
+  }
+
+  async update(userId: number, walletId: number, input: Partial<Pick<NewWallet, "name" | "type" | "allowNegative">>) {
+    return updateDeviceWallet(userId, walletId, input);
+  }
+
+  async archive(userId: number, walletId: number) {
+    return archiveDeviceWallet(userId, walletId);
   }
 }
