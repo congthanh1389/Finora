@@ -24,6 +24,8 @@ export interface IWalletRepository {
   create(input: NewWallet): Promise<Wallet>;
   findById(userId: number, walletId: number): Promise<Wallet | undefined>;
   listByUser(userId: number): Promise<Wallet[]>;
+  update(userId: number, walletId: number, input: Partial<Pick<Wallet, "name" | "type" | "allowNegative">>): Promise<Wallet>;
+  archive(userId: number, walletId: number): Promise<Wallet>;
 }
 
 export interface ICategoryRepository {
