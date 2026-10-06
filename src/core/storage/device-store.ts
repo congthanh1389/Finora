@@ -237,8 +237,11 @@ const BALANCE_EFFECT_SQL = `
   GROUP BY wallet_id
 `;
 
-export async function getDeviceWalletBalance(userId: number, walletId: number): Promise<number> {
-  const db = await getDeviceDatabase(); await migrateDatabase(db);
+export async function getDeviceWalletBalanceFromDatabase(
+  db: SQLiteDatabase,
+  userId: number,
+  walletId: number,
+): Promise<number> {
   const row = await db.getFirstAsync<{ opening_balance: number; balance_effect: number | null }>(
     `SELECT w.opening_balance, COALESCE(e.balance_effect, 0) AS balance_effect
      FROM wallets w
@@ -248,6 +251,11 @@ export async function getDeviceWalletBalance(userId: number, walletId: number): 
   );
   if (!row) throw new Error("Wallet not found.");
   return Number(row.opening_balance) + Number(row.balance_effect ?? 0);
+}
+
+export async function getDeviceWalletBalance(userId: number, walletId: number): Promise<number> {
+  const db = await getDeviceDatabase(); await migrateDatabase(db);
+  return getDeviceWalletBalanceFromDatabase(db, userId, walletId);
 }
 
 export async function listDeviceWalletsWithBalances(userId: number): Promise<(Wallet & { balance: number })[]> {
@@ -283,12 +291,20 @@ export async function createDeviceTransaction(input: Omit<Transaction, "id" | "c
       if (!category) throw new Error("Category not found.");
       if (category.type !== input.type) throw new Error("Category type does not match transaction type.");
     }
-    const walletIds = [input.walletId, input.sourceWalletId, input.destinationWalletId].filter((id): id is number => id != null);
-    const wallets = new Map<number, { currency: string; allow_negative: number }>();
-    for (const walletId of walletIds) {
-      const wallet = await db.getFirstAsync<{ id: number; currency: string; allow_negative: number }>("SELECT id, currency, allow_negative FROM wallets WHERE user_id = ? AND id = ?", input.userId, walletId);
-      if (!wallet) throw new Error("Wallet not found."); wallets.set(walletId, wallet);
-    }
+    const walletIds = Array.from(new Set(
+      [input.walletId, input.sourceWalletId, input.destinationWalletId]
+        .filter((id): id is number => id != null),
+    ));
+    const placeholders = walletIds.map(() => "?").join(", ");
+    const walletRows = await db.getAllAsync<{ id: number; currency: string; allow_negative: number }>(
+      `SELECT id, currency, allow_negative
+       FROM wallets
+       WHERE user_id = ? AND id IN (${placeholders})`,
+      input.userId,
+      ...walletIds,
+    );
+    if (walletRows.length !== walletIds.length) throw new Error("Wallet not found.");
+    const wallets = new Map(walletRows.map((wallet) => [Number(wallet.id), wallet]));
     if (input.type === "transfer") {
       const source = wallets.get(input.sourceWalletId!); const destination = wallets.get(input.destinationWalletId!);
       if (!source || !destination) throw new Error("Transfer wallets not found.");
@@ -299,7 +315,7 @@ export async function createDeviceTransaction(input: Omit<Transaction, "id" | "c
     if (input.type === "expense" || input.type === "transfer") {
       const sourceWalletId = input.type === "expense" ? input.walletId! : input.sourceWalletId!; const sourceWallet = wallets.get(sourceWalletId)!;
       if (Number(sourceWallet.allow_negative) !== 1) {
-        const balance = await getDeviceWalletBalance(input.userId, sourceWalletId);
+        const balance = await getDeviceWalletBalanceFromDatabase(db, input.userId, sourceWalletId);
         if (balance - input.amount < 0) throw new Error("Số dư ví không đủ để thực hiện khoản chi này.");
       }
     }
