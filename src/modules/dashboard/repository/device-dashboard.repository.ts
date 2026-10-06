@@ -27,7 +27,7 @@ export class DeviceDashboardRepository {
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const row = await db.getFirstAsync<{ total_balance: number | null }>(
-      \`SELECT COALESCE(SUM(w.opening_balance + COALESCE(e.balance_effect, 0)), 0) AS total_balance
+      `SELECT COALESCE(SUM(w.opening_balance + COALESCE(e.balance_effect, 0)), 0) AS total_balance
        FROM wallets w
        LEFT JOIN (
          SELECT wallet_id, SUM(effect) AS balance_effect
@@ -50,7 +50,7 @@ export class DeviceDashboardRepository {
          ) effects
          GROUP BY wallet_id
        ) e ON e.wallet_id = w.id
-       WHERE w.user_id = ? AND w.is_archived = 0\`,
+       WHERE w.user_id = ? AND w.is_archived = 0`,
       userId, userId, userId, userId,
     );
     return Number(row?.total_balance ?? 0);
@@ -60,12 +60,12 @@ export class DeviceDashboardRepository {
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const row = await db.getFirstAsync<{ income: number | null; expense: number | null; transfer: number | null }>(
-      \`SELECT
+      `SELECT
          COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
          COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense,
          COALESCE(SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END), 0) AS transfer
        FROM transactions
-       WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?\`,
+       WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?`,
       userId, from.toISOString(), to.toISOString(),
     );
     const income = Number(row?.income ?? 0);
@@ -78,7 +78,7 @@ export class DeviceDashboardRepository {
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const rows = await db.getAllAsync(
-      \`SELECT t.*,
+      `SELECT t.*,
          COALESCE(w.name, source_wallet.name, destination_wallet.name, 'Ví') AS wallet_name,
          COALESCE(w.type, source_wallet.type, destination_wallet.type) AS wallet_type,
          c.name AS category_name
@@ -89,7 +89,7 @@ export class DeviceDashboardRepository {
        LEFT JOIN categories c ON c.id = t.category_id
        WHERE t.user_id = ?
        ORDER BY t.occurred_at DESC, t.id DESC
-       LIMIT ?\`,
+       LIMIT ?`,
       userId, safeLimit,
     );
     return rows.map(transactionFromRow);
