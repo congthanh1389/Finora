@@ -201,7 +201,43 @@ export async function getDeviceWallet(userId: number, walletId: number): Promise
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const row = await db.getFirstAsync("SELECT * FROM wallets WHERE user_id = ? AND id = ?", userId, walletId); return row ? walletFromRow(row) : undefined;
 }
-export async function getDeviceWalletWithBalance(userId: number, walletId: number): Promise<(Wallet & { balance: number }) | undefined> { return (await listDeviceWalletsWithBalances(userId)).find((wallet) => wallet.id === walletId); }
+export async function getDeviceWalletWithBalance(userId: number, walletId: number): Promise<(Wallet & { balance: number }) | undefined> {
+  const db = await getDeviceDatabase();
+  await migrateDatabase(db);
+  const row = await db.getFirstAsync(
+    `SELECT w.*, w.opening_balance + COALESCE(e.balance_effect, 0) AS balance
+     FROM wallets w
+     LEFT JOIN (
+       SELECT wallet_id, SUM(effect) AS balance_effect
+       FROM (
+         SELECT wallet_id,
+                SUM(CASE WHEN type = 'income' THEN amount WHEN type = 'expense' THEN -amount ELSE 0 END) AS effect
+         FROM transactions
+         WHERE user_id = ? AND wallet_id = ? AND type IN ('income', 'expense')
+         GROUP BY wallet_id
+         UNION ALL
+         SELECT source_wallet_id AS wallet_id,
+                SUM(-amount) AS effect
+         FROM transactions
+         WHERE user_id = ? AND source_wallet_id = ? AND type = 'transfer'
+         GROUP BY source_wallet_id
+         UNION ALL
+         SELECT destination_wallet_id AS wallet_id,
+                SUM(amount) AS effect
+         FROM transactions
+         WHERE user_id = ? AND destination_wallet_id = ? AND type = 'transfer'
+         GROUP BY destination_wallet_id
+       ) effects
+       GROUP BY wallet_id
+     ) e ON e.wallet_id = w.id
+     WHERE w.user_id = ? AND w.id = ?`,
+    userId, walletId,
+    userId, walletId,
+    userId, walletId,
+    userId, walletId,
+  );
+  return row ? { ...walletFromRow(row), balance: Number((row as any).balance) } : undefined;
+}
 export async function createDeviceWallet(input: Omit<Wallet, "id" | "createdAt" | "updatedAt">): Promise<Wallet> {
   const db = await getDeviceDatabase(); await migrateDatabase(db); const now = new Date();
   const result = await db.runAsync(`INSERT INTO wallets (user_id, name, type, currency, opening_balance, allow_negative, is_archived, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, input.userId, input.name, input.type, input.currency, input.openingBalance, input.allowNegative, input.isArchived, now.toISOString(), now.toISOString());
@@ -297,9 +333,27 @@ export async function getDeviceWalletBalanceFromDatabase(
   const row = await db.getFirstAsync<{ opening_balance: number; balance_effect: number | null }>(
     `SELECT w.opening_balance, COALESCE(e.balance_effect, 0) AS balance_effect
      FROM wallets w
-     LEFT JOIN (${BALANCE_EFFECT_SQL}) e ON e.wallet_id = w.id
+     LEFT JOIN (
+       SELECT SUM(effect) AS balance_effect
+       FROM (
+         SELECT SUM(CASE WHEN type = 'income' THEN amount WHEN type = 'expense' THEN -amount ELSE 0 END) AS effect
+         FROM transactions
+         WHERE user_id = ? AND wallet_id = ? AND type IN ('income', 'expense')
+         UNION ALL
+         SELECT SUM(-amount) AS effect
+         FROM transactions
+         WHERE user_id = ? AND source_wallet_id = ? AND type = 'transfer'
+         UNION ALL
+         SELECT SUM(amount) AS effect
+         FROM transactions
+         WHERE user_id = ? AND destination_wallet_id = ? AND type = 'transfer'
+       ) effects
+     ) e ON 1 = 1
      WHERE w.user_id = ? AND w.id = ?`,
-    userId, userId, userId, userId, walletId,
+    userId, walletId,
+    userId, walletId,
+    userId, walletId,
+    userId, walletId,
   );
   if (!row) throw new Error("Wallet not found.");
   return Number(row.opening_balance) + Number(row.balance_effect ?? 0);
