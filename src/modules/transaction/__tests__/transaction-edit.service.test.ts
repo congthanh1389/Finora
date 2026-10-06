@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { deleteDeviceTransaction } from "../repository/device-transaction-edit.repository";
+import { deleteDeviceTransaction, updateDeviceTransaction } from "../repository/device-transaction-edit.repository";
 import { TransactionEditService } from "../service/transaction-edit.service";
 
 vi.mock("../repository/device-transaction-edit.repository", () => ({
