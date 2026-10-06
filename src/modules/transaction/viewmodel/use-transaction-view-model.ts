@@ -55,7 +55,8 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
         setWallets([]);
         return;
       }
-      setWallets(await walletService.listWallets(currentUser.id));
+      const walletList = await walletService.listWallets(currentUser.id);
+      setWallets(walletList.filter((wallet) => !wallet.isArchived));
     } catch (err) {
       setWalletsError(err instanceof Error ? err : new Error("Không thể tải danh sách ví."));
     } finally {
@@ -105,7 +106,9 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
         throw new Error("Không tìm thấy người dùng hiện tại.");
       }
 
-      const currentWallets = await walletService.listWallets(currentUser.id);
+      const currentWallets = (await walletService.listWallets(currentUser.id)).filter(
+        (wallet) => !wallet.isArchived,
+      );
       const matchingCategories = await loadCategories(currentUser.id, transactionType);
       const selectedWalletId = walletId ?? currentWallets[0]?.id;
       if (!selectedWalletId) {
