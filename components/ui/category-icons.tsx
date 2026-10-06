@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 type MdiName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 export const EXPENSE_CATEGORY_ICONS = [
-  { name: "food-noodles", label: "Ăn uống" },
+  { name: "food", label: "Ăn uống" },
   { name: "cart-outline", label: "Mua sắm" },
   { name: "home-outline", label: "Nhà cửa" },
   { name: "car-outline", label: "Đi lại" },
@@ -37,7 +37,7 @@ export const INCOME_CATEGORY_ICONS = [
   { name: "cash-multiple", label: "Thu nhập khác" },
 ] as const;
 
-export type CategoryIconName =
+const CATEGORY_COLORS = ["#F97316", "#2563EB", "#10B981", "#EF4444", "#F59E0B", "#E11D48", "#7C3AED", "#DB2777", "#0891B2", "#16A34A", "#8B5CF6", "#92400E", "#EA580C", "#0284C7", "#65A30D", "#D97706", "#4F46E5", "#0F766E", "#64748B"];\n\nexport type CategoryIconName =
   | typeof EXPENSE_CATEGORY_ICONS[number]["name"]
   | typeof INCOME_CATEGORY_ICONS[number]["name"]
   | "other";
