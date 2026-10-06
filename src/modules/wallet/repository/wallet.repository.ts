@@ -6,6 +6,7 @@ import {
   updateDeviceWallet,
   archiveDeviceWallet,
   restoreDeviceWallet,
+  deleteArchivedDeviceWallet,
 } from "../../../core/storage/device-store";
 
 export class WalletRepository implements IWalletRepository {
@@ -37,5 +38,9 @@ export class WalletRepository implements IWalletRepository {
 
   async restore(userId: number, walletId: number) {
     return restoreDeviceWallet(userId, walletId);
+  }
+
+  async delete(userId: number, walletId: number) {
+    return deleteArchivedDeviceWallet(userId, walletId);
   }
 }
