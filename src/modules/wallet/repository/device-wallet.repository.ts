@@ -29,6 +29,10 @@ export class DeviceWalletRepository {
     return listDeviceWalletsWithBalances(userId);
   }
 
+  listBasicByUser(userId: number) {
+    return listDeviceWallets(userId);
+  }
+
   async update(userId: number, walletId: number, input: Partial<Pick<NewWallet, "name" | "type" | "allowNegative">>) {
     return updateDeviceWallet(userId, walletId, input);
   }
