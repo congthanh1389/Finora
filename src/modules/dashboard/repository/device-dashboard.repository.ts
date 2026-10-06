@@ -22,12 +22,56 @@ function transactionFromRow(row: any): DashboardRecentTransaction {
   };
 }
 
+const TOTAL_BALANCE_SQL = [
+  "SELECT COALESCE(SUM(w.opening_balance + COALESCE(e.balance_effect, 0)), 0) AS total_balance",
+  "FROM wallets w",
+  "LEFT JOIN (",
+  "  SELECT wallet_id, SUM(effect) AS balance_effect",
+  "  FROM (",
+  "    SELECT wallet_id, SUM(CASE WHEN type = 'income' THEN amount WHEN type = 'expense' THEN -amount ELSE 0 END) AS effect",
+  "    FROM transactions WHERE user_id = ? AND wallet_id IS NOT NULL AND type IN ('income', 'expense') GROUP BY wallet_id",
+  "    UNION ALL",
+  "    SELECT source_wallet_id AS wallet_id, SUM(-amount) AS effect",
+  "    FROM transactions WHERE user_id = ? AND source_wallet_id IS NOT NULL AND type = 'transfer' GROUP BY source_wallet_id",
+  "    UNION ALL",
+  "    SELECT destination_wallet_id AS wallet_id, SUM(amount) AS effect",
+  "    FROM transactions WHERE user_id = ? AND destination_wallet_id IS NOT NULL AND type = 'transfer' GROUP BY destination_wallet_id",
+  "  ) effects",
+  "  GROUP BY wallet_id",
+  ") e ON e.wallet_id = w.id",
+  "WHERE w.user_id = ? AND w.is_archived = 0",
+].join(" ");
+
+const PERIOD_SUMMARY_SQL = [
+  "SELECT",
+  "COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,",
+  "COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense,",
+  "COALESCE(SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END), 0) AS transfer",
+  "FROM transactions",
+  "WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?",
+].join(" ");
+
+const RECENT_TRANSACTIONS_SQL = [
+  "SELECT t.*,",
+  "COALESCE(w.name, source_wallet.name, destination_wallet.name, 'Ví') AS wallet_name,",
+  "COALESCE(w.type, source_wallet.type, destination_wallet.type) AS wallet_type,",
+  "c.name AS category_name",
+  "FROM transactions t",
+  "LEFT JOIN wallets w ON w.id = t.wallet_id",
+  "LEFT JOIN wallets source_wallet ON source_wallet.id = t.source_wallet_id",
+  "LEFT JOIN wallets destination_wallet ON destination_wallet.id = t.destination_wallet_id",
+  "LEFT JOIN categories c ON c.id = t.category_id",
+  "WHERE t.user_id = ?",
+  "ORDER BY t.occurred_at DESC, t.id DESC",
+  "LIMIT ?",
+].join(" ");
+
 export class DeviceDashboardRepository {
   async getTotalActiveWalletBalance(userId: number): Promise<number> {
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const row = await db.getFirstAsync<{ total_balance: number | null }>(
-      "SELECT COALESCE(SUM(w.opening_balance + COALESCE(e.balance_effect, 0)), 0) AS total_balance\n       FROM wallets w\n       LEFT JOIN (\n         SELECT wallet_id, SUM(effect) AS balance_effect\n         FROM (\n           SELECT wallet_id,\n                  SUM(CASE WHEN type = 'income' THEN amount WHEN type = 'expense' THEN -amount ELSE 0 END) AS effect\n           FROM transactions\n           WHERE user_id = ? AND wallet_id IS NOT NULL AND type IN ('income', 'expense')\n           GROUP BY wallet_id\n           UNION ALL\n           SELECT source_wallet_id AS wallet_id, SUM(-amount) AS effect\n           FROM transactions\n           WHERE user_id = ? AND source_wallet_id IS NOT NULL AND type = 'transfer'\n           GROUP BY source_wallet_id\n           UNION ALL\n           SELECT destination_wallet_id AS wallet_id, SUM(amount) AS effect\n           FROM transactions\n           WHERE user_id = ? AND destination_wallet_id IS NOT NULL AND type = 'transfer'\n           GROUP BY destination_wallet_id\n         ) effects\n         GROUP BY wallet_id\n       ) e ON e.wallet_id = w.id\n       WHERE w.user_id = ? AND w.is_archived = 0",
+      TOTAL_BALANCE_SQL,
       userId, userId, userId, userId,
     );
     return Number(row?.total_balance ?? 0);
@@ -37,7 +81,7 @@ export class DeviceDashboardRepository {
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const row = await db.getFirstAsync<{ income: number | null; expense: number | null; transfer: number | null }>(
-      "SELECT\n         COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,\n         COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense,\n         COALESCE(SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END), 0) AS transfer\n       FROM transactions\n       WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?",
+      PERIOD_SUMMARY_SQL,
       userId, from.toISOString(), to.toISOString(),
     );
     const income = Number(row?.income ?? 0);
@@ -50,7 +94,7 @@ export class DeviceDashboardRepository {
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const rows = await db.getAllAsync(
-      "SELECT t.*,\n         COALESCE(w.name, source_wallet.name, destination_wallet.name, 'Ví') AS wallet_name,\n         COALESCE(w.type, source_wallet.type, destination_wallet.type) AS wallet_type,\n         c.name AS category_name\n       FROM transactions t\n       LEFT JOIN wallets w ON w.id = t.wallet_id\n       LEFT JOIN wallets source_wallet ON source_wallet.id = t.source_wallet_id\n       LEFT JOIN wallets destination_wallet ON destination_wallet.id = t.destination_wallet_id\n       LEFT JOIN categories c ON c.id = t.category_id\n       WHERE t.user_id = ?\n       ORDER BY t.occurred_at DESC, t.id DESC\n       LIMIT ?",
+      RECENT_TRANSACTIONS_SQL,
       userId, safeLimit,
     );
     return rows.map(transactionFromRow);
