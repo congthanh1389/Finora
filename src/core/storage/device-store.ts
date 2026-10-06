@@ -187,11 +187,19 @@ export async function upsertDeviceLocalAccount(account: DeviceLocalAccount): Pro
 }
 export async function deleteDeviceLocalAccount(userId: number): Promise<void> { const db = await getDeviceDatabase(); await migrateDatabase(db); await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId); }
 export async function listDeviceUserIds(): Promise<number[]> {
-  const db = await getDeviceDatabase(); await migrateDatabase(db);
-  const walletRows = await db.getAllAsync<{ user_id: number }>("SELECT DISTINCT user_id FROM wallets");
-  const transactionRows = await db.getAllAsync<{ user_id: number }>("SELECT DISTINCT user_id FROM transactions");
-  const categoryRows = await db.getAllAsync<{ user_id: number }>("SELECT DISTINCT user_id FROM categories");
-  return Array.from(new Set([...walletRows.map((row) => Number(row.user_id)), ...transactionRows.map((row) => Number(row.user_id)), ...categoryRows.map((row) => Number(row.user_id))])).filter((id) => Number.isInteger(id) && id > 0).sort((a, b) => a - b);
+  const db = await getDeviceDatabase();
+  await migrateDatabase(db);
+  const rows = await db.getAllAsync<{ user_id: number }>(
+    `SELECT user_id FROM wallets
+     UNION
+     SELECT user_id FROM transactions
+     UNION
+     SELECT user_id FROM categories
+     ORDER BY user_id ASC`,
+  );
+  return rows
+    .map((row) => Number(row.user_id))
+    .filter((id) => Number.isInteger(id) && id > 0);
 }
 export async function listDeviceWallets(userId: number): Promise<Wallet[]> {
   const db = await getDeviceDatabase(); await migrateDatabase(db);
