@@ -99,13 +99,13 @@ export default function HomeScreen() {
       const wr = new DeviceWalletRepository();
       const cr = new CategoryRepository();
       const [transactions, wallets, categories] = await Promise.all([
-        tr.list(user.id),
+        tr.listRecent(user.id, 3),
         wr.listByUser(user.id),
         cr.listByUser(user.id),
       ]);
       const walletMap = new Map(wallets.map((wallet) => [wallet.id, wallet]));
       const categoryMap = new Map(categories.map((category) => [category.id, category.name]));
-      setRecentTransactions(transactions.slice(0, 3).map((transaction) => {
+      setRecentTransactions(transactions.map((transaction) => {
         const wallet = transaction.walletId == null ? undefined : walletMap.get(transaction.walletId);
         return {
           ...transaction,
