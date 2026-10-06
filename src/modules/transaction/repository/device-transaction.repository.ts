@@ -33,6 +33,7 @@ export class DeviceTransactionRepository {
   }
 
   async listRecent(userId: number, limit = 20) {
+    const safeLimit = Number.isSafeInteger(limit) && limit > 0 ? limit : 20;
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const rows = await db.getAllAsync(
@@ -41,7 +42,7 @@ export class DeviceTransactionRepository {
        ORDER BY occurred_at DESC, id DESC
        LIMIT ?`,
       userId,
-      limit,
+      safeLimit,
     );
     return rows.map(transactionFromRow);
   }
