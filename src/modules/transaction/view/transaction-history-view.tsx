@@ -55,6 +55,8 @@ export function TransactionHistoryView() {
   const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
   const categoryRepository = useMemo(() => new CategoryRepository(), []);
   const editService = useMemo(() => new TransactionEditService(), []);
+  const walletMap = useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets]);
+  const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
 
   useEffect(() => {
     let active = true;
@@ -202,10 +204,10 @@ export function TransactionHistoryView() {
               {transactions.map((transaction, index) => {
                 const isTransfer = transaction.type === "transfer";
                 const isIncome = transaction.type === "income";
-                const wallet = wallets.find((item) => item.id === transaction.walletId);
-                const sourceWallet = wallets.find((item) => item.id === transaction.sourceWalletId);
-                const destinationWallet = wallets.find((item) => item.id === transaction.destinationWalletId);
-                const category = categories.find((item) => item.id === transaction.categoryId);
+                const wallet = transaction.walletId == null ? undefined : walletMap.get(transaction.walletId);
+                const sourceWallet = transaction.sourceWalletId == null ? undefined : walletMap.get(transaction.sourceWalletId);
+                const destinationWallet = transaction.destinationWalletId == null ? undefined : walletMap.get(transaction.destinationWalletId);
+                const category = transaction.categoryId == null ? undefined : categoryMap.get(transaction.categoryId);
                 return (
                   <View key={transaction.id} className={"flex-row items-center py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
                     <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isTransfer ? "bg-[#EFF6FF]" : isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
