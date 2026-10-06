@@ -5,6 +5,7 @@ import {
   updateDeviceWallet,
   archiveDeviceWallet,
   restoreDeviceWallet,
+  deleteArchivedDeviceWallet,
 } from "../../../core/storage/device-store";
 import type { NewWallet } from "../../../core/database/repository-contracts";
 
@@ -37,5 +38,9 @@ export class DeviceWalletRepository {
 
   async restore(userId: number, walletId: number) {
     return restoreDeviceWallet(userId, walletId);
+  }
+
+  async delete(userId: number, walletId: number) {
+    return deleteArchivedDeviceWallet(userId, walletId);
   }
 }
