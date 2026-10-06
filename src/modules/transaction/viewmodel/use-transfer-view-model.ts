@@ -35,7 +35,7 @@ export function useTransferViewModel() {
         setWallets([]);
         return;
       }
-      const list = await walletService.listWallets(user.id);
+      const list = (await walletService.listWallets(user.id)).filter((wallet) => !wallet.isArchived);
       setWallets(list);
       setSourceWalletId((current) => current ?? list[0]?.id ?? null);
       setDestinationWalletId((current) => current ?? list[1]?.id ?? null);
