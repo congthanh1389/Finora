@@ -33,3 +33,68 @@ describe("TransactionEditService.deleteTransaction", () => {
     expect(deleteDeviceTransaction).not.toHaveBeenCalled();
   });
 });
+
+
+describe("TransactionEditService.updateTransaction", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("rejects invalid update input before touching the repository", async () => {
+    const service = new TransactionEditService();
+
+    await expect(service.updateTransaction({
+      userId: 0,
+      transactionId: 7,
+      amount: 100000,
+      walletId: 1,
+      categoryId: 1,
+      note: null,
+    })).rejects.toThrow("Người dùng không hợp lệ.");
+
+    await expect(service.updateTransaction({
+      userId: 1,
+      transactionId: 0,
+      amount: 100000,
+      walletId: 1,
+      categoryId: 1,
+      note: null,
+    })).rejects.toThrow("Giao dịch không hợp lệ.");
+
+    await expect(service.updateTransaction({
+      userId: 1,
+      transactionId: 7,
+      amount: 0,
+      walletId: 1,
+      categoryId: 1,
+      note: null,
+    })).rejects.toThrow("Vui lòng nhập số tiền hợp lệ.");
+
+    expect(vi.mocked(updateDeviceTransaction)).not.toHaveBeenCalled();
+  });
+
+  it("trims note before updating", async () => {
+    const updated = { id: 7, userId: 1 };
+    vi.mocked(updateDeviceTransaction).mockResolvedValue(updated as never);
+
+    const service = new TransactionEditService();
+    const result = await service.updateTransaction({
+      userId: 1,
+      transactionId: 7,
+      amount: 100000,
+      walletId: 2,
+      categoryId: 3,
+      note: "  Ăn trưa  ",
+    });
+
+    expect(updateDeviceTransaction).toHaveBeenCalledWith({
+      userId: 1,
+      transactionId: 7,
+      amount: 100000,
+      walletId: 2,
+      categoryId: 3,
+      note: "Ăn trưa",
+    });
+    expect(result).toBe(updated);
+  });
+});
