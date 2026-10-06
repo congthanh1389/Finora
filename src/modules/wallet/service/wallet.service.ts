@@ -1,8 +1,5 @@
 import type { Wallet } from "../../../../drizzle/schema";
-import type {
-  IWalletRepository,
-  NewWallet,
-} from "../../../core/database/repository-contracts";
+import type { IWalletRepository, NewWallet } from "../../../core/database/repository-contracts";
 import type { CreateWalletInput, WalletSummary } from "../types/wallet.types";
 
 const SUPPORTED_CURRENCIES = /^[A-Z]{3}$/;
@@ -13,20 +10,18 @@ export class WalletService {
   async createWallet(input: CreateWalletInput): Promise<WalletSummary> {
     const name = input.name.trim();
     if (!name) throw new Error("Wallet name is required");
+    if (!Number.isInteger(input.userId) || input.userId <= 0) throw new Error("Invalid user id");
 
-    if (!Number.isInteger(input.userId) || input.userId <= 0) {
-      throw new Error("Invalid user id");
+    const existingWallets = await this.repository.listByUser(input.userId);
+    if (existingWallets.some((wallet) => wallet.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase())) {
+      throw new Error("Wallet name already exists");
     }
 
     const currency = (input.currency ?? "VND").trim().toUpperCase();
-    if (!SUPPORTED_CURRENCIES.test(currency)) {
-      throw new Error("Currency must be a 3-letter code");
-    }
+    if (!SUPPORTED_CURRENCIES.test(currency)) throw new Error("Currency must be a 3-letter code");
 
     const openingBalance = input.openingBalance ?? 0;
-    if (!Number.isSafeInteger(openingBalance)) {
-      throw new Error("Opening balance must be a safe integer");
-    }
+    if (!Number.isSafeInteger(openingBalance)) throw new Error("Opening balance must be a safe integer");
 
     const wallet: NewWallet = {
       userId: input.userId,
@@ -37,7 +32,6 @@ export class WalletService {
       allowNegative: input.allowNegative ? 1 : 0,
       isArchived: 0,
     };
-
     return this.toSummary(await this.repository.create(wallet));
   }
 
@@ -55,12 +49,18 @@ export class WalletService {
     if (!Number.isInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id");
     if (input.name !== undefined && !input.name.trim()) throw new Error("Wallet name is required");
 
+    if (input.name !== undefined) {
+      const wallets = await this.repository.listByUser(userId);
+      const normalizedName = input.name.trim().toLocaleLowerCase();
+      if (wallets.some((wallet) => wallet.id !== walletId && wallet.name.trim().toLocaleLowerCase() === normalizedName)) {
+        throw new Error("Wallet name already exists");
+      }
+    }
+
     const repositoryInput: Partial<Pick<Wallet, "name" | "type" | "allowNegative">> = {};
     if (input.name !== undefined) repositoryInput.name = input.name.trim();
     if (input.type !== undefined) repositoryInput.type = input.type;
-    if (input.allowNegative !== undefined) {
-      repositoryInput.allowNegative = input.allowNegative ? 1 : 0;
-    }
+    if (input.allowNegative !== undefined) repositoryInput.allowNegative = input.allowNegative ? 1 : 0;
 
     return this.toSummary(await this.repository.update(userId, walletId, repositoryInput));
   }
@@ -71,11 +71,14 @@ export class WalletService {
     return this.toSummary(await this.repository.archive(userId, walletId));
   }
 
-  async listWallets(userId: number): Promise<WalletSummary[]> {
-    if (!Number.isInteger(userId) || userId <= 0) {
-      throw new Error("Invalid user id");
-    }
+  async restoreWallet(userId: number, walletId: number): Promise<WalletSummary> {
+    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id");
+    return this.toSummary(await this.repository.restore(userId, walletId));
+  }
 
+  async listWallets(userId: number): Promise<WalletSummary[]> {
+    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
     const wallets = await this.repository.listByUser(userId);
     return wallets.map((wallet) => this.toSummary(wallet));
   }
