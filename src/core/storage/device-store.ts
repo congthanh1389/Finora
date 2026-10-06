@@ -231,7 +231,9 @@ export async function restoreDeviceWallet(userId: number, walletId: number): Pro
     userId,
     walletId,
   );
-  return (await getDeviceWallet(userId, walletId))!;
+  const restored = await getDeviceWalletWithBalance(userId, walletId);
+  if (!restored) throw new Error("Wallet not found after restore.");
+  return restored;
 }
 
 export async function deleteArchivedDeviceWallet(userId: number, walletId: number): Promise<void> {
