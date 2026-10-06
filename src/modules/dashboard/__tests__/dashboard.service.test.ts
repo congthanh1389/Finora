@@ -1,16 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DeviceDashboardRepository } from "../repository/device-dashboard.repository";
+import { describe, expect, it, vi } from "vitest";
 import { DashboardService } from "../service/dashboard.service";
 
-vi.mock("../repository/device-dashboard.repository", () => ({
-  DeviceDashboardRepository: vi.fn(),
-}));
-
 describe("DashboardService", () => {
-  beforeEach(() => vi.clearAllMocks());
-
   it("rejects invalid user ids", async () => {
-    const service = new DashboardService();
+    const service = new DashboardService({ getDashboardData: vi.fn() });
     await expect(service.load(0)).rejects.toThrow("Invalid user id");
   });
 
@@ -23,8 +16,7 @@ describe("DashboardService", () => {
       monthLabel: "tháng 10",
     };
     const repository = { getDashboardData: vi.fn().mockResolvedValue(data) };
-    const service = new DashboardService();
-    (service as unknown as { repository: typeof repository }).repository = repository;
+    const service = new DashboardService(repository);
 
     await expect(service.load(1)).resolves.toEqual(data);
     expect(repository.getDashboardData).toHaveBeenCalledWith(1);
