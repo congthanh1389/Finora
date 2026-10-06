@@ -42,39 +42,62 @@ export function useWalletViewModel() {
   );
   const categoryRepository = useMemo(() => new CategoryRepository(), []);
 
+  const loadWallets = useCallback(async (userId: number) => {
+    const walletList = await service.listWallets(userId);
+    setWallets(walletList);
+  }, [service]);
+
+  const loadTransactions = useCallback(async (userId: number) => {
+    setLoadingTransactions(true);
+    try {
+      const transactionList = await transactionService.listTransactions(userId);
+      setTransactions(transactionList);
+    } finally {
+      setLoadingTransactions(false);
+    }
+  }, [transactionService]);
+
+  const loadCategories = useCallback(async (userId: number) => {
+    const categoryList = await categoryRepository.listByUser(userId);
+    setCategories(categoryList);
+  }, [categoryRepository]);
+
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      setLoadingTransactions(true);
       setError(null);
       const currentUser = await Auth.getUserInfo();
       setUser(currentUser);
       if (!currentUser) {
         setWallets([]);
         setTransactions([]);
+        setCategories([]);
         return;
       }
 
-      const [walletList, transactionList, categoryList] = await Promise.all([
-        service.listWallets(currentUser.id),
-        transactionService.listTransactions(currentUser.id),
-        categoryRepository.listByUser(currentUser.id),
+      await Promise.all([
+        loadWallets(currentUser.id),
+        loadTransactions(currentUser.id),
+        loadCategories(currentUser.id),
       ]);
-      setWallets(walletList);
-      setTransactions(transactionList);
-      setCategories(categoryList);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to load local data"));
     } finally {
       setLoading(false);
-      setLoadingTransactions(false);
     }
-  }, [service, transactionService, categoryRepository]);
+  }, [loadWallets, loadTransactions, loadCategories]);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadData();
-  }, [loadData]);
+  const refreshWalletAndTransactions = useCallback(async () => {
+    if (!user) return;
+    try {
+      await Promise.all([
+        loadWallets(user.id),
+        loadTransactions(user.id),
+      ]);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Failed to refresh wallet data"));
+    }
+  }, [user, loadWallets, loadTransactions]);
 
   useFocusEffect(
     useCallback(() => {
@@ -86,12 +109,12 @@ export function useWalletViewModel() {
     const subscription = DeviceEventEmitter.addListener(
       DEVICE_TRANSACTIONS_CHANGED_EVENT,
       () => {
-        void loadData();
+        void refreshWalletAndTransactions();
       },
     );
 
     return () => subscription.remove();
-  }, [loadData]);
+  }, [refreshWalletAndTransactions]);
 
   const activeWallets = useMemo(() => wallets.filter((wallet) => !wallet.isArchived), [wallets]);
   const archivedWallets = useMemo(() => wallets.filter((wallet) => wallet.isArchived), [wallets]);
@@ -123,7 +146,7 @@ export function useWalletViewModel() {
         type: editType,
         allowNegative: editAllowNegative,
       });
-      await loadData();
+      await loadWallets(user.id);
       closeEdit();
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to update wallet"));
@@ -136,7 +159,7 @@ export function useWalletViewModel() {
     if (!user || wallet.isArchived) return;
     try {
       await service.archiveWallet(user.id, wallet.id);
-      await loadData();
+      await loadWallets(user.id);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to archive wallet"));
     }
@@ -160,14 +183,14 @@ export function useWalletViewModel() {
     try {
       setCreating(true);
       setCreateError(null);
-      await service.createWallet({
+      const createdWallet = await service.createWallet({
         userId: user.id,
         name,
         type,
         openingBalance: balance,
         currency: "VND",
       });
-      await loadData();
+      setWallets((current) => [createdWallet, ...current]);
       resetForm();
     } catch (err) {
       setCreateError(err instanceof Error ? err : new Error("Failed to create wallet"));
