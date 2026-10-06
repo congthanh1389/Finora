@@ -28,8 +28,7 @@ export function useWalletViewModel() {
   const service = useMemo(() => new WalletService(repository), [repository]);
 
   const loadWallets = useCallback(async (userId: number) => {
-    const walletList = await service.listWallets(userId);
-    setWallets(walletList);
+    setWallets(await service.listWallets(userId));
   }, [service]);
 
   const loadData = useCallback(async () => {
@@ -38,11 +37,7 @@ export function useWalletViewModel() {
       setError(null);
       const currentUser = await Auth.getUserInfo();
       setUser(currentUser);
-      if (!currentUser) {
-        setWallets([]);
-        return;
-      }
-
+      if (!currentUser) { setWallets([]); return; }
       await loadWallets(currentUser.id);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to load local data"));
@@ -51,18 +46,11 @@ export function useWalletViewModel() {
     }
   }, [loadWallets]);
 
-  useFocusEffect(
-    useCallback(() => {
-      void loadData();
-    }, [loadData]),
-  );
+  useFocusEffect(useCallback(() => { void loadData(); }, [loadData]));
 
   const activeWallets = useMemo(() => wallets.filter((wallet) => !wallet.isArchived), [wallets]);
   const archivedWallets = useMemo(() => wallets.filter((wallet) => wallet.isArchived), [wallets]);
-  const totalBalance = useMemo(
-    () => wallets.reduce((sum, wallet) => sum + wallet.balance, 0),
-    [wallets],
-  );
+  const totalBalance = useMemo(() => wallets.reduce((sum, wallet) => sum + wallet.balance, 0), [wallets]);
 
   function openEdit(wallet: WalletSummary) {
     setEditingWallet(wallet);
@@ -82,18 +70,12 @@ export function useWalletViewModel() {
     if (!user || !editingWallet || !editName.trim()) return;
     try {
       setSavingEdit(true);
-      await service.updateWallet(user.id, editingWallet.id, {
-        name: editName,
-        type: editType,
-        allowNegative: editAllowNegative,
-      });
+      await service.updateWallet(user.id, editingWallet.id, { name: editName, type: editType, allowNegative: editAllowNegative });
       await loadWallets(user.id);
       closeEdit();
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to update wallet"));
-    } finally {
-      setSavingEdit(false);
-    }
+    } finally { setSavingEdit(false); }
   }
 
   async function archiveWallet(wallet: WalletSummary) {
@@ -103,6 +85,16 @@ export function useWalletViewModel() {
       await loadWallets(user.id);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to archive wallet"));
+    }
+  }
+
+  async function restoreWallet(wallet: WalletSummary) {
+    if (!user || !wallet.isArchived) return;
+    try {
+      await service.restoreWallet(user.id, wallet.id);
+      await loadWallets(user.id);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Failed to restore wallet"));
     }
   }
 
@@ -116,61 +108,25 @@ export function useWalletViewModel() {
 
   async function submit() {
     if (!user || !name.trim()) return;
-    const balance = openingBalance.trim()
-      ? Number(openingBalance.replace(/[,\.\s]/g, ""))
-      : 0;
+    const balance = openingBalance.trim() ? Number(openingBalance.replace(/[,\.\s]/g, "")) : 0;
     if (!Number.isSafeInteger(balance)) return;
-
     try {
       setCreating(true);
       setCreateError(null);
-      const createdWallet = await service.createWallet({
-        userId: user.id,
-        name,
-        type,
-        openingBalance: balance,
-        currency: "VND",
-      });
+      const createdWallet = await service.createWallet({ userId: user.id, name, type, openingBalance: balance, currency: "VND" });
       setWallets((current) => [createdWallet, ...current]);
       resetForm();
     } catch (err) {
       setCreateError(err instanceof Error ? err : new Error("Failed to create wallet"));
-    } finally {
-      setCreating(false);
-    }
+    } finally { setCreating(false); }
   }
 
   return {
-    wallets,
-    activeWallets,
-    archivedWallets,
-    totalBalance,
-    isLoading,
-    error,
-    isCreateOpen,
-    name,
-    type,
-    openingBalance,
-    isCreating,
-    createError,
-    editingWallet,
-    editName,
-    editType,
-    editAllowNegative,
-    isSavingEdit,
-    setCreateOpen,
-    setEditName,
-    setEditType,
-    setEditAllowNegative,
-    openEdit,
-    closeEdit,
-    saveEdit,
-    archiveWallet,
-    setName,
-    setType,
-    setOpeningBalance,
-    submit,
-    resetForm,
-    reload: loadData,
+    wallets, activeWallets, archivedWallets, totalBalance, isLoading, error,
+    isCreateOpen, name, type, openingBalance, isCreating, createError,
+    editingWallet, editName, editType, editAllowNegative, isSavingEdit,
+    setCreateOpen, setEditName, setEditType, setEditAllowNegative,
+    openEdit, closeEdit, saveEdit, archiveWallet, restoreWallet,
+    setName, setType, setOpeningBalance, submit, resetForm, reload: loadData,
   };
 }
