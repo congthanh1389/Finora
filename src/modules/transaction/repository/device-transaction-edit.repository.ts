@@ -1,5 +1,8 @@
 import { DeviceEventEmitter } from "react-native";
-import { getDeviceDatabase } from "../../../core/storage/device-store";
+import {
+  getDeviceDatabase,
+  getDeviceWalletBalanceFromDatabase,
+} from "../../../core/storage/device-store";
 
 import type { Transaction } from "../../../../drizzle/schema";
 
@@ -109,7 +112,7 @@ export async function updateDeviceTransaction(input: UpdateTransactionInput): Pr
     if (newWallet.currency !== current.currency) throw new Error("Đơn vị tiền của giao dịch không khớp với ví.");
 
     if (current.type === "expense" && Number(newWallet.allow_negative) !== 1) {
-      let newWalletBalance = await getBalance(db, input.userId, input.walletId);
+      let newWalletBalance = await getDeviceWalletBalanceFromDatabase(db, input.userId, input.walletId);
       if (current.walletId === input.walletId) {
         newWalletBalance += current.amount;
       }
@@ -143,24 +146,4 @@ export async function updateDeviceTransaction(input: UpdateTransactionInput): Pr
   DeviceEventEmitter.emit(DEVICE_TRANSACTIONS_CHANGED_EVENT, updated!);
   return updated!;
 }
-
-async function getBalance(db: Awaited<ReturnType<typeof getDeviceDatabase>>, userId: number, walletId: number) {
-  const row = await db.getFirstAsync<{ opening_balance: number; balance_effect: number | null }>(
-    `SELECT w.opening_balance,
-       COALESCE(SUM(CASE
-         WHEN t.type = 'income' AND t.wallet_id = w.id THEN t.amount
-         WHEN t.type = 'expense' AND t.wallet_id = w.id THEN -t.amount
-         WHEN t.type = 'transfer' AND t.destination_wallet_id = w.id THEN t.amount
-         WHEN t.type = 'transfer' AND t.source_wallet_id = w.id THEN -t.amount
-         ELSE 0 END), 0) AS balance_effect
-     FROM wallets w
-     LEFT JOIN transactions t ON t.user_id = w.user_id
-       AND (t.wallet_id = w.id OR t.source_wallet_id = w.id OR t.destination_wallet_id = w.id)
-     WHERE w.user_id = ? AND w.id = ?
-     GROUP BY w.id, w.opening_balance`,
-    userId,
-    walletId,
-  );
-  if (!row) throw new Error("Không tìm thấy ví.");
-  return Number(row.opening_balance) + Number(row.balance_effect ?? 0);
-}
+\n
