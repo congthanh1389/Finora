@@ -1,5 +1,5 @@
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 
 import * as Auth from "@/lib/_core/auth";
@@ -119,8 +119,6 @@ export default function HomeScreen() {
     }
   }, []);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { void loadRecentTransactions(); }, [loadRecentTransactions]);
   useFocusEffect(useCallback(() => { void loadRecentTransactions(); }, [loadRecentTransactions]));
 
   const [greeting] = useState(getGreeting);
