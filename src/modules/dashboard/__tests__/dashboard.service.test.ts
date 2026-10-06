@@ -3,7 +3,7 @@ import { DashboardService } from "../service/dashboard.service";
 
 describe("DashboardService", () => {
   it("rejects invalid user ids", async () => {
-    const service = new DashboardService({ getDashboardData: vi.fn() });
+    const service = new DashboardService({ getDashboardData: vi.fn() } as never);
     await expect(service.load(0)).rejects.toThrow("Invalid user id");
   });
 
@@ -16,7 +16,7 @@ describe("DashboardService", () => {
       monthLabel: "tháng 10",
     };
     const repository = { getDashboardData: vi.fn().mockResolvedValue(data) };
-    const service = new DashboardService(repository);
+    const service = new DashboardService(repository as never);
 
     await expect(service.load(1)).resolves.toEqual(data);
     expect(repository.getDashboardData).toHaveBeenCalledWith(1);
