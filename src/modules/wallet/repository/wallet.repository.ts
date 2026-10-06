@@ -5,6 +5,7 @@ import {
   listDeviceWalletsWithBalances,
   updateDeviceWallet,
   archiveDeviceWallet,
+  restoreDeviceWallet,
 } from "../../../core/storage/device-store";
 
 export class WalletRepository implements IWalletRepository {
@@ -32,5 +33,9 @@ export class WalletRepository implements IWalletRepository {
 
   async archive(userId: number, walletId: number) {
     return archiveDeviceWallet(userId, walletId);
+  }
+
+  async restore(userId: number, walletId: number) {
+    return restoreDeviceWallet(userId, walletId);
   }
 }

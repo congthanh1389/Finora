@@ -96,6 +96,20 @@ export function useWalletViewModel() {
     }
   }
 
+  async function restoreWallet(wallet: WalletSummary) {
+    if (!user || !wallet.isArchived) return;
+    try {
+      const restoredWallet = await service.restoreWallet(user.id, wallet.id);
+      setWallets((current) =>
+        current.map((currentWallet) =>
+          currentWallet.id === restoredWallet.id ? restoredWallet : currentWallet,
+        ),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Failed to restore wallet"));
+    }
+  }
+
   async function archiveWallet(wallet: WalletSummary) {
     if (!user || wallet.isArchived) return;
     try {
@@ -166,6 +180,7 @@ export function useWalletViewModel() {
     closeEdit,
     saveEdit,
     archiveWallet,
+    restoreWallet,
     setName,
     setType,
     setOpeningBalance,

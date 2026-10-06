@@ -71,6 +71,12 @@ export class WalletService {
     return this.toSummary(await this.repository.archive(userId, walletId));
   }
 
+  async restoreWallet(userId: number, walletId: number): Promise<WalletSummary> {
+    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id");
+    return this.toSummary(await this.repository.restore(userId, walletId));
+  }
+
   async listWallets(userId: number): Promise<WalletSummary[]> {
     if (!Number.isInteger(userId) || userId <= 0) {
       throw new Error("Invalid user id");

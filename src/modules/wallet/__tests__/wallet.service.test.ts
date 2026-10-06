@@ -51,6 +51,14 @@ function createRepository(): IWalletRepository {
       row.updatedAt = new Date();
       return row;
     },
+    async restore(userId, walletId) {
+      const row = rows.find((item) => item.userId === userId && item.id === walletId);
+      if (!row) throw new Error("Wallet not found.");
+      if (row.isArchived === 0) throw new Error("Wallet is already active.");
+      row.isArchived = 0;
+      row.updatedAt = new Date();
+      return row;
+    },
   };
 }
 
@@ -115,6 +123,36 @@ describe("WalletService", () => {
     const created = await service.createWallet({ userId: 1, name: "Ví cần lưu trữ", type: "cash" });
     const archived = await service.archiveWallet(1, created.id);
     expect(archived.isArchived).toBe(true);
+  });
+
+  it("restores an archived wallet without changing its data", async () => {
+    const service = new WalletService(createRepository());
+    const created = await service.createWallet({
+      userId: 1,
+      name: "Ví đã lưu trữ",
+      type: "bank",
+      openingBalance: 750000,
+      allowNegative: true,
+    });
+    await service.archiveWallet(1, created.id);
+
+    const restored = await service.restoreWallet(1, created.id);
+
+    expect(restored).toMatchObject({
+      id: created.id,
+      name: "Ví đã lưu trữ",
+      type: "bank",
+      openingBalance: 750000,
+      allowNegative: true,
+      isArchived: false,
+    });
+  });
+
+  it("rejects restoring an active wallet", async () => {
+    const service = new WalletService(createRepository());
+    const created = await service.createWallet({ userId: 1, name: "Ví đang hoạt động", type: "cash" });
+
+    await expect(service.restoreWallet(1, created.id)).rejects.toThrow("Wallet is already active.");
   });
 
   it("lists wallets through the repository", async () => {

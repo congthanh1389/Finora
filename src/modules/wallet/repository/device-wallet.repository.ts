@@ -4,6 +4,7 @@ import {
   listDeviceWalletsWithBalances,
   updateDeviceWallet,
   archiveDeviceWallet,
+  restoreDeviceWallet,
 } from "../../../core/storage/device-store";
 import type { NewWallet } from "../../../core/database/repository-contracts";
 
@@ -32,5 +33,9 @@ export class DeviceWalletRepository {
 
   async archive(userId: number, walletId: number) {
     return archiveDeviceWallet(userId, walletId);
+  }
+
+  async restore(userId: number, walletId: number) {
+    return restoreDeviceWallet(userId, walletId);
   }
 }

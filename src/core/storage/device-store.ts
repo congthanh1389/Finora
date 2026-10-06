@@ -217,6 +217,20 @@ export async function archiveDeviceWallet(userId: number, walletId: number): Pro
   const db = await getDeviceDatabase(); await migrateDatabase(db); const current = await getDeviceWallet(userId, walletId); if (!current) throw new Error("Wallet not found.");
   await db.runAsync("UPDATE wallets SET is_archived = 1, updated_at = ? WHERE user_id = ? AND id = ?", new Date().toISOString(), userId, walletId); return (await getDeviceWallet(userId, walletId))!;
 }
+
+export async function restoreDeviceWallet(userId: number, walletId: number): Promise<Wallet> {
+  const db = await getDeviceDatabase(); await migrateDatabase(db);
+  const current = await getDeviceWallet(userId, walletId);
+  if (!current) throw new Error("Wallet not found.");
+  if (current.isArchived === 0) throw new Error("Wallet is already active.");
+  await db.runAsync(
+    "UPDATE wallets SET is_archived = 0, updated_at = ? WHERE user_id = ? AND id = ?",
+    new Date().toISOString(),
+    userId,
+    walletId,
+  );
+  return (await getDeviceWallet(userId, walletId))!;
+}
 export async function listDeviceTransactions(userId: number): Promise<Transaction[]> {
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const rows = await db.getAllAsync(`SELECT * FROM transactions WHERE user_id = ? ORDER BY occurred_at DESC`, userId); return rows.map(transactionFromRow);

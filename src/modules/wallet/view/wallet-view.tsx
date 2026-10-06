@@ -44,7 +44,7 @@ export function WalletView() {
 
           <View className="rounded-[28px] bg-[#0F2A5F] p-6">
             <Text className="text-xs font-semibold tracking-wider text-white/70">TỔNG SỐ DƯ</Text>
-            <Text className="mt-2 text-[38px] font-extrabold text-[#047857]">{formatVnd(vm.totalBalance)}</Text>
+            <Text className="mt-2 text-[38px] font-bold text-[#047857]">{formatVnd(vm.totalBalance)}</Text>
             <Text className="mt-1 text-xs text-white/70">{vm.activeWallets.length} ví đang được quản lý</Text>
           </View>
 
@@ -105,7 +105,15 @@ export function WalletView() {
                           <Text className="font-semibold text-[#475569]">{wallet.name}</Text>
                           <Text className="mt-1 text-xs text-[#94A3B8]">{walletTypeLabel(wallet.type)} · {wallet.currency}</Text>
                         </View>
-                        <Text className="text-sm font-bold text-[#64748B]">{formatVnd(wallet.balance)}</Text>
+                        <View className="items-end">
+                          <Text className="text-sm font-bold text-[#64748B]">{formatVnd(wallet.balance)}</Text>
+                          <Pressable
+                            onPress={() => void vm.restoreWallet(wallet)}
+                            className="mt-2 rounded-full bg-[#ECFDF5] px-3 py-1.5"
+                          >
+                            <Text className="text-xs font-bold text-[#047857]">Khôi phục</Text>
+                          </Pressable>
+                        </View>
                       </View>
                     ))}
                   </View>
