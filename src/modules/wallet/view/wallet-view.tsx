@@ -11,6 +11,10 @@ const walletTypes: { value: WalletType; label: string; icon: string }[] = [
   { value: "ewallet", label: "Ví điện tử", icon: "01_finance_wallet" },
   { value: "credit_card", label: "Thẻ tín dụng", icon: "01_finance_wallet" },
   { value: "savings", label: "Tiết kiệm", icon: "01_finance_wallet" },
+  { value: "investment", label: "Đầu tư", icon: "01_finance_wallet" },
+  { value: "other_asset", label: "Tài sản khác", icon: "01_finance_wallet" },
+  { value: "receivable", label: "Khoản phải thu", icon: "01_finance_wallet" },
+  { value: "payable", label: "Khoản phải trả", icon: "01_finance_wallet" },
 ];
 
 function walletTypeLabel(type: WalletType) {
