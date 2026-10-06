@@ -1,4 +1,4 @@
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
@@ -235,8 +235,17 @@ export function WalletView() {
       </Modal>
 
       <Modal visible={vm.isCreateOpen} transparent animationType="slide" onRequestClose={vm.resetForm}>
-        <View className="flex-1 justify-end bg-black/30">
-          <View className="rounded-t-[30px] bg-white px-5 pb-8 pt-5">
+        <View className="flex-1 bg-black/30">
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            className="flex-1"
+          >
+            <View className="m-4 flex-1 overflow-hidden rounded-[30px] bg-white">
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 }}
+                showsVerticalScrollIndicator={false}
+              >
             <View className="flex-row items-center">
               <Text className="flex-1 text-xl font-bold text-[#0F2A5F]">Thêm ví</Text>
               <Pressable onPress={vm.resetForm} className="h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9]">
@@ -286,8 +295,10 @@ export function WalletView() {
               className={"mt-5 items-center rounded-full px-5 py-4 " + (vm.isCreating || !vm.name.trim() ? "bg-[#CBD5E1]" : "bg-[#22B8A8]")}
             >
               {vm.isCreating ? <ActivityIndicator color="#FFFFFF" /> : <Text className="font-bold text-white">Lưu ví</Text>}
-            </Pressable>
-          </View>
+                </Pressable>
+              </ScrollView>
+            </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
     </ScreenContainer>
