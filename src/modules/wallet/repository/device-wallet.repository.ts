@@ -6,6 +6,7 @@ import {
   archiveDeviceWallet,
   restoreDeviceWallet,
   deleteArchivedDeviceWallet,
+  listDeviceWallets,
 } from "../../../core/storage/device-store";
 import type { NewWallet } from "../../../core/database/repository-contracts";
 
