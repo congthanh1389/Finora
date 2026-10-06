@@ -44,7 +44,7 @@ export function WalletView() {
 
           <View className="rounded-[28px] bg-[#0F2A5F] p-6">
             <Text className="text-xs font-semibold tracking-wider text-white/70">TỔNG SỐ DƯ</Text>
-            <Text className="mt-2 text-[32px] font-bold text-[#22C55E]">{formatVnd(vm.totalBalance)}</Text>
+            <Text className="mt-2 text-[38px] font-extrabold text-[#047857]">{formatVnd(vm.totalBalance)}</Text>
             <Text className="mt-1 text-xs text-white/70">{vm.activeWallets.length} ví đang được quản lý</Text>
           </View>
 
