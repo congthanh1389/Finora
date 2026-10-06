@@ -9,6 +9,7 @@ const CURRENT_SCHEMA_VERSION = 5;
 export const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
 let databasePromise: Promise<SQLiteDatabase> | null = null;
+let migrationPromise: Promise<void> | null = null;
 
 export async function getDeviceDatabase(): Promise<SQLiteDatabase> {
   if (!databasePromise) {
@@ -18,108 +19,121 @@ export async function getDeviceDatabase(): Promise<SQLiteDatabase> {
 }
 
 async function migrateDatabase(db: SQLiteDatabase) {
-  await db.execAsync("PRAGMA foreign_keys = ON;");
+  if (migrationPromise) {
+    return migrationPromise;
+  }
 
-  const versionRow = await db.getFirstAsync<{ user_version: number }>("PRAGMA user_version;");
-  const version = versionRow?.user_version ?? 0;
+  migrationPromise = (async () => {
+    await db.execAsync("PRAGMA foreign_keys = ON;");
 
-  if (version < 1) {
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS wallets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        currency TEXT NOT NULL DEFAULT 'VND',
-        opening_balance INTEGER NOT NULL DEFAULT 0,
-        allow_negative INTEGER NOT NULL DEFAULT 0,
-        is_archived INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+    const versionRow = await db.getFirstAsync<{ user_version: number }>("PRAGMA user_version;");
+    const version = versionRow?.user_version ?? 0;
+
+    if (version < 1) {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS wallets (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          type TEXT NOT NULL,
+          currency TEXT NOT NULL DEFAULT 'VND',
+          opening_balance INTEGER NOT NULL DEFAULT 0,
+          allow_negative INTEGER NOT NULL DEFAULT 0,
+          is_archived INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS transactions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          type TEXT NOT NULL,
+          amount INTEGER NOT NULL,
+          currency TEXT NOT NULL DEFAULT 'VND',
+          wallet_id INTEGER,
+          source_wallet_id INTEGER,
+          destination_wallet_id INTEGER,
+          category_id INTEGER,
+          note TEXT,
+          occurred_at TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (wallet_id) REFERENCES wallets(id) ON DELETE RESTRICT,
+          FOREIGN KEY (source_wallet_id) REFERENCES wallets(id) ON DELETE RESTRICT,
+          FOREIGN KEY (destination_wallet_id) REFERENCES wallets(id) ON DELETE RESTRICT
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_wallets_user_id ON wallets(user_id);
+        CREATE INDEX IF NOT EXISTS idx_transactions_user_id_occurred_at
+          ON transactions(user_id, occurred_at DESC);
+
+        PRAGMA user_version = 1;
+      `);
+    }
+
+    if (version < 2) {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS categories (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          type TEXT NOT NULL,
+          parent_id INTEGER,
+          icon TEXT,
+          is_archived INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_categories_user_id_type
+          ON categories(user_id, type, is_archived);
+
+        PRAGMA user_version = 2;
+      `);
+    }
+
+    if (version < 3) {
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_transactions_category_id ON transactions(category_id); PRAGMA user_version = 3;`);
+    }
+
+    if (version < 4) {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS local_accounts (
+          id INTEGER PRIMARY KEY,
+          open_id TEXT NOT NULL,
+          name TEXT,
+          email TEXT NOT NULL,
+          login_method TEXT,
+          last_signed_in TEXT NOT NULL
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_local_accounts_email
+          ON local_accounts(email);
+        PRAGMA user_version = 4;
+      `);
+    }
+
+    if (version < 5) {
+      await db.runAsync(
+        `UPDATE categories
+         SET is_archived = 1, updated_at = ?
+         WHERE is_archived = 0
+           AND ((type = 'expense' AND name IN ('Ăn uống', 'Mua sắm', 'Khác'))
+             OR (type = 'income' AND name IN ('Lương', 'Thưởng', 'Kinh doanh', 'Đầu tư', 'Khác')))`,
+        new Date().toISOString(),
       );
+      await db.execAsync("PRAGMA user_version = 5;");
+    }
 
-      CREATE TABLE IF NOT EXISTS transactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        type TEXT NOT NULL,
-        amount INTEGER NOT NULL,
-        currency TEXT NOT NULL DEFAULT 'VND',
-        wallet_id INTEGER,
-        source_wallet_id INTEGER,
-        destination_wallet_id INTEGER,
-        category_id INTEGER,
-        note TEXT,
-        occurred_at TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (wallet_id) REFERENCES wallets(id) ON DELETE RESTRICT,
-        FOREIGN KEY (source_wallet_id) REFERENCES wallets(id) ON DELETE RESTRICT,
-        FOREIGN KEY (destination_wallet_id) REFERENCES wallets(id) ON DELETE RESTRICT
-      );
+    if (version > CURRENT_SCHEMA_VERSION) {
+      throw new Error("Finora database version is newer than this app.");
+    }
+  })();
 
-      CREATE INDEX IF NOT EXISTS idx_wallets_user_id ON wallets(user_id);
-      CREATE INDEX IF NOT EXISTS idx_transactions_user_id_occurred_at
-        ON transactions(user_id, occurred_at DESC);
-
-      PRAGMA user_version = 1;
-    `);
-  }
-
-  if (version < 2) {
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS categories (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        parent_id INTEGER,
-        icon TEXT,
-        is_archived INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_categories_user_id_type
-        ON categories(user_id, type, is_archived);
-
-      PRAGMA user_version = 2;
-    `);
-  }
-
-  if (version < 3) {
-    await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_transactions_category_id ON transactions(category_id); PRAGMA user_version = 3;`);
-  }
-
-  if (version < 4) {
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS local_accounts (
-        id INTEGER PRIMARY KEY,
-        open_id TEXT NOT NULL,
-        name TEXT,
-        email TEXT NOT NULL,
-        login_method TEXT,
-        last_signed_in TEXT NOT NULL
-      );
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_local_accounts_email
-        ON local_accounts(email);
-      PRAGMA user_version = 4;
-    `);
-  }
-
-  if (version < 5) {
-    await db.runAsync(
-      `UPDATE categories
-       SET is_archived = 1, updated_at = ?
-       WHERE is_archived = 0
-         AND ((type = 'expense' AND name IN ('Ăn uống', 'Mua sắm', 'Khác'))
-           OR (type = 'income' AND name IN ('Lương', 'Thưởng', 'Kinh doanh', 'Đầu tư', 'Khác')))`,
-      new Date().toISOString(),
-    );
-    await db.execAsync("PRAGMA user_version = 5;");
-  }
-
-  if (version > CURRENT_SCHEMA_VERSION) {
-    throw new Error("Finora database version is newer than this app.");
+  try {
+    await migrationPromise;
+  } catch (error) {
+    migrationPromise = null;
+    throw error;
   }
 }
 
@@ -475,6 +489,7 @@ export async function archiveDeviceWallet(userId: number, walletId: number): Pro
   );
   return (await getDeviceWallet(userId, walletId))!;
 }
+
 export async function listDeviceTransactions(userId: number): Promise<Transaction[]> {
   const db = await getDeviceDatabase();
   await migrateDatabase(db);
