@@ -9,7 +9,7 @@ export class CategoryService {
     return categories.filter((item) => item.isArchived === 0);
   }
 
-  async createCategory(userId: number, name: string, type: Category["type"]) {
+  async createCategory(userId: number, name: string, type: Category["type"], icon?: string) {
     const trimmed = name.trim();
     if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
     if (!trimmed) throw new Error("Tên danh mục không được để trống.");
@@ -24,7 +24,7 @@ export class CategoryService {
       name: trimmed,
       type,
       parentId: null,
-      icon: type === "income" ? "04_reports_report" : "01_finance_wallet",
+      icon: icon ?? "other",
       isArchived: 0,
     });
   }
