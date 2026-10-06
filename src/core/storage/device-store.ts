@@ -404,8 +404,13 @@ export async function createDeviceTransaction(input: Omit<Transaction, "id" | "c
   const now = new Date(); const occurredAt = input.occurredAt ?? now; let transaction: Transaction;
   await db.withTransactionAsync(async () => {
     if (input.categoryId != null) {
-      const category = await db.getFirstAsync<{ id: number; type: string }>("SELECT id, type FROM categories WHERE user_id = ? AND id = ?", input.userId, input.categoryId);
+      const category = await db.getFirstAsync<{ id: number; type: string; is_archived: number }>(
+        "SELECT id, type, is_archived FROM categories WHERE user_id = ? AND id = ?",
+        input.userId,
+        input.categoryId,
+      );
       if (!category) throw new Error("Category not found.");
+      if (Number(category.is_archived) === 1) throw new Error("Không thể sử dụng danh mục đã lưu trữ.");
       if (category.type !== input.type) throw new Error("Category type does not match transaction type.");
     }
     const walletIds = Array.from(new Set(
