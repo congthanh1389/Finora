@@ -231,6 +231,31 @@ export async function restoreDeviceWallet(userId: number, walletId: number): Pro
   );
   return (await getDeviceWallet(userId, walletId))!;
 }
+
+export async function deleteArchivedDeviceWallet(userId: number, walletId: number): Promise<void> {
+  const db = await getDeviceDatabase();
+  await migrateDatabase(db);
+  await db.withTransactionAsync(async () => {
+    const wallet = await db.getFirstAsync<{ is_archived: number }>(
+      "SELECT is_archived FROM wallets WHERE user_id = ? AND id = ?",
+      userId,
+      walletId,
+    );
+    if (!wallet) throw new Error("Wallet not found.");
+    if (Number(wallet.is_archived) !== 1) throw new Error("Chỉ có thể xóa ví đã lưu trữ.");
+
+    const transaction = await db.getFirstAsync<{ id: number }>(
+      "SELECT id FROM transactions WHERE user_id = ? AND (wallet_id = ? OR source_wallet_id = ? OR destination_wallet_id = ?) LIMIT 1",
+      userId,
+      walletId,
+      walletId,
+      walletId,
+    );
+    if (transaction) throw new Error("Không thể xóa ví đã có giao dịch. Hãy giữ ví ở trạng thái lưu trữ để bảo toàn lịch sử.");
+
+    await db.runAsync("DELETE FROM wallets WHERE user_id = ? AND id = ?", userId, walletId);
+  });
+}
 export async function listDeviceTransactions(userId: number): Promise<Transaction[]> {
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const rows = await db.getAllAsync(`SELECT * FROM transactions WHERE user_id = ? ORDER BY occurred_at DESC`, userId); return rows.map(transactionFromRow);
