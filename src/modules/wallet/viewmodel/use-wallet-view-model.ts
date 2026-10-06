@@ -50,7 +50,7 @@ export function useWalletViewModel() {
   const loadTransactions = useCallback(async (userId: number) => {
     setLoadingTransactions(true);
     try {
-      const transactionList = await transactionService.listTransactions(userId);
+      const transactionList = await transactionService.listRecentTransactions(userId, 20);
       setTransactions(transactionList);
     } finally {
       setLoadingTransactions(false);
