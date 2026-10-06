@@ -100,7 +100,7 @@ export default function HomeScreen() {
       const cr = new CategoryRepository();
       const [transactions, wallets, categories] = await Promise.all([
         tr.listRecent(user.id, 3),
-        wr.listByUser(user.id),
+        wr.listBasicByUser(user.id),
         cr.listByUser(user.id),
       ]);
       const walletMap = new Map(wallets.map((wallet) => [wallet.id, wallet]));
