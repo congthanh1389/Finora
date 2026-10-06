@@ -4,7 +4,7 @@ import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 import type { Category, Wallet, Transaction } from "../../../drizzle/schema";
 
 const DATABASE_NAME = "finora.db";
-const CURRENT_SCHEMA_VERSION = 6;
+const CURRENT_SCHEMA_VERSION = 7;
 
 export const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
@@ -113,6 +113,15 @@ async function migrateDatabase(db: SQLiteDatabase) {
         CREATE INDEX IF NOT EXISTS idx_transactions_user_destination_occurred
           ON transactions(user_id, destination_wallet_id, occurred_at DESC);
         PRAGMA user_version = 6;
+      `);
+    }
+    if (version < 7) {
+      await db.execAsync(`
+        CREATE INDEX IF NOT EXISTS idx_transactions_user_type_occurred
+          ON transactions(user_id, type, occurred_at DESC, id DESC);
+        CREATE INDEX IF NOT EXISTS idx_wallets_user_archived_created
+          ON wallets(user_id, is_archived, created_at DESC);
+        PRAGMA user_version = 7;
       `);
     }
     if (version > CURRENT_SCHEMA_VERSION) throw new Error("Finora database version is newer than this app.");
