@@ -2,6 +2,7 @@ import { DeviceEventEmitter } from "react-native";
 import {
   getDeviceDatabase,
   getDeviceWalletBalanceFromDatabase,
+  initializeDeviceStorage,
 } from "../../../core/storage/device-store";
 
 import type { Transaction } from "../../../../drizzle/schema";
@@ -39,6 +40,7 @@ export async function getDeviceTransaction(
   userId: number,
   transactionId: number,
 ): Promise<Transaction | undefined> {
+  await initializeDeviceStorage();
   const db = await getDeviceDatabase();
   const row = await db.getFirstAsync(
     "SELECT * FROM transactions WHERE user_id = ? AND id = ?",
@@ -49,6 +51,7 @@ export async function getDeviceTransaction(
 }
 
 export async function deleteDeviceTransaction(userId: number, transactionId: number): Promise<Transaction> {
+  await initializeDeviceStorage();
   const db = await getDeviceDatabase();
   let deleted: Transaction | undefined;
 
@@ -75,6 +78,7 @@ export async function deleteDeviceTransaction(userId: number, transactionId: num
 }
 
 export async function updateDeviceTransaction(input: UpdateTransactionInput): Promise<Transaction> {
+  await initializeDeviceStorage();
   const db = await getDeviceDatabase();
   let updated: Transaction | undefined;
 
@@ -103,12 +107,13 @@ export async function updateDeviceTransaction(input: UpdateTransactionInput): Pr
     if (!category || Number(category.is_archived) === 1) throw new Error("Danh mục không còn hoạt động.");
     if (category.type !== current.type) throw new Error("Danh mục không phù hợp với loại giao dịch.");
 
-    const newWallet = await db.getFirstAsync<{ id: number; currency: string; allow_negative: number }>(
-      "SELECT id, currency, allow_negative FROM wallets WHERE user_id = ? AND id = ?",
+    const newWallet = await db.getFirstAsync<{ id: number; currency: string; allow_negative: number; is_archived: number }>(
+      "SELECT id, currency, allow_negative, is_archived FROM wallets WHERE user_id = ? AND id = ?",
       input.userId,
       input.walletId,
     );
     if (!newWallet) throw new Error("Không tìm thấy ví.");
+    if (Number(newWallet.is_archived) === 1) throw new Error("Không thể sử dụng ví đã lưu trữ.");
     if (newWallet.currency !== current.currency) throw new Error("Đơn vị tiền của giao dịch không khớp với ví.");
 
     if (current.type === "expense" && Number(newWallet.allow_negative) !== 1) {
