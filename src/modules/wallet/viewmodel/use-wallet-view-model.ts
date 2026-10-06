@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { Alert } from "react-native";
 import { useFocusEffect } from "expo-router";
 
 import * as Auth from "@/lib/_core/auth";
@@ -96,6 +97,31 @@ export function useWalletViewModel() {
     }
   }
 
+  async function deleteArchivedWallet(wallet: WalletSummary) {
+    if (!user || !wallet.isArchived) return;
+    Alert.alert(
+      "Xóa ví vĩnh viễn?",
+      `Ví "${wallet.name}" sẽ bị xóa khỏi thiết bị. Ví có giao dịch sẽ không thể xóa để bảo toàn lịch sử.`,
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Xóa ví",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              try {
+                await service.deleteArchivedWallet(user.id, wallet.id);
+                setWallets((current) => current.filter((item) => item.id !== wallet.id));
+              } catch (err) {
+                setError(err instanceof Error ? err : new Error("Không thể xóa ví."));
+              }
+            })();
+          },
+        },
+      ],
+    );
+  }
+
   async function restoreWallet(wallet: WalletSummary) {
     if (!user || !wallet.isArchived) return;
     try {
@@ -181,6 +207,7 @@ export function useWalletViewModel() {
     saveEdit,
     archiveWallet,
     restoreWallet,
+    deleteArchivedWallet,
     setName,
     setType,
     setOpeningBalance,
