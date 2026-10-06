@@ -3,6 +3,7 @@ import type { CreateTransactionInput, TransactionSummary } from "../types/transa
 type TransactionServiceRepository = {
   list(userId: number): Promise<TransactionSummary[]>;
   listRecent?(userId: number, limit?: number): Promise<TransactionSummary[]>;
+  listRecentByWallet?(userId: number, walletId: number, limit?: number): Promise<TransactionSummary[]>;
   create(input: CreateTransactionInput): Promise<TransactionSummary>;
 };
 
@@ -18,6 +19,24 @@ export class TransactionService {
     return listRecent
       ? listRecent.call(this.repository, userId, limit)
       : this.repository.list(userId).then((transactions) => transactions.slice(0, limit));
+  }
+
+  listRecentTransactionsByWallet(userId: number, walletId: number, limit = 20) {
+    const listRecentByWallet = this.repository.listRecentByWallet;
+    return listRecentByWallet
+      ? listRecentByWallet.call(this.repository, userId, walletId, limit)
+      : this.repository
+          .list(userId)
+          .then((transactions) =>
+            transactions
+              .filter(
+                (transaction) =>
+                  transaction.walletId === walletId ||
+                  transaction.sourceWalletId === walletId ||
+                  transaction.destinationWalletId === walletId,
+              )
+              .slice(0, limit),
+          );
   }
 
   createTransaction(input: CreateTransactionInput) {

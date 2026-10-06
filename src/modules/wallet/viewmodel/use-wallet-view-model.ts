@@ -22,6 +22,7 @@ export function useWalletViewModel() {
   const [transactions, setTransactions] = useState<TransactionSummary[]>([]);
   const [categories, setCategories] = useState<Awaited<ReturnType<CategoryRepository["listByUser"]>>>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [selectedWalletId, setSelectedWalletId] = useState<number | null>(null);
   const [isLoading, setLoading] = useState(true);
   const [isLoadingTransactions, setLoadingTransactions] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -47,10 +48,12 @@ export function useWalletViewModel() {
     setWallets(walletList);
   }, [service]);
 
-  const loadTransactions = useCallback(async (userId: number) => {
+  const loadTransactions = useCallback(async (userId: number, walletId: number | null) => {
     setLoadingTransactions(true);
     try {
-      const transactionList = await transactionService.listRecentTransactions(userId, 20);
+      const transactionList = walletId === null
+        ? await transactionService.listRecentTransactions(userId, 20)
+        : await transactionService.listRecentTransactionsByWallet(userId, walletId, 20);
       setTransactions(transactionList);
     } finally {
       setLoadingTransactions(false);
@@ -77,7 +80,7 @@ export function useWalletViewModel() {
 
       await Promise.all([
         loadWallets(currentUser.id),
-        loadTransactions(currentUser.id),
+        loadTransactions(currentUser.id, null),
         loadCategories(currentUser.id),
       ]);
     } catch (err) {
@@ -92,12 +95,23 @@ export function useWalletViewModel() {
     try {
       await Promise.all([
         loadWallets(user.id),
-        loadTransactions(user.id),
+        loadTransactions(user.id, selectedWalletId),
       ]);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to refresh wallet data"));
     }
-  }, [user, loadWallets, loadTransactions]);
+  }, [user, loadWallets, loadTransactions, selectedWalletId]);
+
+  const selectWallet = useCallback(async (walletId: number | null) => {
+    setSelectedWalletId(walletId);
+    if (!user) return;
+
+    try {
+      await loadTransactions(user.id, walletId);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Failed to load wallet transactions"));
+    }
+  }, [user, loadTransactions]);
 
   useFocusEffect(
     useCallback(() => {
@@ -159,6 +173,10 @@ export function useWalletViewModel() {
     if (!user || wallet.isArchived) return;
     try {
       await service.archiveWallet(user.id, wallet.id);
+      if (selectedWalletId === wallet.id) {
+        setSelectedWalletId(null);
+        await loadTransactions(user.id, null);
+      }
       await loadWallets(user.id);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to archive wallet"));
@@ -206,6 +224,7 @@ export function useWalletViewModel() {
     transactions,
     categories,
     totalBalance,
+    selectedWalletId,
     isLoading,
     isLoadingTransactions,
     error,
@@ -221,6 +240,7 @@ export function useWalletViewModel() {
     editAllowNegative,
     isSavingEdit,
     setCreateOpen,
+    selectWallet,
     setEditName,
     setEditType,
     setEditAllowNegative,

@@ -146,6 +146,30 @@ export function WalletView() {
               </View>
             </View>
 
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4">
+              <View className="flex-row gap-2">
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Tất cả giao dịch"
+                  onPress={() => void vm.selectWallet(null)}
+                  className={"rounded-full border px-4 py-2.5 " + (vm.selectedWalletId === null ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0] bg-white")}
+                >
+                  <Text className={vm.selectedWalletId === null ? "text-xs font-bold text-[#047857]" : "text-xs font-semibold text-[#475569]"}>Tất cả</Text>
+                </Pressable>
+                {vm.activeWallets.map((wallet) => (
+                  <Pressable
+                    key={wallet.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Giao dịch ví ${wallet.name}`}
+                    onPress={() => void vm.selectWallet(wallet.id)}
+                    className={"rounded-full border px-4 py-2.5 " + (vm.selectedWalletId === wallet.id ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0] bg-white")}
+                  >
+                    <Text className={vm.selectedWalletId === wallet.id ? "text-xs font-bold text-[#047857]" : "text-xs font-semibold text-[#475569]"}>{wallet.name}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+
             {vm.isLoadingTransactions ? (
               <ActivityIndicator className="mt-5" />
             ) : vm.transactions.length === 0 ? (
