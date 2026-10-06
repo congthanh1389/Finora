@@ -32,7 +32,7 @@ export default function CategoryScreen() {
   function resetForm(nextType: Category["type"]) {
     setType(nextType);
     setName("");
-    setSelectedIcon(nextType === "expense" ? "food-noodles" : "briefcase-outline");
+    setSelectedIcon(nextType === "expense" ? "food" : "briefcase-outline");
     setEditingId(null);
     setEditingName("");
     setError("");
@@ -124,7 +124,7 @@ export default function CategoryScreen() {
               const selected = selectedIcon === item.name;
               return (
                 <Pressable key={item.name} onPress={() => setSelectedIcon(item.name)} className="mb-3 mr-3 h-[72px] w-[72px] items-center justify-center rounded-2xl border" style={{ borderColor: selected ? "#22B8A8" : "#E2E8F0", backgroundColor: selected ? "#E6FFFA" : "#F8FAFC" }}>
-                  <CategoryIcon name={item.name} size={34} color={selected ? "#0F766E" : "#475569"} />
+                  <CategoryIcon name={item.name} size={34} color={selected ? "#0F766E" : undefined} />
                   <Text className="mt-1 text-[9px] font-semibold text-[#64748B]" numberOfLines={1}>{item.label}</Text>
                 </Pressable>
               );
