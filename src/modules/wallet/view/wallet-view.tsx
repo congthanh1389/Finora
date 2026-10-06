@@ -111,12 +111,20 @@ export function WalletView() {
                         </View>
                         <View className="items-end">
                           <Text className="text-sm font-bold text-[#64748B]">{formatVnd(wallet.balance)}</Text>
-                          <Pressable
-                            onPress={() => void vm.restoreWallet(wallet)}
-                            className="mt-2 rounded-full bg-[#ECFDF5] px-3 py-1.5"
-                          >
-                            <Text className="text-xs font-bold text-[#047857]">Khôi phục</Text>
-                          </Pressable>
+                          <View className="mt-2 flex-row gap-2">
+                            <Pressable
+                              onPress={() => void vm.restoreWallet(wallet)}
+                              className="rounded-full bg-[#ECFDF5] px-3 py-1.5"
+                            >
+                              <Text className="text-xs font-bold text-[#047857]">Khôi phục</Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => void vm.deleteArchivedWallet(wallet)}
+                              className="rounded-full bg-[#FEF2F2] px-3 py-1.5"
+                            >
+                              <Text className="text-xs font-bold text-[#DC2626]">Xóa</Text>
+                            </Pressable>
+                          </View>
                         </View>
                       </View>
                     ))}
