@@ -226,7 +226,7 @@ export function WalletView() {
                   className="mt-2 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3.5 text-base text-[#0F172A]"
                 />
 
-                {vm.createError ? <Text className="mt-3 text-sm text-[#DC2626]">Không thể tạo ví. Vui lòng thử lại.</Text> : null}
+                {vm.createError ? (\n                  <Text className="mt-3 text-sm text-[#DC2626]">\n                    {vm.createError.message === "Wallet name already exists"\n                      ? "Tên ví đã tồn tại. Vui lòng chọn tên khác."\n                      : "Không thể tạo ví. Vui lòng thử lại."}\n                  </Text>\n                ) : null}
 
                 <Pressable
                   disabled={vm.isCreating || !vm.name.trim()}
