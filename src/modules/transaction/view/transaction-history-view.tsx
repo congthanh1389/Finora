@@ -38,14 +38,18 @@ function formatDate(value: Date) {
   }).format(value);
 }
 
+type TransactionFilter = "all" | "income" | "expense" | "transfer";
+
 export function TransactionHistoryView() {
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [categories, setCategories] = useState<Awaited<ReturnType<CategoryRepository["listByUser"]>>>([]);
   const [isLoading, setLoading] = useState(true);
+  const [isLoadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense" | "transfer">("all");
+  const [typeFilter, setTypeFilter] = useState<TransactionFilter>("all");
 
   const transactionRepository = useMemo(() => new DeviceTransactionRepository(), []);
   const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
@@ -55,30 +59,56 @@ export function TransactionHistoryView() {
   useEffect(() => {
     let active = true;
 
-    async function load() {
+    async function loadReferenceData() {
       try {
-        setLoading(true);
-        setError(null);
         const user = await Auth.getUserInfo();
         if (!user) {
           if (active) {
-            setTransactions([]);
             setWallets([]);
             setCategories([]);
           }
           return;
         }
 
-        const [transactionData, walletData, categoryData] = await Promise.all([
-          transactionRepository.list(user.id),
+        const [walletData, categoryData] = await Promise.all([
           walletRepository.listByUser(user.id),
           categoryRepository.listByUser(user.id),
         ]);
 
         if (active) {
-          setTransactions(transactionData);
           setWallets(walletData);
           setCategories(categoryData);
+        }
+      } catch (err) {
+        if (active) {
+          setError(err instanceof Error ? err : new Error("Failed to load reference data"));
+        }
+      }
+    }
+
+    void loadReferenceData();
+    return () => {
+      active = false;
+    };
+  }, [walletRepository, categoryRepository]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadFirstPage() {
+      try {
+        setLoading(true);
+        setError(null);
+        setTransactions([]);
+        setHasMore(false);
+
+        const user = await Auth.getUserInfo();
+        if (!user) return;
+
+        const page = await transactionRepository.listHistoryPage(user.id, 0, typeFilter);
+        if (active) {
+          setTransactions(page.transactions);
+          setHasMore(page.hasMore);
         }
       } catch (err) {
         if (active) {
@@ -89,15 +119,29 @@ export function TransactionHistoryView() {
       }
     }
 
-    void load();
+    void loadFirstPage();
     return () => {
       active = false;
     };
-  }, [transactionRepository, walletRepository, categoryRepository]);
+  }, [transactionRepository, typeFilter]);
 
-  const filteredTransactions = typeFilter === "all"
-    ? transactions
-    : transactions.filter((transaction) => transaction.type === typeFilter);
+  async function loadMore() {
+    if (isLoading || isLoadingMore || !hasMore) return;
+
+    try {
+      setLoadingMore(true);
+      const user = await Auth.getUserInfo();
+      if (!user) return;
+
+      const page = await transactionRepository.listHistoryPage(user.id, transactions.length, typeFilter);
+      setTransactions((current) => [...current, ...page.transactions]);
+      setHasMore(page.hasMore);
+    } catch (err) {
+      Alert.alert("Không thể tải thêm", err instanceof Error ? err.message : "Đã xảy ra lỗi.");
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   return (
     <ScreenContainer className="bg-[#F8FAFC]">
@@ -144,7 +188,7 @@ export function TransactionHistoryView() {
               <Text className="text-base font-bold text-[#991B1B]">Không thể tải giao dịch</Text>
               <Text className="mt-1 text-sm text-[#64748B]">Vui lòng thử lại.</Text>
             </View>
-          ) : filteredTransactions.length === 0 ? (
+          ) : transactions.length === 0 ? (
             <View className="items-center rounded-3xl border border-dashed border-[#CBD5E1] bg-white px-6 py-12">
               <FinoraMockupIcon name="07_navigation_transactions" size={52} />
               <Text className="mt-4 text-lg font-bold text-[#0F2A5F]">Chưa có giao dịch</Text>
@@ -155,7 +199,7 @@ export function TransactionHistoryView() {
             </View>
           ) : (
             <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
-              {filteredTransactions.map((transaction, index) => {
+              {transactions.map((transaction, index) => {
                 const isTransfer = transaction.type === "transfer";
                 const isIncome = transaction.type === "income";
                 const wallet = wallets.find((item) => item.id === transaction.walletId);
@@ -163,7 +207,7 @@ export function TransactionHistoryView() {
                 const destinationWallet = wallets.find((item) => item.id === transaction.destinationWalletId);
                 const category = categories.find((item) => item.id === transaction.categoryId);
                 return (
-                  <View key={transaction.id} className={"flex-row items-center py-4 " + (index !== filteredTransactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
+                  <View key={transaction.id} className={"flex-row items-center py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
                     <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isTransfer ? "bg-[#EFF6FF]" : isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
                       <FinoraMockupIcon name="01_finance_wallet" size={28} />
                     </View>
@@ -227,6 +271,12 @@ export function TransactionHistoryView() {
                   </View>
                 );
               })}
+
+              {hasMore ? (
+                <Pressable onPress={() => void loadMore()} disabled={isLoadingMore} className="mt-4 items-center rounded-2xl bg-[#F1F5F9] py-3">
+                  {isLoadingMore ? <ActivityIndicator /> : <Text className="text-sm font-bold text-[#0F766E]">Tải thêm giao dịch</Text>}
+                </Pressable>
+              ) : null}
             </View>
           )}
         </View>
