@@ -211,7 +211,9 @@ export async function updateDeviceWallet(userId: number, walletId: number, input
   const db = await getDeviceDatabase(); await migrateDatabase(db); const current = await getDeviceWallet(userId, walletId); if (!current) throw new Error("Wallet not found.");
   const name = input.name?.trim() || current.name; const type = input.type ?? current.type; const allowNegative = input.allowNegative == null ? current.allowNegative : input.allowNegative;
   await db.runAsync("UPDATE wallets SET name = ?, type = ?, allow_negative = ?, updated_at = ? WHERE user_id = ? AND id = ?", name, type, allowNegative, new Date().toISOString(), userId, walletId);
-  return (await getDeviceWallet(userId, walletId))!;
+  const restored = await getDeviceWalletWithBalance(userId, walletId);
+  if (!restored) throw new Error("Wallet not found after restore.");
+  return restored;
 }
 export async function archiveDeviceWallet(userId: number, walletId: number): Promise<Wallet> {
   const db = await getDeviceDatabase(); await migrateDatabase(db); const current = await getDeviceWallet(userId, walletId); if (!current) throw new Error("Wallet not found.");
