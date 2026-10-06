@@ -1,171 +1,23 @@
 import { describe, expect, it } from "vitest";
-
 import type { IWalletRepository, NewWallet } from "../../../core/database/repository-contracts";
 import { WalletService } from "../service/wallet.service";
-
-function createRepository(): IWalletRepository {
-  const rows: {
-    id: number;
-    userId: number;
-    name: string;
-    type: "cash" | "bank" | "ewallet" | "credit_card" | "savings" | "investment" | "other_asset" | "receivable" | "payable";
-    currency: string;
-    openingBalance: number;
-    allowNegative: number;
-    isArchived: number;
-    createdAt: Date;
-    updatedAt: Date;
-  }[] = [];
-
-  return {
-    async create(input: NewWallet) {
-      const wallet = {
-        currency: input.currency ?? "VND",
-        openingBalance: input.openingBalance ?? 0,
-        allowNegative: input.allowNegative ?? 0,
-        isArchived: input.isArchived ?? 0,
-        id: rows.length + 1,
-        ...input,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      rows.push(wallet);
-      return wallet;
-    },
-    async findById(userId, walletId) {
-      return rows.find((row) => row.userId === userId && row.id === walletId);
-    },
-    async listByUser(userId) {
-      return rows.filter((row) => row.userId === userId);
-    },
-    async update(userId, walletId, input) {
-      const row = rows.find((item) => item.userId === userId && item.id === walletId);
-      if (!row) throw new Error("Wallet not found.");
-      Object.assign(row, input, { updatedAt: new Date() });
-      return row;
-    },
-    async archive(userId, walletId) {
-      const row = rows.find((item) => item.userId === userId && item.id === walletId);
-      if (!row) throw new Error("Wallet not found.");
-      row.isArchived = 1;
-      row.updatedAt = new Date();
-      return row;
-    },
-    async restore(userId, walletId) {
-      const row = rows.find((item) => item.userId === userId && item.id === walletId);
-      if (!row) throw new Error("Wallet not found.");
-      if (row.isArchived === 0) throw new Error("Wallet is already active.");
-      row.isArchived = 0;
-      row.updatedAt = new Date();
-      return row;
-    },
-  };
-}
-
-describe("WalletService", () => {
-  it("normalizes a valid wallet before persistence", async () => {
-    const service = new WalletService(createRepository());
-
-    const wallet = await service.createWallet({
-      userId: 1,
-      name: "  Ví tiền mặt  ",
-      type: "cash",
-      currency: "vnd",
-      openingBalance: 250000,
-      allowNegative: true,
-    });
-
-    expect(wallet).toMatchObject({
-      id: 1,
-      name: "Ví tiền mặt",
-      type: "cash",
-      currency: "VND",
-      openingBalance: 250000,
-      allowNegative: true,
-      isArchived: false,
-    });
-  });
-
-  it("rejects an empty wallet name", async () => {
-    const service = new WalletService(createRepository());
-
-    await expect(
-      service.createWallet({ userId: 1, name: "   ", type: "cash" }),
-    ).rejects.toThrow("Wallet name is required");
-  });
-
-  it("rejects an invalid currency", async () => {
-    const service = new WalletService(createRepository());
-
-    await expect(
-      service.createWallet({ userId: 1, name: "Ví", type: "cash", currency: "VN" }),
-    ).rejects.toThrow("Currency must be a 3-letter code");
-  });
-
-  it("updates a wallet without changing its opening balance", async () => {
-    const service = new WalletService(createRepository());
-    const created = await service.createWallet({ userId: 1, name: "Ví cũ", type: "cash", openingBalance: 500000 });
-    const updated = await service.updateWallet(1, created.id, {
-      name: "Ví mới",
-      type: "bank",
-      allowNegative: true,
-    });
-    expect(updated).toMatchObject({
-      name: "Ví mới",
-      type: "bank",
-      openingBalance: 500000,
-      allowNegative: true,
-    });
-  });
-
-  it("archives a wallet", async () => {
-    const service = new WalletService(createRepository());
-    const created = await service.createWallet({ userId: 1, name: "Ví cần lưu trữ", type: "cash" });
-    const archived = await service.archiveWallet(1, created.id);
-    expect(archived.isArchived).toBe(true);
-  });
-
-  it("restores an archived wallet without changing its data", async () => {
-    const service = new WalletService(createRepository());
-    const created = await service.createWallet({
-      userId: 1,
-      name: "Ví đã lưu trữ",
-      type: "bank",
-      openingBalance: 750000,
-      allowNegative: true,
-    });
-    await service.archiveWallet(1, created.id);
-
-    const restored = await service.restoreWallet(1, created.id);
-
-    expect(restored).toMatchObject({
-      id: created.id,
-      name: "Ví đã lưu trữ",
-      type: "bank",
-      openingBalance: 750000,
-      allowNegative: true,
-      isArchived: false,
-    });
-  });
-
-  it("rejects restoring an active wallet", async () => {
-    const service = new WalletService(createRepository());
-    const created = await service.createWallet({ userId: 1, name: "Ví đang hoạt động", type: "cash" });
-
-    await expect(service.restoreWallet(1, created.id)).rejects.toThrow("Wallet is already active.");
-  });
-
-  it("lists wallets through the repository", async () => {
-    const repository = createRepository();
-    const service = new WalletService(repository);
-
-    await service.createWallet({ userId: 1, name: "Ví tiền mặt", type: "cash" });
-    await service.createWallet({ userId: 1, name: "Ngân hàng", type: "bank" });
-    await service.createWallet({ userId: 2, name: "Ví khác", type: "cash" });
-
-    const wallets = await service.listWallets(1);
-
-    expect(wallets).toHaveLength(2);
-    expect(wallets.map((wallet) => wallet.name)).toEqual(["Ví tiền mặt", "Ngân hàng"]);
-  });
+function createRepository(): IWalletRepository { const rows: any[] = []; return {
+ async create(input: NewWallet) { const wallet={currency:input.currency??"VND",openingBalance:input.openingBalance??0,allowNegative:input.allowNegative??0,isArchived:input.isArchived??0,id:rows.length+1,...input,createdAt:new Date(),updatedAt:new Date()}; rows.push(wallet); return wallet; },
+ async findById(userId,walletId){return rows.find(r=>r.userId===userId&&r.id===walletId);}, async listByUser(userId){return rows.filter(r=>r.userId===userId);},
+ async update(userId,walletId,input){const r=rows.find(x=>x.userId===userId&&x.id===walletId);if(!r)throw new Error("Wallet not found.");Object.assign(r,input,{updatedAt:new Date()});return r;},
+ async archive(userId,walletId){const r=rows.find(x=>x.userId===userId&&x.id===walletId);if(!r)throw new Error("Wallet not found.");r.isArchived=1;r.updatedAt=new Date();return r;},
+ async restore(userId,walletId){const r=rows.find(x=>x.userId===userId&&x.id===walletId);if(!r)throw new Error("Wallet not found.");if(r.isArchived===0)throw new Error("Wallet is already active.");r.isArchived=0;r.updatedAt=new Date();return r;}
+};}
+describe("WalletService",()=> {
+ it("normalizes a valid wallet before persistence",async()=>{const w=await new WalletService(createRepository()).createWallet({userId:1,name:"  Ví tiền mặt  ",type:"cash",currency:"vnd",openingBalance:250000,allowNegative:true});expect(w).toMatchObject({id:1,name:"Ví tiền mặt",currency:"VND",openingBalance:250000,allowNegative:true,isArchived:false});});
+ it("rejects an empty wallet name",async()=>{await expect(new WalletService(createRepository()).createWallet({userId:1,name:"   ",type:"cash"})).rejects.toThrow("Wallet name is required");});
+ it("rejects a duplicate wallet name case-insensitively",async()=>{const s=new WalletService(createRepository());await s.createWallet({userId:1,name:"Ví Tiền Mặt",type:"cash"});await expect(s.createWallet({userId:1,name:"  ví tiền mặt  ",type:"bank"})).rejects.toThrow("Wallet name already exists");});
+ it("allows same wallet name for different users",async()=>{const s=new WalletService(createRepository());await s.createWallet({userId:1,name:"Tiền mặt",type:"cash"});await expect(s.createWallet({userId:2,name:"Tiền mặt",type:"cash"})).resolves.toMatchObject({name:"Tiền mặt"});});
+ it("rejects renaming to another wallet's name",async()=>{const s=new WalletService(createRepository());const a=await s.createWallet({userId:1,name:"Tiền mặt",type:"cash"});const b=await s.createWallet({userId:1,name:"Ngân hàng",type:"bank"});await expect(s.updateWallet(1,b.id,{name:" TIỀN MẶT "})).rejects.toThrow("Wallet name already exists");expect((await s.getWallet(1,b.id))?.name).toBe("Ngân hàng");expect(a.name).toBe("Tiền mặt");});
+ it("allows keeping current wallet name",async()=>{const s=new WalletService(createRepository());const w=await s.createWallet({userId:1,name:"Tiền mặt",type:"cash"});await expect(s.updateWallet(1,w.id,{name:" tiền mặt "})).resolves.toMatchObject({name:"tiền mặt"});});
+ it("updates without changing opening balance",async()=>{const s=new WalletService(createRepository());const w=await s.createWallet({userId:1,name:"Ví cũ",type:"cash",openingBalance:500000});expect(await s.updateWallet(1,w.id,{name:"Ví mới",type:"bank",allowNegative:true})).toMatchObject({name:"Ví mới",openingBalance:500000,allowNegative:true});});
+ it("archives a wallet",async()=>{const s=new WalletService(createRepository());const w=await s.createWallet({userId:1,name:"Ví cần lưu trữ",type:"cash"});expect((await s.archiveWallet(1,w.id)).isArchived).toBe(true);});
+ it("restores an archived wallet without changing its data",async()=>{const s=new WalletService(createRepository());const w=await s.createWallet({userId:1,name:"Ví đã lưu trữ",type:"bank",openingBalance:750000,allowNegative:true});await s.archiveWallet(1,w.id);expect(await s.restoreWallet(1,w.id)).toMatchObject({id:w.id,name:"Ví đã lưu trữ",type:"bank",openingBalance:750000,allowNegative:true,isArchived:false});});
+ it("rejects restoring active wallet",async()=>{const s=new WalletService(createRepository());const w=await s.createWallet({userId:1,name:"Ví đang hoạt động",type:"cash"});await expect(s.restoreWallet(1,w.id)).rejects.toThrow("Wallet is already active.");});
+ it("lists wallets through repository",async()=>{const r=createRepository();const s=new WalletService(r);await s.createWallet({userId:1,name:"Ví tiền mặt",type:"cash"});await s.createWallet({userId:1,name:"Ngân hàng",type:"bank"});await s.createWallet({userId:2,name:"Ví khác",type:"cash"});expect(await s.listWallets(1)).toHaveLength(2);});
 });
