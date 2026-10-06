@@ -60,8 +60,8 @@ export function useWalletViewModel() {
   const activeWallets = useMemo(() => wallets.filter((wallet) => !wallet.isArchived), [wallets]);
   const archivedWallets = useMemo(() => wallets.filter((wallet) => wallet.isArchived), [wallets]);
   const totalBalance = useMemo(
-    () => activeWallets.reduce((sum, wallet) => sum + wallet.balance, 0),
-    [activeWallets],
+    () => wallets.reduce((sum, wallet) => sum + wallet.balance, 0),
+    [wallets],
   );
 
   function openEdit(wallet: WalletSummary) {
