@@ -36,6 +36,11 @@ export class WalletService {
   }
   async archiveWallet(userId: number, walletId: number): Promise<WalletSummary> { if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id"); if (!Number.isInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id"); return this.toSummary(await this.repository.archive(userId, walletId)); }
   async restoreWallet(userId: number, walletId: number): Promise<WalletSummary> { if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id"); if (!Number.isInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id"); return this.toSummary(await this.repository.restore(userId, walletId)); }
+  async deleteArchivedWallet(userId: number, walletId: number): Promise<void> {
+    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id");
+    return this.repository.delete(userId, walletId);
+  }
   async listWallets(userId: number): Promise<WalletSummary[]> { if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id"); return (await this.repository.listByUser(userId)).map((wallet) => this.toSummary(wallet)); }
   private toSummary(wallet: Wallet & { balance?: number }): WalletSummary { return { id: wallet.id, name: wallet.name, type: wallet.type, currency: wallet.currency, openingBalance: wallet.openingBalance, balance: Number(wallet.balance ?? wallet.openingBalance), allowNegative: wallet.allowNegative === 1, isArchived: wallet.isArchived === 1 }; }
 }
