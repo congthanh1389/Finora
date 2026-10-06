@@ -27,6 +27,7 @@ export interface IWalletRepository {
   update(userId: number, walletId: number, input: Partial<Pick<Wallet, "name" | "type" | "allowNegative">>): Promise<Wallet>;
   archive(userId: number, walletId: number): Promise<Wallet>;
   restore(userId: number, walletId: number): Promise<Wallet>;
+  delete(userId: number, walletId: number): Promise<void>;
 }
 
 export interface ICategoryRepository {
