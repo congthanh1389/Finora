@@ -146,4 +146,3 @@ export async function updateDeviceTransaction(input: UpdateTransactionInput): Pr
   DeviceEventEmitter.emit(DEVICE_TRANSACTIONS_CHANGED_EVENT, updated!);
   return updated!;
 }
-\n
