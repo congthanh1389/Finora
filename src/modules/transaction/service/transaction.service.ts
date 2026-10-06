@@ -2,6 +2,7 @@ import type { CreateTransactionInput, TransactionSummary } from "../types/transa
 
 type TransactionServiceRepository = {
   list(userId: number): Promise<TransactionSummary[]>;
+  listRecent(userId: number, limit?: number): Promise<TransactionSummary[]>;
   create(input: CreateTransactionInput): Promise<TransactionSummary>;
 };
 
@@ -10,6 +11,10 @@ export class TransactionService {
 
   listTransactions(userId: number) {
     return this.repository.list(userId);
+  }
+
+  listRecentTransactions(userId: number, limit = 20) {
+    return this.repository.listRecent(userId, limit);
   }
 
   createTransaction(input: CreateTransactionInput) {
