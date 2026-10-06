@@ -14,7 +14,10 @@ export class TransactionService {
   }
 
   listRecentTransactions(userId: number, limit = 20) {
-    return this.repository.listRecent(userId, limit);
+    const listRecent = this.repository.listRecent;
+    return listRecent
+      ? listRecent.call(this.repository, userId, limit)
+      : this.repository.list(userId).then((transactions) => transactions.slice(0, limit));
   }
 
   createTransaction(input: CreateTransactionInput) {
