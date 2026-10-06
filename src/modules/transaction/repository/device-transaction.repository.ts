@@ -32,6 +32,20 @@ export class DeviceTransactionRepository {
     return listDeviceTransactions(userId);
   }
 
+  async listRecent(userId: number, limit = 20) {
+    await initializeDeviceStorage();
+    const db = await getDeviceDatabase();
+    const rows = await db.getAllAsync(
+      `SELECT * FROM transactions
+       WHERE user_id = ?
+       ORDER BY occurred_at DESC, id DESC
+       LIMIT ?`,
+      userId,
+      limit,
+    );
+    return rows.map(transactionFromRow);
+  }
+
   async listHistoryPage(
     userId: number,
     offset: number,
