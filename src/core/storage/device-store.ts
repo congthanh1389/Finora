@@ -319,8 +319,13 @@ export async function createDeviceTransaction(input: Omit<Transaction, "id" | "c
         .filter((id): id is number => id != null),
     ));
     const placeholders = walletIds.map(() => "?").join(", ");
-    const walletRows = await db.getAllAsync<{ id: number; currency: string; allow_negative: number }>(
-      `SELECT id, currency, allow_negative
+    const walletRows = await db.getAllAsync<{
+      id: number;
+      currency: string;
+      allow_negative: number;
+      is_archived: number;
+    }>(
+      `SELECT id, currency, allow_negative, is_archived
        FROM wallets
        WHERE user_id = ? AND id IN (${placeholders})`,
       input.userId,
@@ -328,6 +333,9 @@ export async function createDeviceTransaction(input: Omit<Transaction, "id" | "c
     );
     if (walletRows.length !== walletIds.length) throw new Error("Wallet not found.");
     const wallets = new Map(walletRows.map((wallet) => [Number(wallet.id), wallet]));
+    if (walletRows.some((wallet) => Number(wallet.is_archived) === 1)) {
+      throw new Error("Không thể ghi giao dịch vào ví đã lưu trữ.");
+    }
     if (input.type === "transfer") {
       const source = wallets.get(input.sourceWalletId!); const destination = wallets.get(input.destinationWalletId!);
       if (!source || !destination) throw new Error("Transfer wallets not found.");
