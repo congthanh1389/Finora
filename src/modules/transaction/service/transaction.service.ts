@@ -2,7 +2,7 @@ import type { CreateTransactionInput, TransactionSummary } from "../types/transa
 
 type TransactionServiceRepository = {
   list(userId: number): Promise<TransactionSummary[]>;
-  listRecent(userId: number, limit?: number): Promise<TransactionSummary[]>;
+  listRecent?(userId: number, limit?: number): Promise<TransactionSummary[]>;
   create(input: CreateTransactionInput): Promise<TransactionSummary>;
 };
 
