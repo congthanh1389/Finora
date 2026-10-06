@@ -21,6 +21,10 @@ export class TransactionService {
   }
 
   createTransaction(input: CreateTransactionInput) {
+    if (!Number.isInteger(input.userId) || input.userId <= 0) {
+      throw new Error("Invalid user.");
+    }
+
     if (!Number.isSafeInteger(input.amount) || input.amount <= 0) {
       throw new Error("Transaction amount must be a positive integer.");
     }
