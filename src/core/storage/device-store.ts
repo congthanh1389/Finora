@@ -335,6 +335,9 @@ export async function createDeviceWallet(input: Omit<Wallet, "id" | "createdAt" 
 export async function updateDeviceWallet(userId: number, walletId: number, input: Partial<Pick<Wallet, "name" | "type" | "allowNegative">>): Promise<Wallet> {
   const db = await getDeviceDatabase(); await migrateDatabase(db); const current = await getDeviceWallet(userId, walletId); if (!current) throw new Error("Wallet not found.");
   const name = input.name?.trim() || current.name; const type = input.type ?? current.type; const allowNegative = input.allowNegative == null ? current.allowNegative : input.allowNegative;
+  if (typeof name !== "string" || !name.trim()) throw new Error("Wallet name cannot be empty.");
+  if (!["cash", "bank", "ewallet", "credit_card", "savings", "investment", "other_asset", "receivable", "payable"].includes(type)) throw new Error("Invalid wallet type.");
+  if (allowNegative !== 0 && allowNegative !== 1) throw new Error("Invalid wallet negative-balance flag.");
   await db.runAsync("UPDATE wallets SET name = ?, type = ?, allow_negative = ?, updated_at = ? WHERE user_id = ? AND id = ?", name, type, allowNegative, new Date().toISOString(), userId, walletId);
   const updated = await getDeviceWalletWithBalance(userId, walletId);
   if (!updated) throw new Error("Wallet not found after update.");
