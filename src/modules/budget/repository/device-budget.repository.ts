@@ -1,5 +1,4 @@
 import { getDeviceDatabase, initializeDeviceStorage } from "../../../core/storage/device-store";
-import type { Budget } from "../../../../drizzle/schema";
 import type { CreateBudgetInput, BudgetSummary, UpdateBudgetInput } from "../types/budget.types";
 
 function budgetFromRow(row: any): BudgetSummary {
