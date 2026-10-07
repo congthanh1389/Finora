@@ -464,6 +464,9 @@ export async function listDeviceWalletsWithBalances(userId: number): Promise<(Wa
 function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | "updatedAt">) {
   if (!Number.isSafeInteger(input.userId) || input.userId <= 0) throw new Error("Invalid user id.");
   if (!Number.isSafeInteger(input.amount) || input.amount <= 0) throw new Error("Transaction amount must be a positive integer.");
+  if (!Number.isInteger(input.walletId ?? undefined) || (input.walletId ?? 0) <= 0) {
+    throw new Error("Invalid wallet id.");
+  }
   if (input.type === "transfer") {
     if (input.walletId != null || input.categoryId != null) throw new Error("Transfer must use source and destination wallets.");
     if (input.sourceWalletId == null || input.destinationWalletId == null) throw new Error("Transfer requires source and destination wallets.");
