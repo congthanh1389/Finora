@@ -275,7 +275,7 @@ export function TransactionHistoryView() {
                         ? "Tổng chi"
                         : "Tổng chuyển tiền"}
                   {": "}
-                  <Text className="text-xl font-extrabold text-[#059669]">
+                  <Text className="text-xl font-extrabold text-[#22B8A8]">
                     {formatVnd(summary.totals.totalAmount)}
                   </Text>
                 </Text>
@@ -333,7 +333,7 @@ export function TransactionHistoryView() {
                       <Text className="mt-1 text-[11px] text-[#94A3B8]">{formatDate(transaction.occurredAt)}</Text>
                     </View>
                     <View className="items-end gap-2">
-                      <Text className={"text-sm font-bold " + (isTransfer ? "text-[#0F2A5F]" : isIncome ? "text-[#059669]" : "text-[#E11D48]")}>
+                      <Text className={"text-sm font-bold " + (isTransfer ? "text-[#0F2A5F]" : isIncome ? "text-[#22B8A8]" : "text-[#E11D48]")}>
                         {isTransfer ? "" : isIncome ? "+" : "−"}{formatVnd(transaction.amount)}
                       </Text>
                       <View className="flex-row gap-2">
