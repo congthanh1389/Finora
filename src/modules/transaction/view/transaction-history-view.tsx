@@ -68,7 +68,7 @@ export function TransactionHistoryView() {
   const walletMap = useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets]);
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
 
-  function getPeriod() {
+  const period = useMemo(() => {
     const now = new Date();
     if (periodKey === "today") {
       const start = new Date(now);
@@ -99,7 +99,31 @@ export function TransactionHistoryView() {
       return { start, end };
     }
     return TransactionSummaryService.currentMonth(now);
-  }
+  }, [periodKey, customStart, customEnd]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSummary() {
+      try {
+        const user = await Auth.getUserInfo();
+        if (!user || !period) {
+          if (active) setSummary(null);
+          return;
+        }
+        const result = await summaryService.getSummary(user.id, period.start, period.end, typeFilter);
+        if (active) setSummary(result);
+      } catch (err) {
+        if (active) setSummary(null);
+      }
+    }
+
+    void loadSummary();
+    return () => {
+      active = false;
+    };
+  }, [summaryService, typeFilter, period]);
+
 
   useEffect(() => {
     let active = true;
@@ -150,7 +174,6 @@ export function TransactionHistoryView() {
         const user = await Auth.getUserInfo();
         if (!user) return;
 
-        const period = getPeriod();
         if (!period) { setSummary(null); return; }
         const page = await transactionRepository.listHistoryPage(user.id, 0, typeFilter, 50, period.start, period.end);
         if (active) {
@@ -170,7 +193,7 @@ export function TransactionHistoryView() {
     return () => {
       active = false;
     };
-  }, [transactionRepository, typeFilter, periodKey, customStart, customEnd]);
+  }, [transactionRepository, typeFilter, period]);
 
   async function loadMore() {
     if (isLoading || isLoadingMore || !hasMore) return;
@@ -180,7 +203,6 @@ export function TransactionHistoryView() {
       const user = await Auth.getUserInfo();
       if (!user) return;
 
-      const period = getPeriod();
       if (!period) return;
       const page = await transactionRepository.listHistoryPage(user.id, transactions.length, typeFilter, 50, period.start, period.end);
       setTransactions((current) => [...current, ...page.transactions]);
