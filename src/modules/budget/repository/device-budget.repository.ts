@@ -199,6 +199,9 @@ export class DeviceBudgetRepository {
         input.periodStart.toISOString(), input.periodEnd.toISOString(), now, now,
       );
     });
+    if (!positiveSafeInteger(result!.lastInsertRowId)) {
+      throw new Error("Invalid persisted budget identifier.");
+    }
     const rows = await this.listByPeriod(input.userId, input.periodStart, input.periodEnd);
     const created = rows.find((item) => item.id === result.lastInsertRowId);
     if (!created) throw new Error("Không thể đọc ngân sách vừa tạo.");
