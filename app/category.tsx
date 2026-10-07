@@ -63,6 +63,7 @@ export default function CategoryScreen() {
   function cancelEdit() {
     setEditingId(null);
     setEditingName("");
+    setEditingIcon("");
     setError("");
   }
 
