@@ -30,14 +30,25 @@ export class TransactionService {
     }
 
     if (input.type === "transfer") {
-      if (!input.sourceWalletId || !input.destinationWalletId) {
-        throw new Error("Transfer requires source and destination wallets.");
+      if (
+        input.sourceWalletId == null ||
+        !Number.isSafeInteger(input.sourceWalletId) ||
+        input.sourceWalletId <= 0 ||
+        input.destinationWalletId == null ||
+        !Number.isSafeInteger(input.destinationWalletId) ||
+        input.destinationWalletId <= 0
+      ) {
+        throw new Error("Transfer requires valid source and destination wallets.");
       }
       if (input.sourceWalletId === input.destinationWalletId) {
         throw new Error("Transfer wallets must be different.");
       }
-    } else if (!input.walletId) {
-      throw new Error("Income and expense require a wallet.");
+    } else if (
+      input.walletId == null ||
+      !Number.isSafeInteger(input.walletId) ||
+      input.walletId <= 0
+    ) {
+      throw new Error("Income and expense require a valid wallet.");
     }
 
     return this.repository.create(input);
