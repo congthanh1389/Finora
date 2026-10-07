@@ -1,51 +1,13 @@
-import { useCallback, useMemo, useState } from "react";
-import { useFocusEffect } from "expo-router";
+import { useMemo } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
-import * as Auth from "@/lib/_core/auth";
-import { DeviceReportRepository, type ReportData } from "@/src/modules/report/repository/device-report.repository";
-
-type PeriodKey = "current" | "previous" | "year";
+import { useReportViewModel } from "@/src/modules/report/viewmodel/use-report-view-model";
 
 const money = (value: number) => new Intl.NumberFormat("vi-VN").format(value) + " ₫";
 
 export default function ReportsScreen() {
-  const [data, setData] = useState<ReportData | null>(null);
-  const [period, setPeriod] = useState<PeriodKey>("current");
-  const [loading, setLoading] = useState(true);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const user = await Auth.getUserInfo();
-      if (!user) return setData(null);
-      const now = new Date();
-      const repo = new DeviceReportRepository();
-
-      if (period === "current") {
-        setData(await repo.getCurrentMonth(user.id, now));
-        return;
-      }
-
-      if (period === "previous") {
-        const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const to = new Date(now.getFullYear(), now.getMonth(), 1);
-        const previousFrom = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-        setData(await repo.getReport(user.id, from, to, previousFrom, from));
-        return;
-      }
-
-      const from = new Date(now.getFullYear(), 0, 1);
-      const to = new Date(now.getFullYear() + 1, 0, 1);
-      const previousFrom = new Date(now.getFullYear() - 1, 0, 1);
-      setData(await repo.getReport(user.id, from, to, previousFrom, from));
-    } finally {
-      setLoading(false);
-    }
-  }, [period]);
-
-  useFocusEffect(useCallback(() => { void load(); }, [load]));
+  const { data, period, setPeriod, loading } = useReportViewModel();
 
   const income = data?.income ?? 0;
   const expense = data?.expense ?? 0;
