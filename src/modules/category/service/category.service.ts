@@ -6,13 +6,14 @@ export class CategoryService {
   constructor(private readonly repository: ICategoryRepository) {}
 
   async listCategories(userId: number, type?: CategoryType) {
+    if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id");
     const categories = await this.repository.listByUser(userId, type);
     return categories.filter((item) => item.isArchived === 0);
   }
 
   async createCategory(userId: number, name: string, type: CategoryType, icon?: string) {
     const trimmed = name.trim();
-    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id");
     if (!trimmed) throw new Error("Tên danh mục không được để trống.");
 
     const existing = await this.repository.listByUser(userId, type);
@@ -32,7 +33,7 @@ export class CategoryService {
 
   async updateCategory(userId: number, categoryId: number, name: string, icon?: string) {
     if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
-    if (!Number.isInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id");
+    if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id");
 
     const trimmed = name.trim();
     if (!trimmed) throw new Error("Tên danh mục không được để trống.");
