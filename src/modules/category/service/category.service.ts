@@ -66,4 +66,10 @@ export class CategoryService {
     if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id");
     return this.repository.restore(userId, categoryId);
   }
+
+  async deleteCategoryPermanently(userId: number, categoryId: number) {
+    if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id");
+    return this.repository.delete(userId, categoryId);
+  }
 }
