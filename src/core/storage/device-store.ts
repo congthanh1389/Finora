@@ -4,7 +4,7 @@ import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 import type { Category, Wallet, Transaction } from "../../../drizzle/schema";
 
 const DATABASE_NAME = "finora.db";
-const CURRENT_SCHEMA_VERSION = 7;
+const CURRENT_SCHEMA_VERSION = 8;
 
 export const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
@@ -124,6 +124,29 @@ async function migrateDatabase(db: SQLiteDatabase) {
         PRAGMA user_version = 7;
       `);
     }
+    if (version < 8) {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS budgets (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          category_id INTEGER NOT NULL,
+          wallet_id INTEGER,
+          amount INTEGER NOT NULL,
+          currency TEXT NOT NULL DEFAULT 'VND',
+          period_start TEXT NOT NULL,
+          period_end TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT,
+          FOREIGN KEY (wallet_id) REFERENCES wallets(id) ON DELETE RESTRICT
+        );
+        CREATE INDEX IF NOT EXISTS idx_budgets_user_period
+          ON budgets(user_id, period_start, period_end);
+        CREATE INDEX IF NOT EXISTS idx_budgets_user_category_period
+          ON budgets(user_id, category_id, period_start, period_end);
+        PRAGMA user_version = 8;
+      `);
+    }
     if (version > CURRENT_SCHEMA_VERSION) throw new Error("Finora database version is newer than this app.");
   })();
   try { await migrationPromise; } catch (error) { migrationPromise = null; throw error; }
@@ -172,7 +195,7 @@ export async function archiveDeviceCategory(userId: number, categoryId: number):
 }
 export async function deleteDeviceUserData(userId: number): Promise<void> {
   const db = await getDeviceDatabase(); await migrateDatabase(db);
-  await db.withTransactionAsync(async () => { await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId); await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId); await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId); await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId); });
+  await db.withTransactionAsync(async () => { await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId); await db.runAsync("DELETE FROM budgets WHERE user_id = ?", userId); await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId); await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId); await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId); });
   await db.execAsync("VACUUM");
 }
 export type DeviceLocalAccount = { id: number; openId: string; name: string | null; email: string; loginMethod: string | null; lastSignedIn: Date };
