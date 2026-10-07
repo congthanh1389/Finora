@@ -135,6 +135,18 @@ export function useCategoryViewModel() {
     }
   }
 
+  async function deleteCategoryPermanently(categoryId: number) {
+    try {
+      const user = await Auth.getUserInfo();
+      if (!user) throw new Error("Không tìm thấy người dùng hiện tại.");
+      await categoryService.deleteCategoryPermanently(user.id, categoryId);
+      setArchivedCategories((current) => current.filter((item) => item.id !== categoryId));
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không thể xóa hẳn danh mục.");
+    }
+  }
+
   return {
     type,
     categories,
@@ -168,6 +180,7 @@ export function useCategoryViewModel() {
     saveEdit,
     deleteCategory,
     restoreCategory,
+    deleteCategoryPermanently,
     reload: load,
   };
 }
