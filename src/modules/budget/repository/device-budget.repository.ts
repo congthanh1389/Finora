@@ -264,10 +264,13 @@ export class DeviceBudgetRepository {
         }
         throw new Error("Ngân sách cho danh mục và ví này đã tồn tại.");
       }
-      await db.runAsync(
+      const updateResult = await db.runAsync(
         "UPDATE budgets SET category_id = ?, wallet_id = ?, amount = ?, updated_at = ? WHERE user_id = ? AND id = ?",
         nextCategoryId, nextWalletId, input.amount ?? Number(current.amount), new Date().toISOString(), userId, budgetId,
       );
+      if (updateResult.changes !== 1) {
+        throw new Error("Không thể cập nhật ngân sách.");
+      }
       periodStart = new Date(current.period_start);
       periodEnd = new Date(current.period_end);
     });
