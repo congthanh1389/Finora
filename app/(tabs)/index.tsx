@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 import * as Auth from "@/lib/_core/auth";
 import { DashboardService } from "@/src/modules/dashboard/service/dashboard.service";
+import { DeviceDashboardRepository } from "@/src/modules/dashboard/repository/device-dashboard.repository";
 import type { DashboardData } from "@/src/modules/dashboard/types/dashboard.types";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
@@ -64,7 +65,7 @@ export default function HomeScreen() {
     try {
       const user = await Auth.getUserInfo();
       if (!user) return setData(null);
-      setData(await new DashboardService().load(user.id));
+      setData(await new DashboardService(new DeviceDashboardRepository()).load(user.id));
     } catch {
       setData(null);
     }
