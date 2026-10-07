@@ -307,6 +307,7 @@ export async function clearDeviceFinancialData(userId: number): Promise<void> {
 }
 
 export async function deleteDeviceUserData(userId: number): Promise<void> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   const db = await getDeviceDatabase();
   await migrateDatabase(db);
   await db.withTransactionAsync(async () => {
