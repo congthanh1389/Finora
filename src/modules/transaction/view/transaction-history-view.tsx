@@ -53,7 +53,6 @@ export function TransactionHistoryView() {
     customStart,
     customEnd,
     summary,
-    period,
     setTypeFilter,
     setPeriodKey,
     setCustomStart,
@@ -64,33 +63,6 @@ export function TransactionHistoryView() {
 
   const walletMap = useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets]);
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
-
-  const period = useMemo(() => {
-    const now = new Date();
-    if (periodKey === "today") {
-      const start = new Date(now);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(start);
-      end.setDate(end.getDate() + 1);
-      return { start, end };
-    }
-    if (periodKey === "7days") return TransactionSummaryService.daysAgo(7, now);
-    if (periodKey === "year") return TransactionSummaryService.year(now);
-    if (periodKey === "lastMonth") {
-      return {
-        start: new Date(now.getFullYear(), now.getMonth() - 1, 1),
-        end: new Date(now.getFullYear(), now.getMonth(), 1),
-      };
-    }
-    if (periodKey === "custom") {
-      const start = new Date(customStart + "T00:00:00");
-      const end = new Date(customEnd + "T00:00:00");
-      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start >= end) return null;
-      end.setDate(end.getDate() + 1);
-      return { start, end };
-    }
-    return TransactionSummaryService.currentMonth(now);
-  }, [periodKey, customStart, customEnd]);
 
   return () => {
       active = false;
