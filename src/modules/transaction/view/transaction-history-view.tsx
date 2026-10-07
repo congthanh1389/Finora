@@ -1,22 +1,14 @@
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "expo-router";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
 import { CategoryIcon } from "@/components/ui/category-icons";
 import { resolveCategoryIconName } from "../../category/utils/category-icon-resolver";
 import { ScreenContainer } from "@/components/screen-container";
-import * as Auth from "@/lib/_core/auth";
-import { DeviceTransactionRepository } from "../repository/device-transaction.repository";
-import { DeviceWalletRepository } from "../../wallet/repository/device-wallet.repository";
-import { CategoryRepository } from "../../category/repository/category.repository";
 import type { WalletType } from "../../wallet/types/wallet.types";
-import type { Transaction, Wallet } from "../../../../drizzle/schema";
-import { TransactionEditService } from "../service/transaction-edit.service";
-import { DeviceTransactionEditRepository } from "../repository/device-transaction-edit.repository";
-import { DeviceTransactionSummaryRepository } from "../repository/device-transaction-summary.repository";
-import { TransactionSummaryService } from "../service/transaction-summary.service";
-import type { TransactionSummaryResult } from "../types/transaction-summary.types";
+import { useTransactionHistoryViewModel } from "../viewmodel/use-transaction-history-view-model";
+import type { Transaction } from "../../../../drizzle/schema";
 
 function formatVnd(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value) + " ₫";
@@ -48,27 +40,28 @@ type TransactionFilter = "all" | "income" | "expense" | "transfer";
 
 export function TransactionHistoryView() {
   const router = useRouter();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [wallets, setWallets] = useState<Wallet[]>([]);
-  const [categories, setCategories] = useState<Awaited<ReturnType<CategoryRepository["listByUser"]>>>([]);
-  const [isLoading, setLoading] = useState(true);
-  const [isLoadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [typeFilter, setTypeFilter] = useState<TransactionFilter>("all");
-  const [periodKey, setPeriodKey] = useState<"today" | "7days" | "month" | "lastMonth" | "3months" | "year" | "custom">("month");
-  const [customStart, setCustomStart] = useState("");
-  const [customEnd, setCustomEnd] = useState("");
-  const [summary, setSummary] = useState<TransactionSummaryResult | null>(null);
+  const {
+    transactions,
+    wallets,
+    categories,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    typeFilter,
+    periodKey,
+    customStart,
+    customEnd,
+    summary,
+    period,
+    setTypeFilter,
+    setPeriodKey,
+    setCustomStart,
+    setCustomEnd,
+    loadMore,
+    deleteTransaction,
+  } = useTransactionHistoryViewModel();
 
-  const summaryRepository = useMemo(() => new DeviceTransactionSummaryRepository(), []);
-  const summaryService = useMemo(() => new TransactionSummaryService(summaryRepository), [summaryRepository]);
-
-  const transactionRepository = useMemo(() => new DeviceTransactionRepository(), []);
-  const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
-  const categoryRepository = useMemo(() => new CategoryRepository(), []);
-  const editRepository = useMemo(() => new DeviceTransactionEditRepository(), []);
-  const editService = useMemo(() => new TransactionEditService(editRepository), [editRepository]);
   const walletMap = useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets]);
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
 
@@ -99,25 +92,7 @@ export function TransactionHistoryView() {
     return TransactionSummaryService.currentMonth(now);
   }, [periodKey, customStart, customEnd]);
 
-  useEffect(() => {
-    let active = true;
-
-    async function loadSummary() {
-      try {
-        const user = await Auth.getUserInfo();
-        if (!user || !period) {
-          if (active) setSummary(null);
-          return;
-        }
-        const result = await summaryService.getSummary(user.id, period.start, period.end, typeFilter);
-        if (active) setSummary(result);
-      } catch {
-        if (active) setSummary(null);
-      }
-    }
-
-    void loadSummary();
-    return () => {
+  return () => {
       active = false;
     };
   }, [summaryService, typeFilter, period]);
@@ -358,13 +333,7 @@ export function TransactionHistoryView() {
                                   style: "destructive",
                                   onPress: async () => {
                                     try {
-                                      const user = await Auth.getUserInfo();
-                                      if (!user) {
-                                        Alert.alert("Không thể xóa", "Không tìm thấy người dùng hiện tại.");
-                                        return;
-                                      }
-                                      await editService.deleteTransaction(user.id, transaction.id);
-                                      setTransactions((current) => current.filter((item) => item.id !== transaction.id));
+                                      await deleteTransaction(transaction.id);
                                     } catch (err) {
                                       Alert.alert(
                                         "Không thể xóa",
