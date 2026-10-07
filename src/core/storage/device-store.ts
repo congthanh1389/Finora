@@ -327,6 +327,7 @@ export async function createDeviceWallet(input: Omit<Wallet, "id" | "createdAt" 
   if (!Number.isSafeInteger(input.openingBalance)) throw new Error("Invalid wallet opening balance.");
   if (input.allowNegative !== 0 && input.allowNegative !== 1) throw new Error("Invalid wallet negative-balance flag.");
   if (input.isArchived !== 0 && input.isArchived !== 1) throw new Error("Invalid wallet archived flag.");
+  if (input.openingBalance < 0 && input.allowNegative !== 1) throw new Error("Opening balance cannot be negative for a non-negative wallet.");
   const db = await getDeviceDatabase(); await migrateDatabase(db); const now = new Date();
   const result = await db.runAsync(`INSERT INTO wallets (user_id, name, type, currency, opening_balance, allow_negative, is_archived, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, input.userId, input.name, input.type, input.currency, input.openingBalance, input.allowNegative, input.isArchived, now.toISOString(), now.toISOString());
   return { ...input, id: result.lastInsertRowId, createdAt: now, updatedAt: now };
