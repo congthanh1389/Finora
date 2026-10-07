@@ -166,12 +166,14 @@ export async function localGetAccounts(): Promise<LocalAccount[]> {
 export async function localGetAccount(email?: string): Promise<LocalAccount | null> {
   const accounts = await readDeviceAccounts();
   const normalizedEmail = email?.trim().toLowerCase();
+  const token = await getSessionToken();
+  if (!token?.startsWith("local-session-")) return null;
 
   if (normalizedEmail) {
-    return accounts.find((account) => account.email?.trim().toLowerCase() === normalizedEmail) ?? null;
+    const account = accounts.find((item) => item.email?.trim().toLowerCase() === normalizedEmail) ?? null;
+    if (!account || token !== `local-session-${account.id}`) return null;
+    return account;
   }
-
-  const token = await getSessionToken();
   if (!token?.startsWith("local-session-")) return null;
 
   const clearInvalidSession = async (): Promise<null> => {
