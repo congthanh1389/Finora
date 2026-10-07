@@ -10,20 +10,52 @@ import type { CreateTransactionInput, TransactionType } from "../types/transacti
 const HISTORY_PAGE_SIZE = 50;
 
 function transactionFromRow(row: any): Transaction {
+  const id = Number(row.id);
+  const userId = Number(row.user_id);
+  const amount = Number(row.amount);
+  const walletId = row.wallet_id == null ? null : Number(row.wallet_id);
+  const sourceWalletId = row.source_wallet_id == null ? null : Number(row.source_wallet_id);
+  const destinationWalletId = row.destination_wallet_id == null ? null : Number(row.destination_wallet_id);
+  const categoryId = row.category_id == null ? null : Number(row.category_id);
+  const occurredAt = new Date(row.occurred_at);
+  const createdAt = new Date(row.created_at);
+  const updatedAt = new Date(row.updated_at);
+
+  if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Invalid persisted transaction id.");
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid persisted transaction user id.");
+  if (row.type !== "income" && row.type !== "expense" && row.type !== "transfer") throw new Error("Invalid persisted transaction type.");
+  if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error("Invalid persisted transaction amount.");
+  if (typeof row.currency !== "string" || !/^[A-Z]{3}$/.test(row.currency)) throw new Error("Invalid persisted transaction currency.");
+  if (walletId != null && (!Number.isSafeInteger(walletId) || walletId <= 0)) throw new Error("Invalid persisted transaction wallet id.");
+  if (sourceWalletId != null && (!Number.isSafeInteger(sourceWalletId) || sourceWalletId <= 0)) throw new Error("Invalid persisted transaction source wallet id.");
+  if (destinationWalletId != null && (!Number.isSafeInteger(destinationWalletId) || destinationWalletId <= 0)) throw new Error("Invalid persisted transaction destination wallet id.");
+  if (categoryId != null && (!Number.isSafeInteger(categoryId) || categoryId <= 0)) throw new Error("Invalid persisted transaction category id.");
+  if (row.note != null && typeof row.note !== "string") throw new Error("Invalid persisted transaction note.");
+  if (row.type === "transfer") {
+    if (walletId != null || categoryId != null || sourceWalletId == null || destinationWalletId == null || sourceWalletId === destinationWalletId) {
+      throw new Error("Invalid persisted transfer references.");
+    }
+  } else if (walletId == null || sourceWalletId != null || destinationWalletId != null) {
+    throw new Error("Invalid persisted transaction wallet references.");
+  }
+  if (Number.isNaN(occurredAt.getTime()) || Number.isNaN(createdAt.getTime()) || Number.isNaN(updatedAt.getTime())) {
+    throw new Error("Invalid persisted transaction date.");
+  }
+
   return {
-    id: Number(row.id),
-    userId: Number(row.user_id),
+    id,
+    userId,
     type: row.type,
-    amount: Number(row.amount),
-    currency: String(row.currency),
-    walletId: row.wallet_id == null ? null : Number(row.wallet_id),
-    sourceWalletId: row.source_wallet_id == null ? null : Number(row.source_wallet_id),
-    destinationWalletId: row.destination_wallet_id == null ? null : Number(row.destination_wallet_id),
-    categoryId: row.category_id == null ? null : Number(row.category_id),
-    note: row.note == null ? null : String(row.note),
-    occurredAt: new Date(row.occurred_at),
-    createdAt: new Date(row.created_at),
-    updatedAt: new Date(row.updated_at),
+    amount,
+    currency: row.currency,
+    walletId,
+    sourceWalletId,
+    destinationWalletId,
+    categoryId,
+    note: row.note == null ? null : row.note,
+    occurredAt,
+    createdAt,
+    updatedAt,
   };
 }
 
