@@ -7,6 +7,7 @@ const repository = {
   update: vi.fn(),
   create: vi.fn(),
   archive: vi.fn(),
+  restore: vi.fn(),
 } satisfies Record<keyof ICategoryRepository, ReturnType<typeof vi.fn>>;
 
 function makeCategory(overrides = {}) {
