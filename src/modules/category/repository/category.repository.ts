@@ -2,6 +2,7 @@ import type { ICategoryRepository, NewCategory } from "../../../core/database/re
 import {
   archiveDeviceCategory,
   restoreDeviceCategory,
+  deleteDeviceCategory,
   createDeviceCategory,
   listDeviceCategories,
   updateDeviceCategory,
@@ -31,5 +32,9 @@ export class CategoryRepository implements ICategoryRepository {
 
   async restore(userId: number, categoryId: number) {
     return restoreDeviceCategory(userId, categoryId);
+  }
+
+  async delete(userId: number, categoryId: number) {
+    return deleteDeviceCategory(userId, categoryId);
   }
 }
