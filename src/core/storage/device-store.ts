@@ -333,6 +333,8 @@ export async function createDeviceWallet(input: Omit<Wallet, "id" | "createdAt" 
   return { ...input, id: result.lastInsertRowId, createdAt: now, updatedAt: now };
 }
 export async function updateDeviceWallet(userId: number, walletId: number, input: Partial<Pick<Wallet, "name" | "type" | "allowNegative">>): Promise<Wallet> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db); const current = await getDeviceWallet(userId, walletId); if (!current) throw new Error("Wallet not found.");
   const name = input.name?.trim() || current.name; const type = input.type ?? current.type; const allowNegative = input.allowNegative == null ? current.allowNegative : input.allowNegative;
   if (typeof name !== "string" || !name.trim()) throw new Error("Wallet name cannot be empty.");
