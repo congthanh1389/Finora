@@ -209,6 +209,9 @@ export async function createDeviceCategory(input: Omit<Category, "id" | "created
   return { ...input, id: result.lastInsertRowId, createdAt: now, updatedAt: now };
 }
 export async function updateDeviceCategory(userId: number, categoryId: number, name: string, icon?: string): Promise<Category> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id.");
+  if (typeof name !== "string" || !name.trim()) throw new Error("Category name cannot be empty.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const current = await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId);
   if (!current) throw new Error("Không tìm thấy danh mục."); const trimmed = name.trim(); if (!trimmed) throw new Error("Tên danh mục không được để trống.");
