@@ -181,7 +181,7 @@ export async function localGetAccount(email?: string): Promise<LocalAccount | nu
   };
 
   const idText = token.slice("local-session-".length);
-  if (!/^\\d+$/.test(idText)) return clearInvalidSession();
+  if (!/^\d+$/.test(idText)) return clearInvalidSession();
 
   const id = Number(idText);
   if (!Number.isSafeInteger(id) || id <= 0 || String(id) !== idText) return clearInvalidSession();
