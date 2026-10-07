@@ -204,6 +204,15 @@ function transactionFromRow(row: any): Transaction {
   if (destinationWalletId != null && (!Number.isSafeInteger(destinationWalletId) || destinationWalletId <= 0)) throw new Error("Invalid persisted transaction destination wallet id.");
   if (categoryId != null && (!Number.isSafeInteger(categoryId) || categoryId <= 0)) throw new Error("Invalid persisted transaction category id.");
   if (row.note != null && typeof row.note !== "string") throw new Error("Invalid persisted transaction note.");
+  if (row.type === "transfer") {
+    if (walletId != null || categoryId != null || sourceWalletId == null || destinationWalletId == null || sourceWalletId === destinationWalletId) {
+      throw new Error("Invalid persisted transfer references.");
+    }
+  } else {
+    if (walletId == null || sourceWalletId != null || destinationWalletId != null) {
+      throw new Error("Invalid persisted transaction wallet references.");
+    }
+  }
   if (Number.isNaN(occurredAt.getTime()) || Number.isNaN(createdAt.getTime()) || Number.isNaN(updatedAt.getTime())) {
     throw new Error("Invalid persisted transaction date.");
   }
