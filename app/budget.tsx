@@ -4,7 +4,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 
 import * as Auth from "@/lib/_core/auth";
 import { ScreenContainer } from "@/components/screen-container";
-import { CategoryService } from "@/src/modules/category/service/category.service";
+import { createCategoryDependencies } from "@/src/modules/category/category.factory";
 import { BudgetService } from "@/src/modules/budget/service/budget.service";
 import { DeviceBudgetRepository } from "@/src/modules/budget/repository/device-budget.repository";
 import { DeviceWalletRepository } from "@/src/modules/wallet/repository/device-wallet.repository";
@@ -18,7 +18,7 @@ const money = (value: number) => new Intl.NumberFormat("vi-VN").format(value) + 
 export default function BudgetScreen() {
   const router = useRouter();
   const budgetService = useMemo(() => new BudgetService(new DeviceBudgetRepository()), []);
-  const categoryService = useMemo(() => new CategoryService(), []);
+  const { categoryService } = useMemo(() => createCategoryDependencies(), []);
   const walletService = useMemo(() => new WalletService(new DeviceWalletRepository()), []);
   const [budgets, setBudgets] = useState<BudgetSummary[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
