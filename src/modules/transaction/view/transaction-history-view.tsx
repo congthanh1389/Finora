@@ -113,7 +113,7 @@ export function TransactionHistoryView() {
         }
         const result = await summaryService.getSummary(user.id, period.start, period.end, typeFilter);
         if (active) setSummary(result);
-      } catch (err) {
+      } catch {
         if (active) setSummary(null);
       }
     }
