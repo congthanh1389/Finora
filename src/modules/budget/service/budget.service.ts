@@ -1,8 +1,14 @@
-import { DeviceBudgetRepository } from "../repository/device-budget.repository";
 import type { BudgetSummary, CreateBudgetInput, UpdateBudgetInput } from "../types/budget.types";
 
+export interface BudgetRepository {
+  listByPeriod(userId: number, periodStart: Date, periodEnd: Date): Promise<BudgetSummary[]>;
+  create(input: CreateBudgetInput): Promise<BudgetSummary>;
+  update(userId: number, budgetId: number, input: UpdateBudgetInput): Promise<BudgetSummary>;
+  delete(userId: number, budgetId: number): Promise<void>;
+}
+
 export class BudgetService {
-  constructor(private readonly repository = new DeviceBudgetRepository()) {}
+  constructor(private readonly repository: BudgetRepository) {}
 
   async listCurrentMonth(userId: number, now = new Date()): Promise<BudgetSummary[]> {
     this.validateUser(userId);
