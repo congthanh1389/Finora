@@ -167,6 +167,7 @@ export function useCategoryViewModel() {
     cancelEdit,
     saveEdit,
     deleteCategory,
+    restoreCategory,
     reload: load,
   };
 }
