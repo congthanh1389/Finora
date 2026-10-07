@@ -4,8 +4,7 @@ import { useFocusEffect } from "expo-router";
 
 import * as Auth from "@/lib/_core/auth";
 import type { User } from "@/lib/_core/auth";
-import { DeviceWalletRepository } from "../repository/device-wallet.repository";
-import { WalletService } from "../service/wallet.service";
+import { createWalletDependencies } from "../wallet.factory";
 import type { WalletType, WalletSummary } from "../types/wallet.types";
 
 export function useWalletViewModel() {
@@ -25,8 +24,8 @@ export function useWalletViewModel() {
   const [editAllowNegative, setEditAllowNegative] = useState(false);
   const [isSavingEdit, setSavingEdit] = useState(false);
 
-  const repository = useMemo(() => new DeviceWalletRepository(), []);
-  const service = useMemo(() => new WalletService(repository), [repository]);
+  const dependencies = useMemo(() => createWalletDependencies(), []);
+  const service = dependencies.walletService;
 
   const loadWallets = useCallback(async (userId: number) => {
     const walletList = await service.listWallets(userId);
