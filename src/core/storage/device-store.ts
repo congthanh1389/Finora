@@ -204,6 +204,7 @@ export async function createDeviceCategory(input: Omit<Category, "id" | "created
   if (input.type !== "income" && input.type !== "expense") throw new Error("Invalid category type.");
   if (input.parentId !== null && (!Number.isSafeInteger(input.parentId) || input.parentId <= 0)) throw new Error("Invalid parent category id.");
   if (input.isArchived !== 0 && input.isArchived !== 1) throw new Error("Invalid category archived flag.");
+  if (input.icon !== null && (typeof input.icon !== "string" || !input.icon.trim())) throw new Error("Invalid category icon.");
   const db = await getDeviceDatabase(); await migrateDatabase(db); const now = new Date();
   const result = await db.runAsync(`INSERT INTO categories (user_id, name, type, parent_id, icon, is_archived, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, input.userId, input.name, input.type, input.parentId, input.icon, input.isArchived, now.toISOString(), now.toISOString());
   return { ...input, id: result.lastInsertRowId, createdAt: now, updatedAt: now };
