@@ -464,15 +464,19 @@ export async function listDeviceWalletsWithBalances(userId: number): Promise<(Wa
 function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | "updatedAt">) {
   if (!Number.isSafeInteger(input.userId) || input.userId <= 0) throw new Error("Invalid user id.");
   if (!Number.isSafeInteger(input.amount) || input.amount <= 0) throw new Error("Transaction amount must be a positive integer.");
-  if (!Number.isInteger(input.walletId ?? undefined) || (input.walletId ?? 0) <= 0) {
-    throw new Error("Invalid wallet id.");
-  }
   if (input.type === "transfer") {
+    if (!Number.isSafeInteger(input.sourceWalletId) || input.sourceWalletId <= 0) {
+      throw new Error("Invalid source wallet id.");
+    }
+    if (!Number.isSafeInteger(input.destinationWalletId) || input.destinationWalletId <= 0) {
+      throw new Error("Invalid destination wallet id.");
+    }
     if (input.walletId != null || input.categoryId != null) throw new Error("Transfer must use source and destination wallets.");
-    if (input.sourceWalletId == null || input.destinationWalletId == null) throw new Error("Transfer requires source and destination wallets.");
     if (input.sourceWalletId === input.destinationWalletId) throw new Error("Transfer wallets must be different.");
   } else {
-    if (input.walletId == null) throw new Error("Income and expense require a wallet.");
+    if (!Number.isSafeInteger(input.walletId) || input.walletId <= 0) {
+      throw new Error("Invalid wallet id.");
+    }
     if (input.sourceWalletId != null || input.destinationWalletId != null) throw new Error("Income and expense cannot use transfer wallets.");
   }
 }
