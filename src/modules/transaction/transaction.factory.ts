@@ -22,7 +22,6 @@ export function createTransactionDependencies() {
     walletService,
     categoryService,
     summaryService,
-    historyService,
     editService,
   );
 
@@ -33,5 +32,6 @@ export function createTransactionDependencies() {
     transactionService,
     editService,
     summaryService,
+    historyService,
   };
 }
