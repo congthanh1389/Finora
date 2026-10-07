@@ -62,8 +62,8 @@ export class DeviceReportRepository {
          COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
          COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense,
          COALESCE(SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END), 0) AS transfer,
-         COALESCE(SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END), 0) AS incomeCount,
-         COALESCE(SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END), 0) AS expenseCount
+         COALESCE(SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END), 0) AS income_count,
+         COALESCE(SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END), 0) AS expense_count
        FROM transactions
        WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?`,
       userId, fromIso, toIso,
@@ -77,8 +77,8 @@ export class DeviceReportRepository {
          COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
          COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense,
          COALESCE(SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END), 0) AS transfer,
-         COALESCE(SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END), 0) AS incomeCount,
-         COALESCE(SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END), 0) AS expenseCount
+         COALESCE(SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END), 0) AS income_count,
+         COALESCE(SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END), 0) AS expense_count
        FROM transactions
        WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?`,
       userId, previousFromIso, previousToIso,
