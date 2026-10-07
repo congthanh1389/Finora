@@ -4,7 +4,6 @@ import type { WalletSummary } from "../../wallet/types/wallet.types";
 import { WalletService } from "../../wallet/service/wallet.service";
 import { TransactionEditService } from "./transaction-edit.service";
 import { TransactionSummaryService } from "./transaction-summary.service";
-import type { TransactionSummaryResult } from "../types/transaction-summary.types";
 import type { TransactionType } from "../types/transaction.types";
 
 export type TransactionHistoryFilter = "all" | TransactionType;
