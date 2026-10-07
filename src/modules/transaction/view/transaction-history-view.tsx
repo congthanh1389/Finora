@@ -13,6 +13,7 @@ import { CategoryRepository } from "../../category/repository/category.repositor
 import type { WalletType } from "../../wallet/types/wallet.types";
 import type { Transaction, Wallet } from "../../../../drizzle/schema";
 import { TransactionEditService } from "../service/transaction-edit.service";
+import { DeviceTransactionEditRepository } from "../repository/device-transaction-edit.repository";
 import { DeviceTransactionSummaryRepository } from "../repository/device-transaction-summary.repository";
 import { TransactionSummaryService } from "../service/transaction-summary.service";
 import type { TransactionSummaryResult } from "../types/transaction-summary.types";
@@ -66,7 +67,8 @@ export function TransactionHistoryView() {
   const transactionRepository = useMemo(() => new DeviceTransactionRepository(), []);
   const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
   const categoryRepository = useMemo(() => new CategoryRepository(), []);
-  const editService = useMemo(() => new TransactionEditService(), []);
+  const editRepository = useMemo(() => new DeviceTransactionEditRepository(), []);
+  const editService = useMemo(() => new TransactionEditService(editRepository), [editRepository]);
   const walletMap = useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets]);
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
 
