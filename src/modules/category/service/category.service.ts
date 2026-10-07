@@ -51,7 +51,7 @@ export class CategoryService {
 
   async archiveCategory(userId: number, categoryId: number) {
     if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
-    if (!Number.isInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id");
+    if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id");
     return this.repository.archive(userId, categoryId);
   }
 }
