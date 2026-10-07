@@ -12,6 +12,9 @@ export default function CategoryScreen() {
   const {
     type,
     categories,
+    archivedCategories,
+    showArchived,
+    setShowArchived,
     name,
     selectedIcon,
     editingId,
@@ -29,6 +32,7 @@ export default function CategoryScreen() {
     cancelEdit,
     saveEdit,
     deleteCategory,
+    restoreCategory,
   } = useCategoryViewModel();
 
   const iconOptions = useMemo(
@@ -55,13 +59,22 @@ export default function CategoryScreen() {
         </View>
 
         <View className="mt-6 flex-row rounded-2xl bg-[#E2E8F0] p-1">
+          <Pressable onPress={() => setShowArchived(false)} className="flex-1 rounded-xl px-3 py-3" style={{ backgroundColor: !showArchived ? "#22B8A8" : "transparent" }}>
+            <Text className={!showArchived ? "text-center font-bold text-white" : "text-center font-bold text-[#64748B]"}>Đang dùng</Text>
+          </Pressable>
+          <Pressable onPress={() => setShowArchived(true)} className="flex-1 rounded-xl px-3 py-3" style={{ backgroundColor: showArchived ? "#64748B" : "transparent" }}>
+            <Text className={showArchived ? "text-center font-bold text-white" : "text-center font-bold text-[#64748B]"}>Đã lưu trữ</Text>
+          </Pressable>
+        </View>
+
+        {!showArchived && <View className="mt-2 flex-row rounded-2xl bg-[#E2E8F0] p-1">
           <Pressable onPress={() => resetForm("expense")} className="flex-1 rounded-xl px-3 py-3" style={{ backgroundColor: type === "expense" ? "#22B8A8" : "transparent" }}>
             <Text className={type === "expense" ? "text-center font-bold text-white" : "text-center font-bold text-[#64748B]"}>Mục chi tiêu</Text>
           </Pressable>
           <Pressable onPress={() => resetForm("income")} className="flex-1 rounded-xl px-3 py-3" style={{ backgroundColor: type === "income" ? "#059669" : "transparent" }}>
             <Text className={type === "income" ? "text-center font-bold text-white" : "text-center font-bold text-[#64748B]"}>Nguồn thu nhập</Text>
           </Pressable>
-        </View>
+        </View>}
 
         <View className="mt-5 rounded-3xl border border-[#E2E8F0] bg-white p-5">
           <Text className="text-base font-bold text-[#0F2A5F]">Thêm mục mới</Text>
@@ -85,8 +98,8 @@ export default function CategoryScreen() {
         </View>
 
         <View className="mt-5 rounded-3xl border border-[#E2E8F0] bg-white p-5">
-          <Text className="text-base font-bold text-[#0F2A5F]">{type === "expense" ? "Danh sách mục chi tiêu" : "Danh sách nguồn thu nhập"}</Text>
-          {categories.length === 0 ? <Text className="mt-4 text-sm text-[#64748B]">Chưa có mục nào. Hãy thêm mục đầu tiên.</Text> : categories.map((item) => (
+          <Text className="text-base font-bold text-[#0F2A5F]">{showArchived ? "Danh mục đã lưu trữ" : type === "expense" ? "Danh sách mục chi tiêu" : "Danh sách nguồn thu nhập"}</Text>
+          {(showArchived ? archivedCategories : categories).length === 0 ? <Text className="mt-4 text-sm text-[#64748B]">{showArchived ? "Chưa có danh mục đã lưu trữ." : "Chưa có mục nào. Hãy thêm mục đầu tiên."}</Text> : (showArchived ? archivedCategories : categories).map((item) => (
             <View key={item.id} className="mt-3 rounded-2xl bg-[#F8FAFC] p-3">
               <View className="flex-row items-center">
                 <View className="h-10 w-10 items-center justify-center rounded-full bg-white">
@@ -122,7 +135,9 @@ export default function CategoryScreen() {
                 </View>
               ) : null}
               <View className="mt-2 flex-row justify-end gap-2">
-                {editingId === item.id ? <>
+                {showArchived ? (
+                  <Pressable onPress={() => void restoreCategory(item.id)} className="rounded-xl bg-[#DCFCE7] px-3 py-2"><Text className="text-sm font-bold text-[#15803D]">Khôi phục</Text></Pressable>
+                ) : editingId === item.id ? <>
                   <Pressable onPress={cancelEdit} className="rounded-xl bg-[#E2E8F0] px-3 py-2"><Text className="text-sm font-bold text-[#475569]">Hủy</Text></Pressable>
                   <Pressable onPress={() => void saveEdit(item.id)} className="rounded-xl bg-[#22B8A8] px-3 py-2"><Text className="text-sm font-bold text-white">Lưu</Text></Pressable>
                 </> : <>
