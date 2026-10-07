@@ -66,6 +66,40 @@ function budgetFromRow(row: any): BudgetSummary {
   };
 }
 
+function validatePersistedBudgetMutationRow(row: {
+  id: number;
+  user_id: number;
+  category_id: number;
+  wallet_id: number | null;
+  amount: number;
+  currency: string;
+  period_start: string;
+  period_end: string;
+  created_at: string;
+  updated_at: string;
+}): void {
+  if (!positiveSafeInteger(Number(row.id)) || !positiveSafeInteger(Number(row.user_id)) || !positiveSafeInteger(Number(row.category_id))) {
+    throw new Error("Invalid persisted budget identifier.");
+  }
+  if (row.wallet_id !== null && !positiveSafeInteger(Number(row.wallet_id))) {
+    throw new Error("Invalid persisted budget wallet reference.");
+  }
+  if (!Number.isSafeInteger(Number(row.amount)) || Number(row.amount) <= 0) {
+    throw new Error("Invalid persisted budget amount.");
+  }
+  if (!/^[A-Z]{3}$/.test(String(row.currency))) {
+    throw new Error("Invalid persisted budget currency.");
+  }
+  const periodStart = new Date(row.period_start);
+  const periodEnd = new Date(row.period_end);
+  if (!validDate(periodStart) || !validDate(periodEnd) || periodStart >= periodEnd) {
+    throw new Error("Invalid persisted budget period.");
+  }
+  if (!validDate(new Date(row.created_at)) || !validDate(new Date(row.updated_at))) {
+    throw new Error("Invalid persisted budget timestamp.");
+  }
+}
+
 export class DeviceBudgetRepository {
   async listByPeriod(userId: number, periodStart: Date, periodEnd: Date): Promise<BudgetSummary[]> {
     await initializeDeviceStorage();
@@ -145,6 +179,7 @@ export class DeviceBudgetRepository {
         userId, budgetId,
       );
       if (!current) throw new Error("Không tìm thấy ngân sách.");
+      validatePersistedBudgetMutationRow(current);
       const nextCategoryId = input.categoryId ?? Number(current.category_id);
       const nextWalletId = input.walletId === undefined ? (current.wallet_id == null ? null : Number(current.wallet_id)) : input.walletId;
       const category = await db.getFirstAsync<{ id: number; type: string; is_archived: number }>(
