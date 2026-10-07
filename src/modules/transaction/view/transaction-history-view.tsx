@@ -271,20 +271,26 @@ export function TransactionHistoryView() {
               </View>
             ) : null}
             {summary ? (
-              <>
-                <View className="mt-4 flex-row gap-2">
-                  <View className="flex-1 rounded-2xl bg-[#ECFDF5] p-3"><Text className="text-xs text-[#64748B]">Thu</Text><Text className="mt-1 text-sm font-bold text-[#059669]">+{formatVnd(summary.totals.incomeAmount)}</Text><Text className="mt-1 text-[11px] text-[#64748B]">{summary.totals.incomeCount} giao dịch</Text></View>
-                  <View className="flex-1 rounded-2xl bg-[#FFF1F2] p-3"><Text className="text-xs text-[#64748B]">Chi</Text><Text className="mt-1 text-sm font-bold text-[#E11D48]">−{formatVnd(summary.totals.expenseAmount)}</Text><Text className="mt-1 text-[11px] text-[#64748B]">{summary.totals.expenseCount} giao dịch</Text></View>
-                </View>
-                <View className="mt-2 flex-row gap-2">
-                  <View className="flex-1 rounded-2xl bg-[#EFF6FF] p-3"><Text className="text-xs text-[#64748B]">Chuyển tiền</Text><Text className="mt-1 text-sm font-bold text-[#0F2A5F]">{formatVnd(summary.totals.transferAmount)}</Text><Text className="mt-1 text-[11px] text-[#64748B]">{summary.totals.transferCount} giao dịch</Text></View>
-                  <View className="flex-1 rounded-2xl bg-[#F8FAFC] p-3"><Text className="text-xs text-[#64748B]">{typeFilter === "all" ? "Tổng tất cả" : "Tổng " + ({ income: "thu", expense: "chi", transfer: "chuyển tiền" } as Record<string,string>)[typeFilter]}</Text><Text className="mt-1 text-sm font-bold text-[#0F2A5F]">{formatVnd(summary.totals.totalAmount)}</Text><Text className="mt-1 text-[11px] text-[#64748B]">{summary.totals.transactionCount} giao dịch</Text></View>
-                </View>
-                <View className="mt-3 rounded-2xl bg-[#F8FAFC] p-3"><Text className="text-xs text-[#64748B]">Thu − Chi</Text><Text className={"mt-1 text-base font-bold " + (summary.totals.netCashflow >= 0 ? "text-[#059669]" : "text-[#E11D48]")}>{summary.totals.netCashflow >= 0 ? "+" : "−"}{formatVnd(Math.abs(summary.totals.netCashflow))}</Text></View>
-              </>
-            ) : periodKey === "custom" && customStart && customEnd ? <Text className="mt-3 text-xs text-[#BE123C]">Khoảng ngày không hợp lệ.</Text> : null}
-          </View>
-
+              <View className="mt-4 rounded-2xl bg-[#F8FAFC] p-4">
+                <Text className="text-xs font-semibold text-[#64748B]">
+                  {typeFilter === "all"
+                    ? "Tổng tất cả"
+                    : typeFilter === "income"
+                      ? "Tổng thu"
+                      : typeFilter === "expense"
+                        ? "Tổng chi"
+                        : "Tổng chuyển tiền"}
+                </Text>
+                <Text className="mt-1 text-xl font-bold text-[#0F2A5F]">
+                  {formatVnd(summary.totals.totalAmount)}
+                </Text>
+                <Text className="mt-1 text-xs text-[#64748B]">
+                  {summary.totals.transactionCount} giao dịch
+                </Text>
+              </View>
+            ) : periodKey === "custom" && customStart && customEnd ? (
+              <Text className="mt-3 text-xs text-[#BE123C]">Khoảng ngày không hợp lệ.</Text>
+            ) : null}
           {isLoading ? (
             <View className="items-center rounded-3xl border border-[#E2E8F0] bg-white py-12">
               <ActivityIndicator />
