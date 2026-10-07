@@ -61,6 +61,28 @@ export class DeviceTransactionRepository {
     start?: Date,
     end?: Date,
   ): Promise<{ transactions: Transaction[]; hasMore: boolean }> {
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
+      throw new Error("Invalid user ID.");
+    }
+    if (!Number.isSafeInteger(offset) || offset < 0) {
+      throw new Error("Invalid transaction offset.");
+    }
+    if (type !== "all" && type !== "income" && type !== "expense" && type !== "transfer") {
+      throw new Error("Invalid transaction type.");
+    }
+    if (!Number.isSafeInteger(limit) || limit <= 0) {
+      throw new Error("Invalid transaction limit.");
+    }
+    if ((start !== undefined && !(start instanceof Date)) || (end !== undefined && !(end instanceof Date))) {
+      throw new Error("Invalid transaction period.");
+    }
+    if ((start !== undefined && Number.isNaN(start.getTime())) || (end !== undefined && Number.isNaN(end.getTime()))) {
+      throw new Error("Invalid transaction period.");
+    }
+    if (start !== undefined && end !== undefined && start >= end) {
+      throw new Error("Invalid transaction period.");
+    }
+
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const periodClause = start && end ? " AND occurred_at >= ? AND occurred_at < ?" : "";
