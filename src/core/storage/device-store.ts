@@ -356,6 +356,8 @@ export async function archiveDeviceWallet(userId: number, walletId: number): Pro
 }
 
 export async function restoreDeviceWallet(userId: number, walletId: number): Promise<Wallet> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const current = await getDeviceWallet(userId, walletId);
   if (!current) throw new Error("Wallet not found.");
