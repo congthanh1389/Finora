@@ -146,6 +146,12 @@ export function useWalletViewModel() {
     }
   }
 
+  function formatOpeningBalance(value: string) {
+    const digits = value.replace(/\D/g, "");
+    if (!digits) return "";
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
   function resetForm() {
     setName("");
     setType("cash");
@@ -210,7 +216,7 @@ export function useWalletViewModel() {
     deleteArchivedWallet,
     setName,
     setType,
-    setOpeningBalance,
+    setOpeningBalance: (value: string) => setOpeningBalance(formatOpeningBalance(value)),
     submit,
     resetForm,
     reload: loadData,

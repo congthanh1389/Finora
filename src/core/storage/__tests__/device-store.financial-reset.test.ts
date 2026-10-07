@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { clearDeviceFinancialData } from "../device-store";
 
 const getFirstAsync = vi.fn();
 const getAllAsync = vi.fn();
@@ -25,7 +26,6 @@ vi.mock("react-native", () => ({
   },
 }));
 
-import { clearDeviceFinancialData } from "../device-store";
 
 describe("clearDeviceFinancialData", () => {
   beforeEach(() => {
