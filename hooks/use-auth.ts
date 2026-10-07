@@ -110,7 +110,9 @@ export function useAuth(options?: UseAuthOptions) {
       setLoading(false);
     };
     authStateListeners.add(listener);
-    return () => authStateListeners.delete(listener);
+    return () => {
+      authStateListeners.delete(listener);
+    };
   }, []);
 
   useEffect(() => {
