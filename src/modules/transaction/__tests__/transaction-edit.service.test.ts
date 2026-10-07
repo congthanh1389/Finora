@@ -1,22 +1,22 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { DeviceTransactionEditRepository } from "../repository/device-transaction-edit.repository";
-import { TransactionEditService } from "../service/transaction-edit.service";
+import { TransactionEditService, type TransactionEditRepository } from "../service/transaction-edit.service";
 
-
+function createRepository(): TransactionEditRepository {
+  return {
+    getById: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  };
+}
 
 describe("TransactionEditService.deleteTransaction", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it("deletes a transaction for valid identifiers", async () => {
     const deleted = { id: 7, userId: 1 };
-    const repository = new DeviceTransactionEditRepository();
-    vi.spyOn(repository, "delete").mockResolvedValue(deleted as never);
+    const repository = createRepository();
+    vi.mocked(repository.delete).mockResolvedValue(deleted as never);
     const service = new TransactionEditService(repository);
 
-    const service = new TransactionEditService(new DeviceTransactionEditRepository());
     const result = await service.deleteTransaction(1, 7);
 
     expect(repository.delete).toHaveBeenCalledWith(1, 7);
@@ -24,22 +24,19 @@ describe("TransactionEditService.deleteTransaction", () => {
   });
 
   it("rejects invalid identifiers", async () => {
-    const service = new TransactionEditService();
+    const repository = createRepository();
+    const service = new TransactionEditService(repository);
 
     await expect(service.deleteTransaction(0, 7)).rejects.toThrow("Người dùng không hợp lệ.");
     await expect(service.deleteTransaction(1, 0)).rejects.toThrow("Giao dịch không hợp lệ.");
-    
+    expect(repository.delete).not.toHaveBeenCalled();
   });
 });
 
-
 describe("TransactionEditService.updateTransaction", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it("rejects invalid update input before touching the repository", async () => {
-    const service = new TransactionEditService();
+    const repository = createRepository();
+    const service = new TransactionEditService(repository);
 
     await expect(service.updateTransaction({
       userId: 0,
@@ -68,15 +65,15 @@ describe("TransactionEditService.updateTransaction", () => {
       note: null,
     })).rejects.toThrow("Vui lòng nhập số tiền hợp lệ.");
 
-    expect(vi.mocked(updateDeviceTransaction)).not.toHaveBeenCalled();
+    expect(repository.update).not.toHaveBeenCalled();
   });
 
   it("trims note before updating", async () => {
     const updated = { id: 7, userId: 1 };
-    const repository = new DeviceTransactionEditRepository();
-    vi.spyOn(repository, "update").mockResolvedValue(updated as never);
+    const repository = createRepository();
+    vi.mocked(repository.update).mockResolvedValue(updated as never);
+    const service = new TransactionEditService(repository);
 
-    const service = new TransactionEditService();
     const result = await service.updateTransaction({
       userId: 1,
       transactionId: 7,
