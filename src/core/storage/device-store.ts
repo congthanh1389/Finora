@@ -431,6 +431,7 @@ export async function deleteArchivedDeviceWallet(userId: number, walletId: numbe
   });
 }
 export async function listDeviceTransactions(userId: number): Promise<Transaction[]> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const rows = await db.getAllAsync(`SELECT * FROM transactions WHERE user_id = ? ORDER BY occurred_at DESC`, userId); return rows.map(transactionFromRow);
 }
