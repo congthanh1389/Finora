@@ -36,6 +36,7 @@ export interface ICategoryRepository {
   update(userId: number, categoryId: number, name: string, icon?: string): Promise<Category>;
   archive(userId: number, categoryId: number): Promise<Category>;
   restore(userId: number, categoryId: number): Promise<Category>;
+  delete(userId: number, categoryId: number): Promise<void>;
 }
 
 export interface ITransactionRepository {
