@@ -20,8 +20,8 @@ export class BudgetService {
     this.validateUser(input.userId);
     this.validateAmount(input.amount);
     this.validatePeriod(input.periodStart, input.periodEnd);
-    if (!Number.isInteger(input.categoryId) || input.categoryId <= 0) throw new Error("Invalid category id.");
-    if (input.walletId != null && (!Number.isInteger(input.walletId) || input.walletId <= 0)) throw new Error("Invalid wallet id.");
+    if (!Number.isSafeInteger(input.categoryId) || input.categoryId <= 0) throw new Error("Invalid category id.");
+    if (input.walletId != null && (!Number.isSafeInteger(input.walletId) || input.walletId <= 0)) throw new Error("Invalid wallet id.");
     const currency = (input.currency ?? "VND").trim().toUpperCase();
     if (!/^[A-Z]{3}$/.test(currency)) throw new Error("Currency must be a 3-letter code.");
 
@@ -35,16 +35,16 @@ export class BudgetService {
 
   async updateBudget(userId: number, budgetId: number, input: UpdateBudgetInput): Promise<BudgetSummary> {
     this.validateUser(userId);
-    if (!Number.isInteger(budgetId) || budgetId <= 0) throw new Error("Invalid budget id.");
+    if (!Number.isSafeInteger(budgetId) || budgetId <= 0) throw new Error("Invalid budget id.");
     if (input.amount !== undefined) this.validateAmount(input.amount);
-    if (input.categoryId !== undefined && (!Number.isInteger(input.categoryId) || input.categoryId <= 0)) throw new Error("Invalid category id.");
-    if (input.walletId != null && (!Number.isInteger(input.walletId) || input.walletId <= 0)) throw new Error("Invalid wallet id.");
+    if (input.categoryId !== undefined && (!Number.isSafeInteger(input.categoryId) || input.categoryId <= 0)) throw new Error("Invalid category id.");
+    if (input.walletId != null && (!Number.isSafeInteger(input.walletId) || input.walletId <= 0)) throw new Error("Invalid wallet id.");
     return this.repository.update(userId, budgetId, input);
   }
 
   async deleteBudget(userId: number, budgetId: number): Promise<void> {
     this.validateUser(userId);
-    if (!Number.isInteger(budgetId) || budgetId <= 0) throw new Error("Invalid budget id.");
+    if (!Number.isSafeInteger(budgetId) || budgetId <= 0) throw new Error("Invalid budget id.");
     return this.repository.delete(userId, budgetId);
   }
 
@@ -56,7 +56,7 @@ export class BudgetService {
   }
 
   private validateUser(userId: number) {
-    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id");
   }
 
   private validateAmount(amount: number) {
