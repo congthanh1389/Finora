@@ -1,125 +1,29 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 
-import * as Auth from "@/lib/_core/auth";
 import { ScreenContainer } from "@/components/screen-container";
-import { createCategoryDependencies } from "@/src/modules/category/category.factory";
-import { BudgetService } from "@/src/modules/budget/service/budget.service";
-import { DeviceBudgetRepository } from "@/src/modules/budget/repository/device-budget.repository";
-import { DeviceWalletRepository } from "@/src/modules/wallet/repository/device-wallet.repository";
-import { WalletService } from "@/src/modules/wallet/service/wallet.service";
-import type { Category } from "@/drizzle/schema";
-import type { BudgetSummary } from "@/src/modules/budget/types/budget.types";
-import type { WalletSummary } from "@/src/modules/wallet/types/wallet.types";
+import { useBudgetViewModel } from "@/src/modules/budget/viewmodel/use-budget-view-model";
 
 const money = (value: number) => new Intl.NumberFormat("vi-VN").format(value) + " ₫";
 
 export default function BudgetScreen() {
   const router = useRouter();
-  const budgetService = useMemo(() => new BudgetService(new DeviceBudgetRepository()), []);
-  const { categoryService } = useMemo(() => createCategoryDependencies(), []);
-  const walletService = useMemo(() => new WalletService(new DeviceWalletRepository()), []);
-  const [budgets, setBudgets] = useState<BudgetSummary[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [wallets, setWallets] = useState<WalletSummary[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
-  const [selectedWalletId, setSelectedWalletId] = useState<number | null>(null);
-  const [amountText, setAmountText] = useState("");
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const {
+    budgets, categories, wallets, selectedCategoryId, selectedWalletId, amountText,
+    editingId, error, loading, totalAmount, totalSpent, totalRemaining,
+    setSelectedCategoryId, setSelectedWalletId, setAmountText,
+    resetForm, startEdit, saveBudget, deleteBudget,
+  } = useBudgetViewModel();
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const user = await Auth.getUserInfo();
-      if (!user) return;
-      const [nextBudgets, nextCategories, nextWallets] = await Promise.all([
-        budgetService.listCurrentMonth(user.id),
-        categoryService.listCategories(user.id, "expense"),
-        walletService.listWallets(user.id),
-      ]);
-      setBudgets(nextBudgets);
-      setCategories(nextCategories);
-      setWallets(nextWallets.filter((item) => !item.isArchived));
-      if (!selectedCategoryId && nextCategories[0]) setSelectedCategoryId(nextCategories[0].id);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể tải ngân sách.");
-    } finally {
-      setLoading(false);
-    }
-  }, [budgetService, categoryService, walletService, selectedCategoryId]);
-
-  useFocusEffect(useCallback(() => { void load(); }, [load]));
-
-  function resetForm() {
-    setEditingId(null);
-    setAmountText("");
-    setError("");
-    if (categories[0]) setSelectedCategoryId(categories[0].id);
-    setSelectedWalletId(null);
-  }
-
-  function startEdit(item: BudgetSummary) {
-    setEditingId(item.id);
-    setSelectedCategoryId(item.categoryId);
-    setSelectedWalletId(item.walletId);
-    setAmountText(String(item.amount));
-    setError("");
-  }
-
-  async function saveBudget() {
-    try {
-      const user = await Auth.getUserInfo();
-      if (!user) throw new Error("Không tìm thấy người dùng hiện tại.");
-      if (!selectedCategoryId) throw new Error("Hãy chọn danh mục chi tiêu.");
-      const amount = Number(amountText.replace(/[^0-9]/g, ""));
-      if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error("Số tiền ngân sách không hợp lệ.");
-      const period = budgetService.getMonthPeriod();
-      if (editingId) {
-        await budgetService.updateBudget(user.id, editingId, { categoryId: selectedCategoryId, walletId: selectedWalletId, amount });
-      } else {
-        await budgetService.createBudget({
-          userId: user.id,
-          categoryId: selectedCategoryId,
-          walletId: selectedWalletId,
-          amount,
-          currency: "VND",
-          periodStart: period.start,
-          periodEnd: period.end,
-        });
-      }
-      resetForm();
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể lưu ngân sách.");
-    }
-  }
-
-  function confirmDelete(item: BudgetSummary) {
+  function confirmDelete(item: (typeof budgets)[number]) {
     Alert.alert("Xóa ngân sách", `Bạn có chắc muốn xóa ngân sách “${item.categoryName ?? "Không tên"}”?`, [
       { text: "Hủy", style: "cancel" },
       { text: "Xóa", style: "destructive", onPress: () => void deleteBudget(item.id) },
     ]);
   }
 
-  async function deleteBudget(id: number) {
-    try {
-      const user = await Auth.getUserInfo();
-      if (!user) throw new Error("Không tìm thấy người dùng hiện tại.");
-      await budgetService.deleteBudget(user.id, id);
-      if (editingId === id) resetForm();
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể xóa ngân sách.");
-    }
-  }
-
   const monthLabel = new Intl.DateTimeFormat("vi-VN", { month: "long", year: "numeric" }).format(new Date());
-  const totalAmount = budgets.reduce((sum, item) => sum + item.amount, 0);
-  const totalSpent = budgets.reduce((sum, item) => sum + item.spent, 0);
-  const totalRemaining = totalAmount - totalSpent;
 
   return (
     <ScreenContainer className="bg-[#F8FAFC]">
