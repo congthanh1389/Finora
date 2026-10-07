@@ -9,8 +9,9 @@ import { BudgetService } from "@/src/modules/budget/service/budget.service";
 import { DeviceBudgetRepository } from "@/src/modules/budget/repository/device-budget.repository";
 import { DeviceWalletRepository } from "@/src/modules/wallet/repository/device-wallet.repository";
 import { WalletService } from "@/src/modules/wallet/service/wallet.service";
-import type { Category, Wallet } from "@/drizzle/schema";
+import type { Category } from "@/drizzle/schema";
 import type { BudgetSummary } from "@/src/modules/budget/types/budget.types";
+import type { WalletSummary } from "@/src/modules/wallet/types/wallet.types";
 
 const money = (value: number) => new Intl.NumberFormat("vi-VN").format(value) + " ₫";
 
@@ -21,7 +22,7 @@ export default function BudgetScreen() {
   const walletService = useMemo(() => new WalletService(new DeviceWalletRepository()), []);
   const [budgets, setBudgets] = useState<BudgetSummary[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [wallets, setWallets] = useState<WalletSummary[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [selectedWalletId, setSelectedWalletId] = useState<number | null>(null);
   const [amountText, setAmountText] = useState("");
@@ -41,7 +42,7 @@ export default function BudgetScreen() {
       ]);
       setBudgets(nextBudgets);
       setCategories(nextCategories);
-      setWallets(nextWallets.filter((item) => item.isArchived === 0));
+      setWallets(nextWallets.filter((item) => !item.isArchived));
       if (!selectedCategoryId && nextCategories[0]) setSelectedCategoryId(nextCategories[0].id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải ngân sách.");
