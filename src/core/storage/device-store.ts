@@ -470,6 +470,8 @@ export async function getDeviceWalletBalanceFromDatabase(
 }
 
 export async function getDeviceWalletBalance(userId: number, walletId: number): Promise<number> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   return getDeviceWalletBalanceFromDatabase(db, userId, walletId);
 }
