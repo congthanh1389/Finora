@@ -1,8 +1,9 @@
 import { useRouter } from "expo-router";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
+import { clearDeviceFinancialData } from "@/src/core/storage/device-store";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -11,6 +12,30 @@ export default function SettingsScreen() {
   const handleLogout = async () => {
     await logout();
     router.replace("/login" as never);
+  };
+
+  const handleClearFinancialData = () => {
+    if (!user?.id) {
+      Alert.alert("Chưa có tài khoản", "Vui lòng đăng nhập trước khi xóa dữ liệu tài chính.");
+      return;
+    }
+
+    Alert.alert(
+      "Xóa dữ liệu tài chính?",
+      "Toàn bộ giao dịch, ví, danh mục và ngân sách sẽ bị xóa. Tài khoản đăng nhập vẫn được giữ lại.",
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Xóa dữ liệu",
+          style: "destructive",
+          onPress: () => {
+            void clearDeviceFinancialData(user.id)
+              .then(() => Alert.alert("Đã xóa", "Dữ liệu tài chính đã được xóa."))
+              .catch((error) => Alert.alert("Không thể xóa", error instanceof Error ? error.message : "Đã xảy ra lỗi."));
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -63,6 +88,27 @@ export default function SettingsScreen() {
         >
           <Text style={{ fontSize: 16, fontWeight: "700", color: "#0F2A5F" }}>
             Danh sách tài khoản
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleClearFinancialData}
+          activeOpacity={0.8}
+          style={{
+            marginTop: 24,
+            height: 48,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: "#FCA5A5",
+            backgroundColor: "#FFF1F2",
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Xóa dữ liệu tài chính"
+        >
+          <Text style={{ fontSize: 16, fontWeight: "700", color: "#B91C1C" }}>
+            Xóa dữ liệu tài chính
           </Text>
         </TouchableOpacity>
 
