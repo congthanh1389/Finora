@@ -226,6 +226,8 @@ export async function updateDeviceCategory(userId: number, categoryId: number, n
   return categoryFromRow(await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId));
 }
 export async function archiveDeviceCategory(userId: number, categoryId: number): Promise<Category> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const current = await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId);
   if (!current) throw new Error("Không tìm thấy danh mục.");
