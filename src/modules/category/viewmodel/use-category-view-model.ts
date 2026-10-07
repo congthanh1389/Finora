@@ -122,6 +122,7 @@ export function useCategoryViewModel() {
       setName(value);
       setError("");
     },
+    setError,
     setSelectedIcon,
     setEditingName: (value: string) => {
       setEditingName(value);
