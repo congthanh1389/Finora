@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { CategoryService } from "../category.service";
 import { CategoryRepository } from "../../repository/category.repository";
+import { CategoryService } from "../category.service";
 
-function makeCategory(overrides: Record<string, unknown> = {}) {
+function makeCategory(overrides = {}) {
   const now = new Date();
   return {
     id: 1,
     userId: 1,
     name: "Nhà Cửa",
-    type: "expense" as const,
+    type: "expense",
     parentId: null,
     icon: "home-outline",
     isArchived: 0,
@@ -20,16 +20,18 @@ function makeCategory(overrides: Record<string, unknown> = {}) {
 
 describe("CategoryService.updateCategory", () => {
   it("updates both category name and icon", async () => {
-    const repository = new CategoryRepository();
     const current = makeCategory();
+    const updated = makeCategory({
+      name: "Gia đình",
+      icon: "account-group-outline",
+    });
 
-    vi.spyOn(repository, "listByUser").mockResolvedValue([current]);
+    vi.spyOn(CategoryRepository.prototype, "listByUser").mockResolvedValue([current]);
     const update = vi
-      .spyOn(repository, "update")
-      .mockResolvedValue(makeCategory({ name: "Gia đình", icon: "account-group-outline" }));
+      .spyOn(CategoryRepository.prototype, "update")
+      .mockResolvedValue(updated);
 
-    const service = new CategoryService(repository);
-
+    const service = new CategoryService();
     const result = await service.updateCategory(
       1,
       1,
