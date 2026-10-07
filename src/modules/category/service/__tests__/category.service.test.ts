@@ -1,10 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
-const repository = {
+const repository: ICategoryRepository = {
   listByUser: vi.fn(),
   update: vi.fn(),
+  create: vi.fn(),
+  archive: vi.fn(),
 };
 
+import type { ICategoryRepository } from "../../../../core/database/repository-contracts";
 import { CategoryService } from "../category.service";
 
 function makeCategory(overrides = {}) {
