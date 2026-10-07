@@ -205,6 +205,9 @@ export class DeviceBudgetRepository {
     const rows = await this.listByPeriod(input.userId, input.periodStart, input.periodEnd);
     const created = rows.find((item) => item.id === result.lastInsertRowId);
     if (!created) throw new Error("Không thể đọc ngân sách vừa tạo.");
+    if (created.userId !== input.userId || created.categoryId !== input.categoryId || created.walletId !== (input.walletId ?? null)) {
+      throw new Error("Dữ liệu ngân sách vừa tạo không khớp.");
+    }
     return created;
   }
 
