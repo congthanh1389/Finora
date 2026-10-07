@@ -480,16 +480,16 @@ function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | 
     throw new Error("Invalid transaction note.");
   }
   if (input.type === "transfer") {
-    if (!Number.isSafeInteger(input.sourceWalletId) || input.sourceWalletId == null || input.sourceWalletId <= 0) {
+    if (input.sourceWalletId == null || !Number.isSafeInteger(input.sourceWalletId) || input.sourceWalletId <= 0) {
       throw new Error("Invalid source wallet id.");
     }
-    if (!Number.isSafeInteger(input.destinationWalletId) || input.destinationWalletId == null || input.destinationWalletId <= 0) {
+    if (input.destinationWalletId == null || !Number.isSafeInteger(input.destinationWalletId) || input.destinationWalletId <= 0) {
       throw new Error("Invalid destination wallet id.");
     }
     if (input.walletId != null || input.categoryId != null) throw new Error("Transfer must use source and destination wallets.");
     if (input.sourceWalletId === input.destinationWalletId) throw new Error("Transfer wallets must be different.");
   } else {
-    if (!Number.isSafeInteger(input.walletId) || input.walletId == null || input.walletId <= 0) {
+    if (input.walletId == null || !Number.isSafeInteger(input.walletId) || input.walletId <= 0) {
       throw new Error("Invalid wallet id.");
     }
     if (input.sourceWalletId != null || input.destinationWalletId != null) throw new Error("Income and expense cannot use transfer wallets.");
