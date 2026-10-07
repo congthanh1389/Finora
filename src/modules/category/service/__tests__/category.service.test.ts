@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import type { ICategoryRepository } from "../../../../core/database/repository-contracts";
 import { CategoryService } from "../category.service";
 
-function makeCategory(overrides: Record<string, unknown> = {}): any {
+function makeCategory(overrides: Record<string, unknown> = {}) {
   const now = new Date();
   return {
     id: 1,
@@ -20,7 +19,7 @@ function makeCategory(overrides: Record<string, unknown> = {}): any {
 
 describe("CategoryService.updateCategory", () => {
   it("updates both category name and icon", async () => {
-    const repository: ICategoryRepository = {
+    const repository = {
       create: vi.fn(),
       listByUser: vi.fn(async () => [makeCategory()]),
       update: vi.fn(async (_userId, _categoryId, name, icon) =>
