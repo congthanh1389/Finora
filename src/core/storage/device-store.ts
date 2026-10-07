@@ -333,7 +333,7 @@ export async function upsertDeviceLocalAccount(account: DeviceLocalAccount): Pro
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   await db.runAsync(`INSERT INTO local_accounts (id, open_id, name, email, login_method, last_signed_in) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET open_id = excluded.open_id, name = excluded.name, email = excluded.email, login_method = excluded.login_method, last_signed_in = excluded.last_signed_in`, account.id, account.openId, account.name, account.email, account.loginMethod, account.lastSignedIn.toISOString());
 }
-export async function deleteDeviceLocalAccount(userId: number): Promise<void> { const db = await getDeviceDatabase(); await migrateDatabase(db); await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId); }
+export async function deleteDeviceLocalAccount(userId: number): Promise<void> { if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id."); const db = await getDeviceDatabase(); await migrateDatabase(db); await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId); }
 export async function listDeviceUserIds(): Promise<number[]> {
   const db = await getDeviceDatabase();
   await migrateDatabase(db);
