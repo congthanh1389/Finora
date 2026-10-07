@@ -291,6 +291,8 @@ export function TransactionHistoryView() {
             ) : periodKey === "custom" && customStart && customEnd ? (
               <Text className="mt-3 text-xs text-[#BE123C]">Khoảng ngày không hợp lệ.</Text>
             ) : null}
+          </View>
+
           {isLoading ? (
             <View className="items-center rounded-3xl border border-[#E2E8F0] bg-white py-12">
               <ActivityIndicator />
