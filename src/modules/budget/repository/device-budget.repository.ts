@@ -189,6 +189,19 @@ export class DeviceBudgetRepository {
   }
 
   async update(userId: number, budgetId: number, input: UpdateBudgetInput): Promise<BudgetSummary> {
+    if (!positiveSafeInteger(userId) || !positiveSafeInteger(budgetId)) {
+      throw new Error("Invalid budget identifier.");
+    }
+    if (input.categoryId != null && !positiveSafeInteger(input.categoryId)) {
+      throw new Error("Invalid budget category reference.");
+    }
+    if (input.walletId != null && !positiveSafeInteger(input.walletId)) {
+      throw new Error("Invalid budget wallet reference.");
+    }
+    if (input.amount != null && (!Number.isSafeInteger(input.amount) || input.amount <= 0)) {
+      throw new Error("Invalid budget amount.");
+    }
+
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     let periodStart: Date;
