@@ -346,6 +346,8 @@ export async function updateDeviceWallet(userId: number, walletId: number, input
   return updated;
 }
 export async function archiveDeviceWallet(userId: number, walletId: number): Promise<Wallet> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db); const current = await getDeviceWallet(userId, walletId); if (!current) throw new Error("Wallet not found.");
   await db.runAsync("UPDATE wallets SET is_archived = 1, updated_at = ? WHERE user_id = ? AND id = ?", new Date().toISOString(), userId, walletId);
   const archived = await getDeviceWalletWithBalance(userId, walletId);
