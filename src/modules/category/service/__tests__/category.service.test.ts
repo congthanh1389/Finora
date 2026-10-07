@@ -8,7 +8,7 @@ function makeCategory(overrides = {}) {
     id: 1,
     userId: 1,
     name: "Nhà Cửa",
-    type: "expense",
+    type: "expense" as const,
     parentId: null,
     icon: "home-outline",
     isArchived: 0,
@@ -32,19 +32,9 @@ describe("CategoryService.updateCategory", () => {
       .mockResolvedValue(updated);
 
     const service = new CategoryService();
-    const result = await service.updateCategory(
-      1,
-      1,
-      "Gia đình",
-      "account-group-outline",
-    );
+    const result = await service.updateCategory(1, 1, "Gia đình", "account-group-outline");
 
-    expect(update).toHaveBeenCalledWith(
-      1,
-      1,
-      "Gia đình",
-      "account-group-outline",
-    );
+    expect(update).toHaveBeenCalledWith(1, 1, "Gia đình", "account-group-outline");
     expect(result.name).toBe("Gia đình");
     expect(result.icon).toBe("account-group-outline");
   });
