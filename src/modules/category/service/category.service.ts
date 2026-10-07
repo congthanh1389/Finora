@@ -1,9 +1,9 @@
-import { CategoryRepository } from "../repository/category.repository";
+import type { ICategoryRepository } from "../../../core/database/repository-contracts";
 
 type CategoryType = "income" | "expense";
 
 export class CategoryService {
-  constructor(private readonly repository = new CategoryRepository()) {}
+  constructor(private readonly repository: ICategoryRepository) {}
 
   async listCategories(userId: number, type?: CategoryType) {
     const categories = await this.repository.listByUser(userId, type);
