@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 
@@ -50,7 +50,7 @@ export default function BudgetScreen() {
           <Text className="mt-4 text-sm font-bold text-[#334155]">Danh mục chi tiêu</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
             {categories.map((item) => (
-              <Pressable key={item.id} onPress={() => { setSelectedCategoryId(item.id); setError(""); }} className="mr-2 rounded-2xl px-4 py-3" style={{ backgroundColor: selectedCategoryId === item.id ? "#22B8A8" : "#F1F5F9" }}>
+              <Pressable key={item.id} onPress={() => { setSelectedCategoryId(item.id); }} className="mr-2 rounded-2xl px-4 py-3" style={{ backgroundColor: selectedCategoryId === item.id ? "#22B8A8" : "#F1F5F9" }}>
                 <Text className={selectedCategoryId === item.id ? "font-bold text-white" : "font-semibold text-[#475569]"}>{item.name}</Text>
               </Pressable>
             ))}
@@ -69,7 +69,7 @@ export default function BudgetScreen() {
           </ScrollView>
 
           <Text className="mt-4 text-sm font-bold text-[#334155]">Hạn mức tháng</Text>
-          <TextInput value={amountText} onChangeText={(value) => { setAmountText(value.replace(/[^0-9]/g, "")); setError(""); }} keyboardType="numeric" placeholder="Ví dụ: 5.000.000" placeholderTextColor="#94A3B8" className="mt-3 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3 text-base text-[#0F172A]" />
+          <TextInput value={amountText} onChangeText={(value) => { setAmountText(value); }} keyboardType="numeric" placeholder="Ví dụ: 5.000.000" placeholderTextColor="#94A3B8" className="mt-3 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3 text-base text-[#0F172A]" />
           {error ? <Text className="mt-2 text-sm text-[#DC2626]">{error}</Text> : null}
           <View className="mt-3 flex-row gap-2">
             {editingId ? <Pressable onPress={resetForm} className="flex-1 rounded-2xl bg-[#E2E8F0] py-3"><Text className="text-center font-bold text-[#475569]">Hủy</Text></Pressable> : null}
