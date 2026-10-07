@@ -8,6 +8,7 @@ const repository = {
   create: vi.fn(),
   archive: vi.fn(),
   restore: vi.fn(),
+  delete: vi.fn(),
 } satisfies Record<keyof ICategoryRepository, ReturnType<typeof vi.fn>>;
 
 function makeCategory(overrides = {}) {
@@ -53,5 +54,24 @@ describe("CategoryService.updateCategory", () => {
     );
     expect(result.name).toBe("Gia đình");
     expect(result.icon).toBe("account-group-outline");
+  });
+});
+
+
+describe("CategoryService.deleteCategoryPermanently", () => {
+  it("validates identifiers and delegates permanent deletion", async () => {
+    repository.delete.mockResolvedValue(undefined);
+
+    const service = new CategoryService(repository as unknown as ICategoryRepository);
+    await service.deleteCategoryPermanently(1, 7);
+
+    expect(repository.delete).toHaveBeenCalledWith(1, 7);
+  });
+
+  it("rejects invalid identifiers", async () => {
+    const service = new CategoryService(repository as unknown as ICategoryRepository);
+
+    await expect(service.deleteCategoryPermanently(0, 7)).rejects.toThrow("Invalid user id");
+    await expect(service.deleteCategoryPermanently(1, 0)).rejects.toThrow("Invalid category id");
   });
 });
