@@ -172,17 +172,24 @@ export async function localGetAccount(email?: string): Promise<LocalAccount | nu
   }
 
   const token = await getSessionToken();
-  if (token?.startsWith("local-session-")) {
-    const id = Number(token.replace("local-session-", ""));
-    return accounts.find((account) => account.id === id) ?? null;
-  }
+  if (!token?.startsWith("local-session-")) return null;
 
-  const userInfo = await getUserInfo();
-  if (userInfo) {
-    return accounts.find((account) => account.id === userInfo.id) ?? null;
-  }
+  const clearInvalidSession = async (): Promise<null> => {
+    await removeSessionToken();
+    await clearUserInfo();
+    return null;
+  };
 
-  return accounts[0] ?? null;
+  const idText = token.slice("local-session-".length);
+  if (!/^\\d+$/.test(idText)) return clearInvalidSession();
+
+  const id = Number(idText);
+  if (!Number.isSafeInteger(id) || id <= 0) return clearInvalidSession();
+
+  const account = accounts.find((item) => item.id === id);
+  if (!account) return clearInvalidSession();
+
+  return account;
 }
 
 export async function localRegister(input: {
