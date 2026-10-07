@@ -1,13 +1,9 @@
-import { DeviceDashboardRepository } from "../repository/device-dashboard.repository";
-
-type DashboardRepository = Pick<DeviceDashboardRepository, "getDashboardData">;
+export interface DashboardRepository {
+  getDashboardData(userId: number): Promise<unknown>;
+}
 
 export class DashboardService {
-  private readonly repository: DashboardRepository;
-
-  constructor(repository?: DashboardRepository) {
-    this.repository = repository ?? new DeviceDashboardRepository();
-  }
+  constructor(private readonly repository: DashboardRepository) {}
 
   async load(userId: number) {
     if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
