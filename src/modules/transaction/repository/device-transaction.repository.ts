@@ -52,26 +52,32 @@ export class DeviceTransactionRepository {
     offset: number,
     type: "all" | TransactionType = "all",
     limit = HISTORY_PAGE_SIZE,
+    start?: Date,
+    end?: Date,
   ): Promise<{ transactions: Transaction[]; hasMore: boolean }> {
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
+    const periodClause = start && end ? " AND occurred_at >= ? AND occurred_at < ?" : "";
+    const periodParams = start && end ? [start.toISOString(), end.toISOString()] : [];
     const rows = type === "all"
       ? await db.getAllAsync(
           `SELECT * FROM transactions
-           WHERE user_id = ?
+           WHERE user_id = ?${periodClause}
            ORDER BY occurred_at DESC, id DESC
            LIMIT ? OFFSET ?`,
           userId,
+          ...periodParams,
           limit + 1,
           offset,
         )
       : await db.getAllAsync(
           `SELECT * FROM transactions
-           WHERE user_id = ? AND type = ?
+           WHERE user_id = ? AND type = ?${periodClause}
            ORDER BY occurred_at DESC, id DESC
            LIMIT ? OFFSET ?`,
           userId,
           type,
+          ...periodParams,
           limit + 1,
           offset,
         );
