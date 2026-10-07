@@ -266,20 +266,19 @@ export function TransactionHistoryView() {
             ) : null}
             {summary ? (
               <View className="mt-4 rounded-2xl bg-[#F8FAFC] p-4">
-                <View className="flex-row items-baseline">
-                  <Text className="text-xs font-semibold text-[#64748B]">
-                    {typeFilter === "all"
-                      ? "Tổng tất cả:"
-                      : typeFilter === "income"
-                        ? "Tổng thu:"
-                        : typeFilter === "expense"
-                          ? "Tổng chi:"
-                          : "Tổng chuyển tiền:"}
-                  </Text>
-                  <Text className="ml-1 text-xl font-extrabold text-[#22B8A8]">
+                <Text className="text-xs font-semibold text-[#64748B]">
+                  {typeFilter === "all"
+                    ? "Tổng tất cả"
+                    : typeFilter === "income"
+                      ? "Tổng thu"
+                      : typeFilter === "expense"
+                        ? "Tổng chi"
+                        : "Tổng chuyển tiền"}
+                  {": "}
+                  <Text className="text-xl font-extrabold text-[#22B8A8]">
                     {formatVnd(summary.totals.totalAmount)}
                   </Text>
-                </View>
+                </Text>
                 <Text className="mt-1 text-xs text-[#64748B]">
                   {summary.totals.transactionCount} giao dịch
                 </Text>
