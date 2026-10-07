@@ -470,6 +470,9 @@ function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | 
   if (typeof input.currency !== "string" || !/^[A-Z]{3}$/.test(input.currency)) {
     throw new Error("Invalid transaction currency.");
   }
+  if (!(input.occurredAt instanceof Date) || Number.isNaN(input.occurredAt.getTime())) {
+    throw new Error("Transaction date is invalid.");
+  }
   if (input.categoryId != null && (!Number.isSafeInteger(input.categoryId) || input.categoryId <= 0)) {
     throw new Error("Invalid category id.");
   }
@@ -496,7 +499,6 @@ export async function createDeviceTransaction(input: Omit<Transaction, "id" | "c
   const db = await getDeviceDatabase(); await migrateDatabase(db); validateTransactionInput(input);
   const now = new Date();
   const occurredAt = input.occurredAt ?? now;
-  if (!(occurredAt instanceof Date) || Number.isNaN(occurredAt.getTime())) throw new Error("Transaction date is invalid.");
   let transaction: Transaction;
   await db.withTransactionAsync(async () => {
     if (input.categoryId != null) {
