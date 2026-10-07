@@ -121,7 +121,11 @@ export function useTransactionHistoryViewModel() {
   }, [dependencies, period, typeFilter]);
 
   useEffect(() => {
-    void load();
+    const timer = setTimeout(() => {
+      void load();
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [load]);
 
   const loadMore = useCallback(async () => {
