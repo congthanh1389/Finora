@@ -322,6 +322,7 @@ export async function getDeviceWalletWithBalance(userId: number, walletId: numbe
 export async function createDeviceWallet(input: Omit<Wallet, "id" | "createdAt" | "updatedAt">): Promise<Wallet> {
   if (!Number.isSafeInteger(input.userId) || input.userId <= 0) throw new Error("Invalid user id.");
   if (typeof input.name !== "string" || !input.name.trim()) throw new Error("Wallet name cannot be empty.");
+  if (!["cash", "bank", "ewallet", "credit_card", "savings", "investment", "other_asset", "receivable", "payable"].includes(input.type)) throw new Error("Invalid wallet type.");
   const db = await getDeviceDatabase(); await migrateDatabase(db); const now = new Date();
   const result = await db.runAsync(`INSERT INTO wallets (user_id, name, type, currency, opening_balance, allow_negative, is_archived, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, input.userId, input.name, input.type, input.currency, input.openingBalance, input.allowNegative, input.isArchived, now.toISOString(), now.toISOString());
   return { ...input, id: result.lastInsertRowId, createdAt: now, updatedAt: now };
