@@ -35,6 +35,7 @@ export interface ICategoryRepository {
   listByUser(userId: number, type?: Category["type"]): Promise<Category[]>;
   update(userId: number, categoryId: number, name: string, icon?: string): Promise<Category>;
   archive(userId: number, categoryId: number): Promise<Category>;
+  restore(userId: number, categoryId: number): Promise<Category>;
 }
 
 export interface ITransactionRepository {
