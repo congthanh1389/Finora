@@ -1,5 +1,4 @@
 import { getDeviceDatabase, initializeDeviceStorage } from "../../../core/storage/device-store";
-import type { TransactionType } from "../types/transaction.types";
 import type {
   TransactionSummaryFilter,
   TransactionSummaryResult,
@@ -27,7 +26,7 @@ export class DeviceTransactionSummaryRepository {
     const db = await getDeviceDatabase();
 
     const typeClause = filter === "all" ? "" : " AND type = ?";
-    const params: Array<string | number> = [userId, start.toISOString(), end.toISOString()];
+    const params: (string | number)[] = [userId, start.toISOString(), end.toISOString()];
     if (filter !== "all") params.push(filter);
 
     const row = await db.getFirstAsync<SummaryRow>(
