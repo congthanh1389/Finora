@@ -11,6 +11,12 @@ export class CategoryService {
     return categories.filter((item) => item.isArchived === 0);
   }
 
+  async listArchivedCategories(userId: number, type?: CategoryType) {
+    if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    const categories = await this.repository.listByUser(userId, type);
+    return categories.filter((item) => item.isArchived === 1);
+  }
+
   async createCategory(userId: number, name: string, type: CategoryType, icon?: string) {
     const trimmed = name.trim();
     if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id");
@@ -53,5 +59,11 @@ export class CategoryService {
     if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id");
     if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id");
     return this.repository.archive(userId, categoryId);
+  }
+
+  async restoreCategory(userId: number, categoryId: number) {
+    if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id");
+    return this.repository.restore(userId, categoryId);
   }
 }
