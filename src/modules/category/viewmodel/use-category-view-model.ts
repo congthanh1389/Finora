@@ -9,6 +9,8 @@ export function useCategoryViewModel() {
   const { categoryService } = useMemo(() => createCategoryDependencies(), []);
   const [type, setType] = useState<Category["type"]>("expense");
   const [categories, setCategories] = useState<Category[]>([]);
+  const [archivedCategories, setArchivedCategories] = useState<Category[]>([]);
+  const [showArchived, setShowArchived] = useState(false);
   const [name, setName] = useState("");
   const [selectedIcon, setSelectedIcon] = useState("food-noodles");
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -23,9 +25,15 @@ export function useCategoryViewModel() {
         setCategories([]);
         return;
       }
-      setCategories(await categoryService.listCategories(user.id, type));
+      const [active, archived] = await Promise.all([
+        categoryService.listCategories(user.id, type),
+        categoryService.listArchivedCategories(user.id, type),
+      ]);
+      setCategories(active);
+      setArchivedCategories(archived);
     } catch (err) {
       setCategories([]);
+      setArchivedCategories([]);
       setError(err instanceof Error ? err.message : "Không thể tải danh mục.");
     }
   }, [categoryService, type]);
@@ -38,6 +46,7 @@ export function useCategoryViewModel() {
 
   function resetForm(nextType: Category["type"]) {
     setType(nextType);
+    setShowArchived(false);
     setName("");
     setSelectedIcon(nextType === "expense" ? "food" : "briefcase-outline");
     setEditingId(null);
@@ -101,7 +110,9 @@ export function useCategoryViewModel() {
       const user = await Auth.getUserInfo();
       if (!user) throw new Error("Không tìm thấy người dùng hiện tại.");
       await categoryService.archiveCategory(user.id, categoryId);
+      const archived = categories.find((item) => item.id === categoryId);
       setCategories((current) => current.filter((item) => item.id !== categoryId));
+      if (archived) setArchivedCategories((current) => [...current, { ...archived, isArchived: 1 }]);
       if (editingId === categoryId) cancelEdit();
       setError("");
     } catch (err) {
@@ -109,9 +120,27 @@ export function useCategoryViewModel() {
     }
   }
 
+  async function restoreCategory(categoryId: number) {
+    try {
+      const user = await Auth.getUserInfo();
+      if (!user) throw new Error("Không tìm thấy người dùng hiện tại.");
+      const restored = await categoryService.restoreCategory(user.id, categoryId);
+      setArchivedCategories((current) => current.filter((item) => item.id !== categoryId));
+      setCategories((current) =>
+        [...current, restored].sort((a, b) => a.name.localeCompare(b.name, "vi")),
+      );
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không thể khôi phục danh mục.");
+    }
+  }
+
   return {
     type,
     categories,
+    archivedCategories,
+    showArchived,
+    setShowArchived,
     name,
     selectedIcon,
     editingId,
