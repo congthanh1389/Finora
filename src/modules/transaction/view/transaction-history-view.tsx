@@ -8,7 +8,6 @@ import { resolveCategoryIconName } from "../../category/utils/category-icon-reso
 import { ScreenContainer } from "@/components/screen-container";
 import type { WalletType } from "../../wallet/types/wallet.types";
 import { useTransactionHistoryViewModel } from "../viewmodel/use-transaction-history-view-model";
-import type { Transaction } from "../../../../drizzle/schema";
 
 function formatVnd(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value) + " ₫";
