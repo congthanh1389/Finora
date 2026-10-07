@@ -10,6 +10,20 @@ export type User = {
 };
 
 export type LocalAccount = User & { password: string };
+function isValidLocalAccount(value: unknown): value is LocalAccount {
+  if (!value || typeof value !== "object") return false;
+  const account = value as Partial<LocalAccount>;
+  return (
+    Number.isSafeInteger(account.id) &&
+    (account.id as number) > 0 &&
+    typeof account.openId === "string" &&
+    (account.name === null || typeof account.name === "string") &&
+    (account.email === null || typeof account.email === "string") &&
+    (account.loginMethod === null || typeof account.loginMethod === "string") &&
+    typeof account.password === "string" &&
+    !Number.isNaN(new Date(account.lastSignedIn as string | number | Date).getTime())
+  );
+}
 
 const SESSION_TOKEN_KEY = "app_session_token";
 const USER_INFO_KEY = "manus-runtime-user-info";
@@ -50,7 +64,7 @@ async function readSecureAccounts(): Promise<LocalAccount[]> {
     const stored = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_KEY);
     if (stored) {
       const accounts = JSON.parse(stored) as LocalAccount[];
-      if (Array.isArray(accounts)) return accounts;
+      if (Array.isArray(accounts)) return accounts.filter(isValidLocalAccount);
     }
 
     const single = await SecureStore.getItemAsync(LOCAL_ACCOUNT_KEY);

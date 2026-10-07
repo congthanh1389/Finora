@@ -129,13 +129,27 @@ const LOCAL_ACCOUNT_KEY = "finora.local.account.v2";
 const LOCAL_ACCOUNTS_KEY = "finora.local.accounts.v3";
 
 export type LocalAccount = User & { password: string };
+function isValidLocalAccount(value: unknown): value is LocalAccount {
+  if (!value || typeof value !== "object") return false;
+  const account = value as Partial<LocalAccount>;
+  return (
+    Number.isSafeInteger(account.id) &&
+    (account.id as number) > 0 &&
+    typeof account.openId === "string" &&
+    (account.name === null || typeof account.name === "string") &&
+    (account.email === null || typeof account.email === "string") &&
+    (account.loginMethod === null || typeof account.loginMethod === "string") &&
+    typeof account.password === "string" &&
+    !Number.isNaN(new Date(account.lastSignedIn as string | number | Date).getTime())
+  );
+}
 
 async function readAccounts(): Promise<LocalAccount[]> {
   try {
     const raw = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed as LocalAccount[];
+      if (Array.isArray(parsed)) return parsed.filter(isValidLocalAccount);
     }
     const legacyRaw = await SecureStore.getItemAsync(LOCAL_ACCOUNT_KEY);
     if (!legacyRaw) return [];
