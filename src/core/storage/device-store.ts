@@ -193,10 +193,33 @@ export async function archiveDeviceCategory(userId: number, categoryId: number):
   await db.runAsync("UPDATE categories SET is_archived = 1, updated_at = ? WHERE user_id = ? AND id = ?", new Date().toISOString(), userId, categoryId);
   return categoryFromRow(await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId));
 }
-export async function deleteDeviceUserData(userId: number): Promise<void> {
-  const db = await getDeviceDatabase(); await migrateDatabase(db);
-  await db.withTransactionAsync(async () => { await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId); await db.runAsync("DELETE FROM budgets WHERE user_id = ?", userId); await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId); await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId); await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId); });
+export async function clearDeviceFinancialData(userId: number): Promise<void> {
+  const db = await getDeviceDatabase();
+  await migrateDatabase(db);
+  await db.withTransactionAsync(async () => {
+    await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId);
+    await db.runAsync("DELETE FROM budgets WHERE user_id = ?", userId);
+    await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId);
+    await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId);
+  });
   await db.execAsync("VACUUM");
+}
+
+export async function deleteDeviceUserData(userId: number): Promise<void> {
+  const db = await getDeviceDatabase();
+  await migrateDatabase(db);
+  await db.withTransactionAsync(async () => {
+    await clearDeviceFinancialDataInTransaction(db, userId);
+    await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId);
+  });
+  await db.execAsync("VACUUM");
+}
+
+async function clearDeviceFinancialDataInTransaction(db: SQLiteDatabase, userId: number): Promise<void> {
+  await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId);
+  await db.runAsync("DELETE FROM budgets WHERE user_id = ?", userId);
+  await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId);
+  await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId);
 }
 export type DeviceLocalAccount = { id: number; openId: string; name: string | null; email: string; loginMethod: string | null; lastSignedIn: Date };
 export async function listDeviceLocalAccounts(): Promise<DeviceLocalAccount[]> {
