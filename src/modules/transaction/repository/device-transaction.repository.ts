@@ -33,7 +33,13 @@ export class DeviceTransactionRepository {
   }
 
   async listRecent(userId: number, limit = 20) {
-    const safeLimit = Number.isSafeInteger(limit) && limit > 0 ? limit : 20;
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
+      throw new Error("Invalid user ID.");
+    }
+    if (!Number.isSafeInteger(limit) || limit <= 0) {
+      throw new Error("Invalid transaction limit.");
+    }
+    const safeLimit = limit;
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const rows = await db.getAllAsync(
