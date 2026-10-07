@@ -2,7 +2,7 @@ import {
   EXPENSE_CATEGORY_ICONS,
   INCOME_CATEGORY_ICONS,
   type CategoryIconName,
-} from "../../../../components/ui/category-icons";
+} from "../../../../components/ui/category-icon-data";
 
 const CATEGORY_ICON_NAMES = new Set<string>([
   ...EXPENSE_CATEGORY_ICONS.map((item) => item.name),
