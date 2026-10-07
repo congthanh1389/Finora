@@ -132,6 +132,22 @@ export class DeviceBudgetRepository {
   }
 
   async create(input: CreateBudgetInput): Promise<BudgetSummary> {
+    if (!positiveSafeInteger(input.userId) || !positiveSafeInteger(input.categoryId)) {
+      throw new Error("Invalid budget identifier.");
+    }
+    if (input.walletId != null && !positiveSafeInteger(input.walletId)) {
+      throw new Error("Invalid budget wallet reference.");
+    }
+    if (!Number.isSafeInteger(input.amount) || input.amount <= 0) {
+      throw new Error("Invalid budget amount.");
+    }
+    if (input.currency != null && !/^[A-Z]{3}$/.test(input.currency)) {
+      throw new Error("Invalid budget currency.");
+    }
+    if (!validDate(input.periodStart) || !validDate(input.periodEnd) || input.periodStart >= input.periodEnd) {
+      throw new Error("Invalid budget period.");
+    }
+
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const now = new Date().toISOString();
