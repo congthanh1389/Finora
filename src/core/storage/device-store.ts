@@ -596,6 +596,8 @@ function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | 
     if (input.sourceWalletId == null || !Number.isSafeInteger(input.sourceWalletId) || input.sourceWalletId <= 0) {
       throw new Error("Invalid source wallet id.");
     }
+    if (input.currency !== input.currency.trim()) throw new Error("Invalid transaction currency.");
+    if (input.currency !== input.currency.toUpperCase()) throw new Error("Invalid transaction currency.");
     if (input.destinationWalletId == null || !Number.isSafeInteger(input.destinationWalletId) || input.destinationWalletId <= 0) {
       throw new Error("Invalid destination wallet id.");
     }
