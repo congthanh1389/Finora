@@ -64,11 +64,24 @@ export class DeviceBudgetRepository {
       if (Number(wallet.is_archived) === 1) throw new Error("Không thể lập ngân sách cho ví đã lưu trữ.");
       if (String(wallet.currency) !== String(input.currency ?? "VND")) throw new Error("Tiền tệ ngân sách không khớp với ví.");
     }
-    const result = await db.runAsync(
-      "INSERT INTO budgets (user_id, category_id, wallet_id, amount, currency, period_start, period_end, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      input.userId, input.categoryId, input.walletId ?? null, input.amount, input.currency ?? "VND",
-      input.periodStart.toISOString(), input.periodEnd.toISOString(), now, now,
-    );
+    let result: { lastInsertRowId: number };
+    await db.withTransactionAsync(async () => {
+      const duplicate = await db.getFirstAsync<{ id: number }>(
+        "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? AND period_start = ? AND period_end = ? AND (wallet_id = ? OR (wallet_id IS NULL AND ? IS NULL)) LIMIT 1",
+        input.userId,
+        input.categoryId,
+        input.periodStart.toISOString(),
+        input.periodEnd.toISOString(),
+        input.walletId ?? null,
+        input.walletId ?? null,
+      );
+      if (duplicate) throw new Error("Ngân sách cho danh mục và ví này đã tồn tại.");
+      result = await db.runAsync(
+        "INSERT INTO budgets (user_id, category_id, wallet_id, amount, currency, period_start, period_end, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        input.userId, input.categoryId, input.walletId ?? null, input.amount, input.currency ?? "VND",
+        input.periodStart.toISOString(), input.periodEnd.toISOString(), now, now,
+      );
+    });
     const rows = await this.listByPeriod(input.userId, input.periodStart, input.periodEnd);
     const created = rows.find((item) => item.id === result.lastInsertRowId);
     if (!created) throw new Error("Không thể đọc ngân sách vừa tạo.");
@@ -100,6 +113,17 @@ export class DeviceBudgetRepository {
       if (Number(wallet.is_archived) === 1) throw new Error("Không thể dùng ví đã lưu trữ.");
       if (String(wallet.currency) !== String(current.currency)) throw new Error("Tiền tệ ngân sách không khớp với ví.");
     }
+    const duplicate = await db.getFirstAsync<{ id: number }>(
+      "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? AND period_start = ? AND period_end = ? AND (wallet_id = ? OR (wallet_id IS NULL AND ? IS NULL)) AND id <> ? LIMIT 1",
+      userId,
+      nextCategoryId,
+      current.period_start,
+      current.period_end,
+      nextWalletId,
+      nextWalletId,
+      budgetId,
+    );
+    if (duplicate) throw new Error("Ngân sách cho danh mục và ví này đã tồn tại.");
     await db.runAsync(
       "UPDATE budgets SET category_id = ?, wallet_id = ?, amount = ?, updated_at = ? WHERE user_id = ? AND id = ?",
       nextCategoryId,
