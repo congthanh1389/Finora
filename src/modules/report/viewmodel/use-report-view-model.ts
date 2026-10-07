@@ -8,7 +8,9 @@ import {
 } from "../service/report.service";
 import type { ReportData } from "../repository/device-report.repository";
 
-export function useReportViewModel(service = new ReportService()) {
+const defaultReportService = new ReportService();
+
+export function useReportViewModel(service = defaultReportService) {
   const [data, setData] = useState<ReportData | null>(null);
   const [period, setPeriod] = useState<ReportPeriod>("current");
   const [loading, setLoading] = useState(true);
