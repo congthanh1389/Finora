@@ -307,6 +307,48 @@ export async function restoreDeviceCategory(userId: number, categoryId: number):
   return categoryFromRow(await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId));
 }
 
+export async function deleteDeviceCategory(userId: number, categoryId: number): Promise<void> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id.");
+
+  const db = await getDeviceDatabase();
+  await migrateDatabase(db);
+  const current = await db.getFirstAsync<{ id: number; is_archived: number }>(
+    "SELECT id, is_archived FROM categories WHERE user_id = ? AND id = ?",
+    userId,
+    categoryId,
+  );
+  if (!current) throw new Error("Không tìm thấy danh mục.");
+  if (Number(current.is_archived) !== 1) throw new Error("Chỉ có thể xóa hẳn danh mục đã lưu trữ.");
+
+  const transactionReference = await db.getFirstAsync<{ id: number }>(
+    "SELECT id FROM transactions WHERE user_id = ? AND category_id = ? LIMIT 1",
+    userId,
+    categoryId,
+  );
+  if (transactionReference) throw new Error("Không thể xóa hẳn danh mục đã có giao dịch.");
+  const budgetReference = await db.getFirstAsync<{ id: number }>(
+    "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? LIMIT 1",
+    userId,
+    categoryId,
+  );
+  if (budgetReference) throw new Error("Không thể xóa hẳn danh mục đang được dùng trong ngân sách.");
+
+  const childReference = await db.getFirstAsync<{ id: number }>(
+    "SELECT id FROM categories WHERE user_id = ? AND parent_id = ? LIMIT 1",
+    userId,
+    categoryId,
+  );
+  if (childReference) throw new Error("Không thể xóa hẳn danh mục đang có danh mục con.");
+
+  const result = await db.runAsync(
+    "DELETE FROM categories WHERE user_id = ? AND id = ? AND is_archived = 1",
+    userId,
+    categoryId,
+  );
+  if (result.changes !== 1) throw new Error("Không thể xóa hẳn danh mục.");
+}
+
 export async function clearDeviceFinancialData(userId: number): Promise<void> {
   if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   const db = await getDeviceDatabase();
