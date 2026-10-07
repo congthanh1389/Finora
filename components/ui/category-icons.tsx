@@ -1,13 +1,13 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import type { ComponentProps } from "react";
 
-type MdiName = ComponentProps<typeof MaterialCommunityIcons>["name"];
-
 import {
   EXPENSE_CATEGORY_ICONS,
   INCOME_CATEGORY_ICONS,
 } from "./category-icon-data";
 import type { CategoryIconName } from "./category-icon-data";
+
+type MdiName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 export { EXPENSE_CATEGORY_ICONS, INCOME_CATEGORY_ICONS };
 export type { CategoryIconName };
@@ -33,8 +33,6 @@ const CATEGORY_COLORS = [
   "#0F766E",
   "#64748B",
 ] as const;
-
-
 
 export function CategoryIcon({
   name,
