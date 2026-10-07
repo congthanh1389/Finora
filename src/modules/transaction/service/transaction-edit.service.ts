@@ -1,14 +1,17 @@
 import type { Transaction } from "../../../../drizzle/schema";
-import {
-  deleteDeviceTransaction,
-  getDeviceTransaction,
-  updateDeviceTransaction,
-  type UpdateTransactionInput,
-} from "../repository/device-transaction-edit.repository";
+import type { UpdateTransactionInput } from "../repository/device-transaction-edit.repository";
+
+export type TransactionEditRepository = {
+  getById(userId: number, transactionId: number): Promise<Transaction | undefined>;
+  update(input: UpdateTransactionInput): Promise<Transaction>;
+  delete(userId: number, transactionId: number): Promise<Transaction>;
+};
 
 export class TransactionEditService {
-  async getTransaction(userId: number, transactionId: number) {
-    return getDeviceTransaction(userId, transactionId);
+  constructor(private readonly repository: TransactionEditRepository) {}
+
+  getTransaction(userId: number, transactionId: number) {
+    return this.repository.getById(userId, transactionId);
   }
 
   async updateTransaction(input: UpdateTransactionInput): Promise<Transaction> {
@@ -18,7 +21,7 @@ export class TransactionEditService {
     if (!Number.isInteger(input.walletId) || input.walletId <= 0) throw new Error("Vui lòng chọn ví.");
     if (!Number.isInteger(input.categoryId) || input.categoryId <= 0) throw new Error("Vui lòng chọn danh mục.");
 
-    return updateDeviceTransaction({
+    return this.repository.update({
       ...input,
       note: input.note?.trim() || null,
     });
@@ -28,6 +31,6 @@ export class TransactionEditService {
     if (!Number.isInteger(userId) || userId <= 0) throw new Error("Người dùng không hợp lệ.");
     if (!Number.isInteger(transactionId) || transactionId <= 0) throw new Error("Giao dịch không hợp lệ.");
 
-    return deleteDeviceTransaction(userId, transactionId);
+    return this.repository.delete(userId, transactionId);
   }
 }
