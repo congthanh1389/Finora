@@ -33,6 +33,7 @@ export default function CategoryScreen() {
     saveEdit,
     deleteCategory,
     restoreCategory,
+    deleteCategoryPermanently,
   } = useCategoryViewModel();
 
   const iconOptions = useMemo(
@@ -45,6 +46,21 @@ export default function CategoryScreen() {
       { text: "Hủy", style: "cancel" },
       { text: "Lưu trữ", style: "destructive", onPress: () => void deleteCategory(category.id) },
     ]);
+  }
+
+  function confirmPermanentDelete(category: Category) {
+    Alert.alert(
+      "Xóa hẳn danh mục",
+      `Danh mục “${category.name}” sẽ bị xóa vĩnh viễn và không thể khôi phục. Bạn có chắc không?`,
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Xóa hẳn",
+          style: "destructive",
+          onPress: () => void deleteCategoryPermanently(category.id),
+        },
+      ],
+    );
   }
 
   return (
@@ -137,6 +153,7 @@ export default function CategoryScreen() {
               <View className="mt-2 flex-row justify-end gap-2">
                 {showArchived ? (
                   <Pressable onPress={() => void restoreCategory(item.id)} className="rounded-xl bg-[#DCFCE7] px-3 py-2"><Text className="text-sm font-bold text-[#15803D]">Khôi phục</Text></Pressable>
+                  <Pressable onPress={() => confirmPermanentDelete(item)} className="rounded-xl bg-[#FEE2E2] px-3 py-2"><Text className="text-sm font-bold text-[#DC2626]">Xóa hẳn</Text></Pressable>
                 ) : editingId === item.id ? <>
                   <Pressable onPress={cancelEdit} className="rounded-xl bg-[#E2E8F0] px-3 py-2"><Text className="text-sm font-bold text-[#475569]">Hủy</Text></Pressable>
                   <Pressable onPress={() => void saveEdit(item.id)} className="rounded-xl bg-[#22B8A8] px-3 py-2"><Text className="text-sm font-bold text-white">Lưu</Text></Pressable>
