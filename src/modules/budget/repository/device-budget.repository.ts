@@ -1,20 +1,63 @@
 import { getDeviceDatabase, initializeDeviceStorage } from "../../../core/storage/device-store";
 import type { CreateBudgetInput, BudgetSummary, UpdateBudgetInput } from "../types/budget.types";
 
+function positiveSafeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+}
+
+function validDate(value: unknown): value is Date {
+  return value instanceof Date && !Number.isNaN(value.getTime());
+}
+
 function budgetFromRow(row: any): BudgetSummary {
+  const id = Number(row.id);
+  const userId = Number(row.user_id);
+  const categoryId = Number(row.category_id);
+  const walletId = row.wallet_id == null ? null : Number(row.wallet_id);
   const amount = Number(row.amount);
   const spent = Number(row.spent ?? 0);
+  const currency = String(row.currency);
+  const periodStart = new Date(row.period_start);
+  const periodEnd = new Date(row.period_end);
+  const createdAt = new Date(row.created_at);
+  const updatedAt = new Date(row.updated_at);
+
+  if (!positiveSafeInteger(id) || !positiveSafeInteger(userId) || !positiveSafeInteger(categoryId)) {
+    throw new Error("Invalid persisted budget identifier.");
+  }
+  if (walletId !== null && !positiveSafeInteger(walletId)) {
+    throw new Error("Invalid persisted budget wallet reference.");
+  }
+  if (!Number.isSafeInteger(amount) || amount <= 0 || !Number.isSafeInteger(spent) || spent < 0) {
+    throw new Error("Invalid persisted budget amount.");
+  }
+  if (!/^[A-Z]{3}$/.test(currency)) {
+    throw new Error("Invalid persisted budget currency.");
+  }
+  if (!validDate(periodStart) || !validDate(periodEnd) || periodStart >= periodEnd) {
+    throw new Error("Invalid persisted budget period.");
+  }
+  if (!validDate(createdAt) || !validDate(updatedAt)) {
+    throw new Error("Invalid persisted budget timestamp.");
+  }
+  if (row.category_name != null && typeof row.category_name !== "string") {
+    throw new Error("Invalid persisted budget category name.");
+  }
+  if (row.wallet_name != null && typeof row.wallet_name !== "string") {
+    throw new Error("Invalid persisted budget wallet name.");
+  }
+
   return {
-    id: Number(row.id),
-    userId: Number(row.user_id),
-    categoryId: Number(row.category_id),
-    walletId: row.wallet_id == null ? null : Number(row.wallet_id),
+    id,
+    userId,
+    categoryId,
+    walletId,
     amount,
-    currency: String(row.currency),
-    periodStart: new Date(row.period_start),
-    periodEnd: new Date(row.period_end),
-    createdAt: new Date(row.created_at),
-    updatedAt: new Date(row.updated_at),
+    currency,
+    periodStart,
+    periodEnd,
+    createdAt,
+    updatedAt,
     categoryName: row.category_name == null ? null : String(row.category_name),
     walletName: row.wallet_name == null ? null : String(row.wallet_name),
     spent,
