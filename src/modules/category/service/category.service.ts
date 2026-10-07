@@ -1,15 +1,16 @@
 import { CategoryRepository } from "../repository/category.repository";
-import type { Category } from "../../../../drizzle/schema";
+
+type CategoryType = "income" | "expense";
 
 export class CategoryService {
   constructor(private readonly repository = new CategoryRepository()) {}
 
-  async listCategories(userId: number, type?: Category["type"]) {
+  async listCategories(userId: number, type?: CategoryType) {
     const categories = await this.repository.listByUser(userId, type);
     return categories.filter((item) => item.isArchived === 0);
   }
 
-  async createCategory(userId: number, name: string, type: Category["type"], icon?: string) {
+  async createCategory(userId: number, name: string, type: CategoryType, icon?: string) {
     const trimmed = name.trim();
     if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
     if (!trimmed) throw new Error("Tên danh mục không được để trống.");
