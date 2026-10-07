@@ -102,6 +102,13 @@ function validatePersistedBudgetMutationRow(row: {
 
 export class DeviceBudgetRepository {
   async listByPeriod(userId: number, periodStart: Date, periodEnd: Date): Promise<BudgetSummary[]> {
+    if (!positiveSafeInteger(userId)) {
+      throw new Error("Invalid user ID.");
+    }
+    if (!validDate(periodStart) || !validDate(periodEnd) || periodStart >= periodEnd) {
+      throw new Error("Invalid budget period.");
+    }
+
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const rows = await db.getAllAsync(
