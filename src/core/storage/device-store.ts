@@ -194,13 +194,11 @@ export async function archiveDeviceCategory(userId: number, categoryId: number):
   return categoryFromRow(await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId));
 }
 export async function clearDeviceFinancialData(userId: number): Promise<void> {
+  if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   const db = await getDeviceDatabase();
   await migrateDatabase(db);
   await db.withTransactionAsync(async () => {
-    await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId);
-    await db.runAsync("DELETE FROM budgets WHERE user_id = ?", userId);
-    await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId);
-    await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId);
+    await clearDeviceFinancialDataInTransaction(db, userId);
   });
   await db.execAsync("VACUUM");
 }
