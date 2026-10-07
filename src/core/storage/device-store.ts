@@ -275,14 +275,19 @@ export async function listDeviceUserIds(): Promise<number[]> {
     .filter((id) => Number.isInteger(id) && id > 0);
 }
 export async function listDeviceWallets(userId: number): Promise<Wallet[]> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const rows = await db.getAllAsync(`SELECT * FROM wallets WHERE user_id = ? ORDER BY is_archived ASC, created_at DESC`, userId); return rows.map(walletFromRow);
 }
 export async function getDeviceWallet(userId: number, walletId: number): Promise<Wallet | undefined> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const row = await db.getFirstAsync("SELECT * FROM wallets WHERE user_id = ? AND id = ?", userId, walletId); return row ? walletFromRow(row) : undefined;
 }
 export async function getDeviceWalletWithBalance(userId: number, walletId: number): Promise<(Wallet & { balance: number }) | undefined> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase();
   await migrateDatabase(db);
   const row = await db.getFirstAsync(
@@ -433,6 +438,8 @@ export async function getDeviceWalletBalanceFromDatabase(
   userId: number,
   walletId: number,
 ): Promise<number> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const row = await db.getFirstAsync<{ opening_balance: number; balance_effect: number | null }>(
     `SELECT w.opening_balance, COALESCE(e.balance_effect, 0) AS balance_effect
      FROM wallets w
@@ -468,6 +475,7 @@ export async function getDeviceWalletBalance(userId: number, walletId: number): 
 }
 
 export async function listDeviceWalletsWithBalances(userId: number): Promise<(Wallet & { balance: number })[]> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const rows = await db.getAllAsync(
     `SELECT w.*, w.opening_balance + COALESCE(e.balance_effect, 0) AS balance
