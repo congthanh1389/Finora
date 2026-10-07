@@ -1,7 +1,4 @@
-import {
-  DeviceReportRepository,
-  type ReportData,
-} from "../repository/device-report.repository";
+import type { ReportData } from "../repository/device-report.repository";
 
 export type ReportPeriod = "current" | "previous" | "year";
 
@@ -17,7 +14,7 @@ export interface IReportRepository {
 }
 
 export class ReportService {
-  constructor(private readonly repository: IReportRepository = new DeviceReportRepository()) {}
+  constructor(private readonly repository: IReportRepository) {}
 
   async getReport(userId: number, period: ReportPeriod, now = new Date()): Promise<ReportData> {
     if (!Number.isInteger(userId) || userId <= 0) {
