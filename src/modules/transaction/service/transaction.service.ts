@@ -10,10 +10,19 @@ export class TransactionService {
   constructor(private readonly repository: TransactionServiceRepository) {}
 
   listTransactions(userId: number) {
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
+      throw new Error("Invalid user.");
+    }
     return this.repository.list(userId);
   }
 
   listRecentTransactions(userId: number, limit = 20) {
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
+      throw new Error("Invalid user.");
+    }
+    if (!Number.isSafeInteger(limit) || limit <= 0) {
+      throw new Error("Invalid transaction limit.");
+    }
     const listRecent = this.repository.listRecent;
     return listRecent
       ? listRecent.call(this.repository, userId, limit)
