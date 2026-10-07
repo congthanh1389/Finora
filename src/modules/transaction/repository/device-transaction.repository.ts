@@ -118,6 +118,9 @@ export class DeviceTransactionRepository {
   }
 
   async create(input: CreateTransactionInput) {
+    if (!Number.isSafeInteger(input.userId) || input.userId <= 0) {
+      throw new Error("Invalid user ID.");
+    }
     return createDeviceTransaction({
       userId: input.userId,
       type: input.type,
