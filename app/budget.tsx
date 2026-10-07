@@ -7,7 +7,8 @@ import { ScreenContainer } from "@/components/screen-container";
 import { CategoryService } from "@/src/modules/category/service/category.service";
 import { BudgetService } from "@/src/modules/budget/service/budget.service";
 import { DeviceBudgetRepository } from "@/src/modules/budget/repository/device-budget.repository";
-import { listDeviceWallets } from "@/src/core/storage/device-store";
+import { DeviceWalletRepository } from "@/src/modules/wallet/repository/device-wallet.repository";
+import { WalletService } from "@/src/modules/wallet/service/wallet.service";
 import type { Category, Wallet } from "@/drizzle/schema";
 import type { BudgetSummary } from "@/src/modules/budget/types/budget.types";
 
@@ -17,6 +18,7 @@ export default function BudgetScreen() {
   const router = useRouter();
   const budgetService = useMemo(() => new BudgetService(new DeviceBudgetRepository()), []);
   const categoryService = useMemo(() => new CategoryService(), []);
+  const walletService = useMemo(() => new WalletService(new DeviceWalletRepository()), []);
   const [budgets, setBudgets] = useState<BudgetSummary[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [wallets, setWallets] = useState<Wallet[]>([]);
@@ -35,7 +37,7 @@ export default function BudgetScreen() {
       const [nextBudgets, nextCategories, nextWallets] = await Promise.all([
         budgetService.listCurrentMonth(user.id),
         categoryService.listCategories(user.id, "expense"),
-        listDeviceWallets(user.id),
+        walletService.listWallets(user.id),
       ]);
       setBudgets(nextBudgets);
       setCategories(nextCategories);
@@ -46,7 +48,7 @@ export default function BudgetScreen() {
     } finally {
       setLoading(false);
     }
-  }, [budgetService, categoryService, selectedCategoryId]);
+  }, [budgetService, categoryService, walletService, selectedCategoryId]);
 
   useFocusEffect(useCallback(() => { void load(); }, [load]));
 
