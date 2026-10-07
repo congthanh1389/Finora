@@ -1,4 +1,3 @@
-import type { TransactionType } from "../types/transaction.types";
 import type {
   TransactionSummaryFilter,
   TransactionSummaryResult,
