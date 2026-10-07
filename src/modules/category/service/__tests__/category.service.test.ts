@@ -1,5 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
-import { CategoryRepository } from "../../repository/category.repository";
+
+const repository = {
+  listByUser: vi.fn(),
+  update: vi.fn(),
+};
+
+vi.mock("../../repository/category.repository", () => ({
+  CategoryRepository: class {
+    listByUser = repository.listByUser;
+    update = repository.update;
+  },
+}));
+
 import { CategoryService } from "../category.service";
 
 function makeCategory(overrides = {}) {
@@ -26,15 +38,23 @@ describe("CategoryService.updateCategory", () => {
       icon: "account-group-outline",
     });
 
-    vi.spyOn(CategoryRepository.prototype, "listByUser").mockResolvedValue([current]);
-    const update = vi
-      .spyOn(CategoryRepository.prototype, "update")
-      .mockResolvedValue(updated);
+    repository.listByUser.mockResolvedValue([current]);
+    repository.update.mockResolvedValue(updated);
 
     const service = new CategoryService();
-    const result = await service.updateCategory(1, 1, "Gia đình", "account-group-outline");
+    const result = await service.updateCategory(
+      1,
+      1,
+      "Gia đình",
+      "account-group-outline",
+    );
 
-    expect(update).toHaveBeenCalledWith(1, 1, "Gia đình", "account-group-outline");
+    expect(repository.update).toHaveBeenCalledWith(
+      1,
+      1,
+      "Gia đình",
+      "account-group-outline",
+    );
     expect(result.name).toBe("Gia đình");
     expect(result.icon).toBe("account-group-outline");
   });
