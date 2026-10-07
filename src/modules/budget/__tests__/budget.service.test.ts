@@ -45,6 +45,7 @@ describe("BudgetService", () => {
     const period = service.getMonthPeriod(new Date("2026-10-07T00:00:00.000Z"));
 
     await expect(service.listCurrentMonth(0)).rejects.toThrow("Invalid user id");
+    await expect(service.listCurrentMonth(Number.MAX_SAFE_INTEGER + 1)).rejects.toThrow("Invalid user id");
     await expect(service.createBudget({
       userId: 1,
       categoryId: 10,
