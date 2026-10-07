@@ -172,7 +172,7 @@ export async function localGetAccount(): Promise<LocalAccount | null> {
   if (!/^\d+$/.test(idText)) return clearInvalidSession();
 
   const id = Number(idText);
-  if (!Number.isSafeInteger(id) || id <= 0) return clearInvalidSession();
+  if (!Number.isSafeInteger(id) || id <= 0 || String(id) !== idText) return clearInvalidSession();
 
   const account = accounts.find((item) => item.id === id);
   if (!account) return clearInvalidSession();
