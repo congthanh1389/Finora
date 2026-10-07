@@ -1,6 +1,7 @@
 import type { ICategoryRepository, NewCategory } from "../../../core/database/repository-contracts";
 import {
   archiveDeviceCategory,
+  restoreDeviceCategory,
   createDeviceCategory,
   listDeviceCategories,
   updateDeviceCategory,
@@ -26,5 +27,9 @@ export class CategoryRepository implements ICategoryRepository {
 
   async archive(userId: number, categoryId: number) {
     return archiveDeviceCategory(userId, categoryId);
+  }
+
+  async restore(userId: number, categoryId: number) {
+    return restoreDeviceCategory(userId, categoryId);
   }
 }
