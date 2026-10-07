@@ -275,7 +275,7 @@ export function TransactionHistoryView() {
                         ? "Tổng chi"
                         : "Tổng chuyển tiền"}
                 </Text>
-                <Text className="mt-1 text-xl font-extrabold text-[#0F2A5F]">
+                <Text className="mt-1 text-xl font-extrabold text-[#059669]">
                   {formatVnd(summary.totals.totalAmount)}
                 </Text>
                 <Text className="mt-1 text-xs text-[#64748B]">
