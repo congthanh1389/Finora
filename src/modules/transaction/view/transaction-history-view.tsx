@@ -36,7 +36,6 @@ function formatDate(value: Date) {
   }).format(value);
 }
 
-type TransactionFilter = "all" | "income" | "expense" | "transfer";
 
 export function TransactionHistoryView() {
   const router = useRouter();
