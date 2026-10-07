@@ -1,4 +1,4 @@
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
 
@@ -11,6 +11,9 @@ import { CategoryRepository } from "../../category/repository/category.repositor
 import type { WalletType } from "../../wallet/types/wallet.types";
 import type { Transaction, Wallet } from "../../../../drizzle/schema";
 import { TransactionEditService } from "../service/transaction-edit.service";
+import { DeviceTransactionSummaryRepository } from "../repository/device-transaction-summary.repository";
+import { TransactionSummaryService } from "../service/transaction-summary.service";
+import type { TransactionSummaryResult } from "../types/transaction-summary.types";
 
 function formatVnd(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value) + " ₫";
@@ -50,6 +53,13 @@ export function TransactionHistoryView() {
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [typeFilter, setTypeFilter] = useState<TransactionFilter>("all");
+  const [periodKey, setPeriodKey] = useState<"today" | "7days" | "month" | "lastMonth" | "3months" | "year" | "custom">("month");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+  const [summary, setSummary] = useState<TransactionSummaryResult | null>(null);
+
+  const summaryRepository = useMemo(() => new DeviceTransactionSummaryRepository(), []);
+  const summaryService = useMemo(() => new TransactionSummaryService(summaryRepository), [summaryRepository]);
 
   const transactionRepository = useMemo(() => new DeviceTransactionRepository(), []);
   const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
@@ -107,7 +117,9 @@ export function TransactionHistoryView() {
         const user = await Auth.getUserInfo();
         if (!user) return;
 
-        const page = await transactionRepository.listHistoryPage(user.id, 0, typeFilter);
+        const period = getPeriod();
+        if (!period) { setSummary(null); return; }
+        const page = await transactionRepository.listHistoryPage(user.id, 0, typeFilter, 50, period.start, period.end);
         if (active) {
           setTransactions(page.transactions);
           setHasMore(page.hasMore);
@@ -135,7 +147,9 @@ export function TransactionHistoryView() {
       const user = await Auth.getUserInfo();
       if (!user) return;
 
-      const page = await transactionRepository.listHistoryPage(user.id, transactions.length, typeFilter);
+      const period = getPeriod();
+      if (!period) return;
+      const page = await transactionRepository.listHistoryPage(user.id, transactions.length, typeFilter, 50, period.start, period.end);
       setTransactions((current) => [...current, ...page.transactions]);
       setHasMore(page.hasMore);
     } catch (err) {
@@ -178,6 +192,42 @@ export function TransactionHistoryView() {
                 <Text className={"text-center text-xs font-bold " + (typeFilter === value ? "text-white" : "text-[#64748B]")}>{label}</Text>
               </Pressable>
             ))}
+          </View>
+
+          <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
+            <Text className="text-base font-bold text-[#0F2A5F]">Tổng quan giao dịch</Text>
+            <View className="mt-3 flex-row gap-2">
+              {[
+                ["today", "Hôm nay"], ["7days", "7 ngày"], ["month", "Tháng này"],
+                ["lastMonth", "Tháng trước"], ["3months", "3 tháng"], ["year", "Năm nay"],
+              ].map(([key, label]) => (
+                <Pressable key={key} onPress={() => setPeriodKey(key as typeof periodKey)} className="rounded-full bg-[#F1F5F9] px-3 py-2">
+                  <Text className={"text-xs font-semibold " + (periodKey === key ? "text-[#0F766E]" : "text-[#64748B]")}>{label}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <Pressable onPress={() => setPeriodKey("custom")} className="mt-2 self-start rounded-full bg-[#E6FFFA] px-3 py-2">
+              <Text className="text-xs font-bold text-[#0F766E]">Khoảng thời gian tùy chọn</Text>
+            </Pressable>
+            {periodKey === "custom" ? (
+              <View className="mt-3 flex-row gap-2">
+                <TextInput value={customStart} onChangeText={setCustomStart} placeholder="YYYY-MM-DD" className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2 text-sm" />
+                <TextInput value={customEnd} onChangeText={setCustomEnd} placeholder="YYYY-MM-DD" className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2 text-sm" />
+              </View>
+            ) : null}
+            {summary ? (
+              <>
+                <View className="mt-4 flex-row gap-2">
+                  <View className="flex-1 rounded-2xl bg-[#ECFDF5] p-3"><Text className="text-xs text-[#64748B]">Thu</Text><Text className="mt-1 text-sm font-bold text-[#059669]">+{formatVnd(summary.totals.incomeAmount)}</Text><Text className="mt-1 text-[11px] text-[#64748B]">{summary.totals.incomeCount} giao dịch</Text></View>
+                  <View className="flex-1 rounded-2xl bg-[#FFF1F2] p-3"><Text className="text-xs text-[#64748B]">Chi</Text><Text className="mt-1 text-sm font-bold text-[#E11D48]">−{formatVnd(summary.totals.expenseAmount)}</Text><Text className="mt-1 text-[11px] text-[#64748B]">{summary.totals.expenseCount} giao dịch</Text></View>
+                </View>
+                <View className="mt-2 flex-row gap-2">
+                  <View className="flex-1 rounded-2xl bg-[#EFF6FF] p-3"><Text className="text-xs text-[#64748B]">Chuyển tiền</Text><Text className="mt-1 text-sm font-bold text-[#0F2A5F]">{formatVnd(summary.totals.transferAmount)}</Text><Text className="mt-1 text-[11px] text-[#64748B]">{summary.totals.transferCount} giao dịch</Text></View>
+                  <View className="flex-1 rounded-2xl bg-[#F8FAFC] p-3"><Text className="text-xs text-[#64748B]">{typeFilter === "all" ? "Tổng tất cả" : "Tổng " + ({ income: "thu", expense: "chi", transfer: "chuyển tiền" } as Record<string,string>)[typeFilter]}</Text><Text className="mt-1 text-sm font-bold text-[#0F2A5F]">{formatVnd(summary.totals.totalAmount)}</Text><Text className="mt-1 text-[11px] text-[#64748B]">{summary.totals.transactionCount} giao dịch</Text></View>
+                </View>
+                <View className="mt-3 rounded-2xl bg-[#F8FAFC] p-3"><Text className="text-xs text-[#64748B]">Thu − Chi</Text><Text className={"mt-1 text-base font-bold " + (summary.totals.netCashflow >= 0 ? "text-[#059669]" : "text-[#E11D48]")}>{summary.totals.netCashflow >= 0 ? "+" : "−"}{formatVnd(Math.abs(summary.totals.netCashflow))}</Text></View>
+              </>
+            ) : periodKey === "custom" && customStart && customEnd ? <Text className="mt-3 text-xs text-[#BE123C]">Khoảng ngày không hợp lệ.</Text> : null}
           </View>
 
           {isLoading ? (
