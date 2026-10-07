@@ -2,12 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import type { ICategoryRepository } from "../../../../core/database/repository-contracts";
 import { CategoryService } from "../category.service";
 
-const repository: ICategoryRepository = {
-  listByUser: vi.fn() as ICategoryRepository["listByUser"],
-  update: vi.fn() as ICategoryRepository["update"],
+const repository = {
+  listByUser: vi.fn(),
+  update: vi.fn(),
   create: vi.fn(),
   archive: vi.fn(),
-};
+} satisfies Record<keyof ICategoryRepository, ReturnType<typeof vi.fn>>;
 
 function makeCategory(overrides = {}) {
   const now = new Date();
@@ -36,7 +36,7 @@ describe("CategoryService.updateCategory", () => {
     repository.listByUser.mockResolvedValue([current]);
     repository.update.mockResolvedValue(updated);
 
-    const service = new CategoryService(repository);
+    const service = new CategoryService(repository as unknown as ICategoryRepository);
     const result = await service.updateCategory(
       1,
       1,
