@@ -175,6 +175,15 @@ export async function deleteDeviceUserData(userId: number): Promise<void> {
   await db.withTransactionAsync(async () => { await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId); await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId); await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId); await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId); });
   await db.execAsync("VACUUM");
 }
+export async function clearDeviceFinancialData(userId: number): Promise<void> {
+  const db = await getDeviceDatabase(); await migrateDatabase(db);
+  await db.withTransactionAsync(async () => {
+    await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId);
+    await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId);
+    await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId);
+  });
+  await db.execAsync("VACUUM");
+}
 export type DeviceLocalAccount = { id: number; openId: string; name: string | null; email: string; loginMethod: string | null; lastSignedIn: Date };
 export async function listDeviceLocalAccounts(): Promise<DeviceLocalAccount[]> {
   const db = await getDeviceDatabase(); await migrateDatabase(db);
