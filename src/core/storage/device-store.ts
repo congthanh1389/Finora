@@ -347,7 +347,7 @@ export async function listDeviceUserIds(): Promise<number[]> {
   );
   return rows
     .map((row) => Number(row.user_id))
-    .filter((id) => Number.isInteger(id) && id > 0);
+    .filter((id) => Number.isSafeInteger(id) && id > 0);
 }
 export async function listDeviceWallets(userId: number): Promise<Wallet[]> {
   if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
