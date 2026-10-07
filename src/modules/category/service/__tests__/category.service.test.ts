@@ -20,9 +20,14 @@ function makeCategory(overrides: Record<string, unknown> = {}) {
 
 describe("CategoryService.updateCategory", () => {
   it("updates both category name and icon", async () => {
-    const repository = new CategoryRepository({} as never);
+    const repository = new CategoryRepository();
+    const current = makeCategory();
 
-    };
+    vi.spyOn(repository, "listByUser").mockResolvedValue([current]);
+    const update = vi
+      .spyOn(repository, "update")
+      .mockResolvedValue(makeCategory({ name: "Gia đình", icon: "account-group-outline" }));
+
     const service = new CategoryService(repository);
 
     const result = await service.updateCategory(
@@ -32,7 +37,7 @@ describe("CategoryService.updateCategory", () => {
       "account-group-outline",
     );
 
-    expect(repository.update).toHaveBeenCalledWith(
+    expect(update).toHaveBeenCalledWith(
       1,
       1,
       "Gia đình",
