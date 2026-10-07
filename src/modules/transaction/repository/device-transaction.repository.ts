@@ -79,6 +79,9 @@ export class DeviceTransactionRepository {
     if ((start !== undefined && Number.isNaN(start.getTime())) || (end !== undefined && Number.isNaN(end.getTime()))) {
       throw new Error("Invalid transaction period.");
     }
+    if ((start === undefined) !== (end === undefined)) {
+      throw new Error("Invalid transaction period.");
+    }
     if (start !== undefined && end !== undefined && start >= end) {
       throw new Error("Invalid transaction period.");
     }
