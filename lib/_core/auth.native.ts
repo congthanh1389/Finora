@@ -215,7 +215,8 @@ export async function localRegister(input: {
   const { listDeviceUserIds } = await import("@/src/core/storage/device-store");
   const existingIds = await listDeviceUserIds();
   const usedIds = new Set([...accounts.map((account) => account.id), ...existingIds]);
-  let id = input.userId && !usedIds.has(input.userId) ? input.userId : 1;
+  const requestedId = input.userId;
+  let id = requestedId && Number.isSafeInteger(requestedId) && requestedId > 0 ? requestedId : 1;
   while (usedIds.has(id)) id += 1;
 
   const now = new Date();
