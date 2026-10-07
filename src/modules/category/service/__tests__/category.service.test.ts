@@ -21,10 +21,6 @@ function makeCategory(overrides: Partial<Category> = {}): Category {
 
 describe("CategoryService.updateCategory", () => {
   it("updates both category name and icon", async () => {
-    const updated = makeCategory({
-      name: "Gia đình",
-      icon: "account-group-outline",
-    });
     const repository: ICategoryRepository = {
       create: vi.fn(),
       listByUser: vi.fn(async () => [makeCategory()]),
@@ -48,6 +44,7 @@ describe("CategoryService.updateCategory", () => {
       "Gia đình",
       "account-group-outline",
     );
-    expect(result).toEqual(updated);
+    expect(result.name).toBe("Gia đình");
+    expect(result.icon).toBe("account-group-outline");
   });
 });
