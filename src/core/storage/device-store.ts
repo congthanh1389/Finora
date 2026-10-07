@@ -190,6 +190,8 @@ function categoryFromRow(row: any): Category {
 }
 
 export async function listDeviceCategories(userId: number, type?: Category["type"]): Promise<Category[]> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (type !== undefined && type !== "income" && type !== "expense") throw new Error("Invalid category type.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const rows = type
     ? await db.getAllAsync(`SELECT * FROM categories WHERE user_id = ? AND type = ? ORDER BY is_archived ASC, name ASC`, userId, type)
