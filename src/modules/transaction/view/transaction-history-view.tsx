@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
+import { CategoryIcon } from "@/components/ui/category-icons";
+import { resolveCategoryIconName } from "../../category/utils/category-icon-resolver";
 import { ScreenContainer } from "@/components/screen-container";
 import * as Auth from "@/lib/_core/auth";
 import { DeviceTransactionRepository } from "../repository/device-transaction.repository";
@@ -319,7 +321,7 @@ export function TransactionHistoryView() {
                 return (
                   <View key={transaction.id} className={"flex-row items-center py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
                     <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isTransfer ? "bg-[#EFF6FF]" : isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
-                      <FinoraMockupIcon name="01_finance_wallet" size={28} />
+                      {isTransfer ? <FinoraMockupIcon name="01_finance_wallet" size={28} /> : <CategoryIcon name={resolveCategoryIconName(category?.icon)} size={28} />}
                     </View>
                     <View className="ml-3 flex-1">
                       <Text className="font-semibold text-[#0F2A5F]">
