@@ -20,8 +20,8 @@ export class CategoryRepository implements ICategoryRepository {
     return listDeviceCategories(userId, type);
   }
 
-  async update(userId: number, categoryId: number, name: string) {
-    return updateDeviceCategory(userId, categoryId, name);
+  async update(userId: number, categoryId: number, name: string, icon?: string) {
+    return updateDeviceCategory(userId, categoryId, name, icon);
   }
 
   async archive(userId: number, categoryId: number) {

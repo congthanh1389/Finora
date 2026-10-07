@@ -17,6 +17,7 @@ export default function CategoryScreen() {
   const [selectedIcon, setSelectedIcon] = useState("food-noodles");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingIcon, setEditingIcon] = useState("");
   const [error, setError] = useState("");
 
   const iconOptions = type === "expense" ? EXPENSE_CATEGORY_ICONS : INCOME_CATEGORY_ICONS;
@@ -35,6 +36,7 @@ export default function CategoryScreen() {
     setSelectedIcon(nextType === "expense" ? "food" : "briefcase-outline");
     setEditingId(null);
     setEditingName("");
+    setEditingIcon("");
     setError("");
   }
 
@@ -54,6 +56,7 @@ export default function CategoryScreen() {
   function startEdit(category: Category) {
     setEditingId(category.id);
     setEditingName(category.name);
+    setEditingIcon(category.icon || "other");
     setError("");
   }
 
@@ -67,7 +70,7 @@ export default function CategoryScreen() {
     try {
       const user = await Auth.getUserInfo();
       if (!user) throw new Error("Không tìm thấy người dùng hiện tại.");
-      const updated = await service.updateCategory(user.id, categoryId, editingName);
+      const updated = await service.updateCategory(user.id, categoryId, editingName, editingIcon);
       setCategories((current) => current.map((item) => item.id === categoryId ? updated : item).sort((a, b) => a.name.localeCompare(b.name, "vi")));
       cancelEdit();
     } catch (err) {
@@ -144,8 +147,35 @@ export default function CategoryScreen() {
                 <View className="h-10 w-10 items-center justify-center rounded-full bg-white">
                   <CategoryIcon name={(item.icon || "other") as never} size={24} />
                 </View>
-                {editingId === item.id ? <TextInput value={editingName} onChangeText={(value) => { setEditingName(value); setError(""); }} autoFocus className="ml-3 flex-1 rounded-xl border border-[#CBD5E1] bg-white px-3 py-2 font-semibold text-[#334155]" /> : <Text className="ml-3 flex-1 font-semibold text-[#334155]">{item.name}</Text>}
+                {editingId === item.id ? (
+                  <View className="ml-3 flex-1">
+                    <TextInput value={editingName} onChangeText={(value) => { setEditingName(value); setError(""); }} autoFocus className="rounded-xl border border-[#CBD5E1] bg-white px-3 py-2 font-semibold text-[#334155]" />
+                  </View>
+                ) : <Text className="ml-3 flex-1 font-semibold text-[#334155]">{item.name}</Text>}
               </View>
+              {editingId === item.id ? (
+                <View className="mt-3">
+                  <Text className="mb-2 text-xs font-bold text-[#64748B]">Chọn biểu tượng</Text>
+                  <View className="flex-row flex-wrap">
+                    {iconOptions.map((iconItem) => {
+                      const selected = editingIcon === iconItem.name;
+                      return (
+                        <Pressable
+                          key={iconItem.name}
+                          onPress={() => { setEditingIcon(iconItem.name); setError(""); }}
+                          className="mb-2 mr-2 h-14 w-14 items-center justify-center rounded-xl border"
+                          style={{
+                            borderColor: selected ? "#22B8A8" : "#E2E8F0",
+                            backgroundColor: selected ? "#E6FFFA" : "#F8FAFC",
+                          }}
+                        >
+                          <CategoryIcon name={iconItem.name} size={25} color={selected ? "#0F766E" : undefined} />
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              ) : null}
               <View className="mt-2 flex-row justify-end gap-2">
                 {editingId === item.id ? <>
                   <Pressable onPress={cancelEdit} className="rounded-xl bg-[#E2E8F0] px-3 py-2"><Text className="text-sm font-bold text-[#475569]">Hủy</Text></Pressable>

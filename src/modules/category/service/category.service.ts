@@ -29,7 +29,7 @@ export class CategoryService {
     });
   }
 
-  async updateCategory(userId: number, categoryId: number, name: string) {
+  async updateCategory(userId: number, categoryId: number, name: string, icon?: string) {
     if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
     if (!Number.isInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id");
 
@@ -44,7 +44,7 @@ export class CategoryService {
       throw new Error("Danh mục này đã tồn tại.");
     }
 
-    return this.repository.update(userId, categoryId, trimmed);
+    return this.repository.update(userId, categoryId, trimmed, icon ?? category.icon ?? "other");
   }
 
   async archiveCategory(userId: number, categoryId: number) {

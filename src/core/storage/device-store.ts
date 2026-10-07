@@ -179,11 +179,18 @@ export async function createDeviceCategory(input: Omit<Category, "id" | "created
   const result = await db.runAsync(`INSERT INTO categories (user_id, name, type, parent_id, icon, is_archived, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, input.userId, input.name, input.type, input.parentId, input.icon, input.isArchived, now.toISOString(), now.toISOString());
   return { ...input, id: result.lastInsertRowId, createdAt: now, updatedAt: now };
 }
-export async function updateDeviceCategory(userId: number, categoryId: number, name: string): Promise<Category> {
+export async function updateDeviceCategory(userId: number, categoryId: number, name: string, icon?: string): Promise<Category> {
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const current = await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId);
   if (!current) throw new Error("Không tìm thấy danh mục."); const trimmed = name.trim(); if (!trimmed) throw new Error("Tên danh mục không được để trống.");
-  await db.runAsync("UPDATE categories SET name = ?, updated_at = ? WHERE user_id = ? AND id = ?", trimmed, new Date().toISOString(), userId, categoryId);
+  await db.runAsync(
+    "UPDATE categories SET name = ?, icon = ?, updated_at = ? WHERE user_id = ? AND id = ?",
+    trimmed,
+    icon ?? (current as any).icon ?? "other",
+    new Date().toISOString(),
+    userId,
+    categoryId,
+  );
   return categoryFromRow(await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId));
 }
 export async function archiveDeviceCategory(userId: number, categoryId: number): Promise<Category> {
