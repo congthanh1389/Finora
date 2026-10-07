@@ -1,14 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
+import type { ICategoryRepository } from "../../../../core/database/repository-contracts";
+import { CategoryService } from "../category.service";
 
 const repository: ICategoryRepository = {
-  listByUser: vi.fn(),
-  update: vi.fn(),
+  listByUser: vi.fn() as ICategoryRepository["listByUser"],
+  update: vi.fn() as ICategoryRepository["update"],
   create: vi.fn(),
   archive: vi.fn(),
 };
-
-import type { ICategoryRepository } from "../../../../core/database/repository-contracts";
-import { CategoryService } from "../category.service";
 
 function makeCategory(overrides = {}) {
   const now = new Date();
