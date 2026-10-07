@@ -17,7 +17,7 @@ export function notifyAuthState(user: Auth.User | null) {
 export function useAuth(options?: UseAuthOptions) {
   const { autoFetch = true } = options ?? {};
   const [user, setUser] = useState<Auth.User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => autoFetch);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchUser = useCallback(async () => {
@@ -124,13 +124,11 @@ export function useAuth(options?: UseAuthOptions) {
   }, []);
 
   useEffect(() => {
+    if (!autoFetch) return;
     console.log("[useAuth] useEffect triggered");
-    if (autoFetch) {
-      fetchUser();
-    } else {
-      console.log("[useAuth] autoFetch disabled, setting loading to false");
-      setLoading(false);
-    }
+    queueMicrotask(() => {
+      void fetchUser();
+    });
   }, [autoFetch, fetchUser]);
 
   return {
