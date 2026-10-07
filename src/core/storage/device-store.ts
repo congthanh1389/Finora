@@ -663,6 +663,9 @@ export async function createDeviceTransaction(input: Omit<Transaction, "id" | "c
       }
     }
     const result = await db.runAsync(`INSERT INTO transactions (user_id, type, amount, currency, wallet_id, source_wallet_id, destination_wallet_id, category_id, note, occurred_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, input.userId, input.type, input.amount, input.currency, input.walletId, input.sourceWalletId, input.destinationWalletId, input.categoryId, input.note, occurredAt.toISOString(), now.toISOString(), now.toISOString());
+    if (!Number.isSafeInteger(result.lastInsertRowId) || result.lastInsertRowId <= 0) {
+      throw new Error("Invalid inserted transaction id.");
+    }
     transaction = { ...input, id: result.lastInsertRowId, createdAt: now, updatedAt: now, occurredAt };
   });
   DeviceEventEmitter.emit(DEVICE_TRANSACTIONS_CHANGED_EVENT, transaction!); return transaction!;
