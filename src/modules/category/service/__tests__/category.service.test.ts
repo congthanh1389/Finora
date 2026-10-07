@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { ICategoryRepository } from "../../../../core/database/repository-contracts";
 import { CategoryService } from "../category.service";
 
-function makeCategory(overrides: Partial<Category> = {}): Category {
+function makeCategory(overrides: Record<string, unknown> = {}): any {
   const now = new Date();
   return {
     id: 1,
