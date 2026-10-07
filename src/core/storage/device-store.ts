@@ -320,6 +320,7 @@ export async function getDeviceWalletWithBalance(userId: number, walletId: numbe
   return row ? { ...walletFromRow(row), balance: Number((row as any).balance) } : undefined;
 }
 export async function createDeviceWallet(input: Omit<Wallet, "id" | "createdAt" | "updatedAt">): Promise<Wallet> {
+  if (!Number.isSafeInteger(input.openingBalance) || input.openingBalance < 0 && input.allowNegative !== 1) throw new Error("Invalid wallet opening balance.");
   if (!Number.isSafeInteger(input.userId) || input.userId <= 0) throw new Error("Invalid user id.");
   if (typeof input.name !== "string" || !input.name.trim()) throw new Error("Wallet name cannot be empty.");
   if (!["cash", "bank", "ewallet", "credit_card", "savings", "investment", "other_asset", "receivable", "payable"].includes(input.type)) throw new Error("Invalid wallet type.");
