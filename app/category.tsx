@@ -1,102 +1,45 @@
-import { useCallback, useMemo, useState } from "react";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useMemo } from "react";
+import { useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
-import * as Auth from "@/lib/_core/auth";
 import { ScreenContainer } from "@/components/screen-container";
-import { createCategoryDependencies } from "@/src/modules/category/category.factory";
 import { CategoryIcon, EXPENSE_CATEGORY_ICONS, INCOME_CATEGORY_ICONS } from "@/components/ui/category-icons";
 import type { Category } from "@/drizzle/schema";
+import { useCategoryViewModel } from "@/src/modules/category/viewmodel/use-category-view-model";
 
 export default function CategoryScreen() {
   const router = useRouter();
-  const { categoryService: service } = useMemo(() => createCategoryDependencies(), []);
-  const [type, setType] = useState<Category["type"]>("expense");
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [name, setName] = useState("");
-  const [selectedIcon, setSelectedIcon] = useState("food-noodles");
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editingName, setEditingName] = useState("");
-  const [editingIcon, setEditingIcon] = useState("");
-  const [error, setError] = useState("");
+  const {
+    type,
+    categories,
+    name,
+    selectedIcon,
+    editingId,
+    editingName,
+    editingIcon,
+    error,
+    setName,
+    setSelectedIcon,
+    setEditingName,
+    setEditingIcon,
+    resetForm,
+    addCategory,
+    startEdit,
+    cancelEdit,
+    saveEdit,
+    deleteCategory,
+  } = useCategoryViewModel();
 
-  const iconOptions = type === "expense" ? EXPENSE_CATEGORY_ICONS : INCOME_CATEGORY_ICONS;
-
-  const load = useCallback(async () => {
-    const user = await Auth.getUserInfo();
-    if (!user) return setCategories([]);
-    setCategories(await service.listCategories(user.id, type));
-  }, [service, type]);
-
-  useFocusEffect(useCallback(() => { void load(); }, [load]));
-
-  function resetForm(nextType: Category["type"]) {
-    setType(nextType);
-    setName("");
-    setSelectedIcon(nextType === "expense" ? "food" : "briefcase-outline");
-    setEditingId(null);
-    setEditingName("");
-    setEditingIcon("");
-    setError("");
-  }
-
-  async function addCategory() {
-    try {
-      const user = await Auth.getUserInfo();
-      if (!user) throw new Error("Không tìm thấy người dùng hiện tại.");
-      const created = await service.createCategory(user.id, name, type, selectedIcon);
-      setCategories((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name, "vi")));
-      setName("");
-      setError("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể thêm danh mục.");
-    }
-  }
-
-  function startEdit(category: Category) {
-    setEditingId(category.id);
-    setEditingName(category.name);
-    setEditingIcon(category.icon || "other");
-    setError("");
-  }
-
-  function cancelEdit() {
-    setEditingId(null);
-    setEditingName("");
-    setEditingIcon("");
-    setError("");
-  }
-
-  async function saveEdit(categoryId: number) {
-    try {
-      const user = await Auth.getUserInfo();
-      if (!user) throw new Error("Không tìm thấy người dùng hiện tại.");
-      const updated = await service.updateCategory(user.id, categoryId, editingName, editingIcon);
-      setCategories((current) => current.map((item) => item.id === categoryId ? updated : item).sort((a, b) => a.name.localeCompare(b.name, "vi")));
-      cancelEdit();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể sửa danh mục.");
-    }
-  }
+  const iconOptions = useMemo(
+    () => (type === "expense" ? EXPENSE_CATEGORY_ICONS : INCOME_CATEGORY_ICONS),
+    [type],
+  );
 
   function confirmDelete(category: Category) {
     Alert.alert("Xóa danh mục", `Bạn có chắc muốn xóa “${category.name}” khỏi danh sách?`, [
       { text: "Hủy", style: "cancel" },
       { text: "Xóa", style: "destructive", onPress: () => void deleteCategory(category.id) },
     ]);
-  }
-
-  async function deleteCategory(categoryId: number) {
-    try {
-      const user = await Auth.getUserInfo();
-      if (!user) throw new Error("Không tìm thấy người dùng hiện tại.");
-      await service.archiveCategory(user.id, categoryId);
-      setCategories((current) => current.filter((item) => item.id !== categoryId));
-      if (editingId === categoryId) cancelEdit();
-      setError("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể xóa danh mục.");
-    }
   }
 
   return (
