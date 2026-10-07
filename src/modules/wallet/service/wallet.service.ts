@@ -10,7 +10,7 @@ export class WalletService {
   async createWallet(input: CreateWalletInput): Promise<WalletSummary> {
     const name = input.name.trim();
     if (!name) throw new Error("Wallet name is required");
-    if (!Number.isInteger(input.userId) || input.userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isSafeInteger(input.userId) || input.userId <= 0) throw new Error("Invalid user id");
     const existingWallets = await this.repository.listByUser(input.userId);
     if (existingWallets.some((wallet) => normalizeWalletName(wallet.name) === normalizeWalletName(name))) throw new Error("Wallet name already exists");
     const currency = (input.currency ?? "VND").trim().toUpperCase();
