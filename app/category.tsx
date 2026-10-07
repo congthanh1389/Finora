@@ -18,6 +18,7 @@ export default function CategoryScreen() {
     editingName,
     editingIcon,
     error,
+    setError,
     setName,
     setSelectedIcon,
     setEditingName,
