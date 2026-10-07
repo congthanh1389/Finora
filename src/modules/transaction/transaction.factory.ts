@@ -6,6 +6,7 @@ import { DeviceTransactionRepository } from "./repository/device-transaction.rep
 import { DeviceTransactionEditRepository } from "./repository/device-transaction-edit.repository";
 import { DeviceTransactionSummaryRepository } from "./repository/device-transaction-summary.repository";
 import { TransactionEditService } from "./service/transaction-edit.service";
+import { TransactionHistoryService } from "./service/transaction-history.service";
 import { TransactionService } from "./service/transaction.service";
 import { TransactionSummaryService } from "./service/transaction-summary.service";
 
@@ -16,6 +17,14 @@ export function createTransactionDependencies() {
   const transactionService = new TransactionService(transactionRepository);
   const editService = new TransactionEditService(new DeviceTransactionEditRepository());
   const summaryService = new TransactionSummaryService(new DeviceTransactionSummaryRepository());
+  const historyService = new TransactionHistoryService(
+    transactionRepository,
+    walletService,
+    categoryService,
+    summaryService,
+    historyService,
+    editService,
+  );
 
   return {
     categoryService,
