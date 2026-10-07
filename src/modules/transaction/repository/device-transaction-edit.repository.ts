@@ -151,3 +151,18 @@ export async function updateDeviceTransaction(input: UpdateTransactionInput): Pr
   DeviceEventEmitter.emit(DEVICE_TRANSACTIONS_CHANGED_EVENT, updated!);
   return updated!;
 }
+
+
+export class DeviceTransactionEditRepository {
+  getById(userId: number, transactionId: number) {
+    return getDeviceTransaction(userId, transactionId);
+  }
+
+  update(input: UpdateTransactionInput) {
+    return updateDeviceTransaction(input);
+  }
+
+  delete(userId: number, transactionId: number) {
+    return deleteDeviceTransaction(userId, transactionId);
+  }
+}
