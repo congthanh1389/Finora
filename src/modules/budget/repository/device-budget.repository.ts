@@ -249,6 +249,10 @@ export class DeviceBudgetRepository {
   }
 
   async delete(userId: number, budgetId: number): Promise<void> {
+    if (!positiveSafeInteger(userId) || !positiveSafeInteger(budgetId)) {
+      throw new Error("Invalid budget identifier.");
+    }
+
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const result = await db.runAsync("DELETE FROM budgets WHERE user_id = ? AND id = ?", userId, budgetId);
