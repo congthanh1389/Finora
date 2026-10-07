@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Category } from "../../../../drizzle/schema";
 import type { ICategoryRepository } from "../../../../core/database/repository-contracts";
 import { CategoryService } from "../category.service";
 
