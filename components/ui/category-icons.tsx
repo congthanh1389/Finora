@@ -6,8 +6,8 @@ type MdiName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 import {
   EXPENSE_CATEGORY_ICONS,
   INCOME_CATEGORY_ICONS,
-  type CategoryIconName,
 } from "./category-icon-data";
+import type { CategoryIconName } from "./category-icon-data";
 
 export { EXPENSE_CATEGORY_ICONS, INCOME_CATEGORY_ICONS };
 export type { CategoryIconName };
@@ -34,10 +34,7 @@ const CATEGORY_COLORS = [
   "#64748B",
 ] as const;
 
-export type CategoryIconName =
-  | typeof EXPENSE_CATEGORY_ICONS[number]["name"]
-  | typeof INCOME_CATEGORY_ICONS[number]["name"]
-  | "other";
+
 
 export function CategoryIcon({
   name,
