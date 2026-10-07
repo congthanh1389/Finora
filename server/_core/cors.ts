@@ -69,8 +69,9 @@ function originHasLoopbackHostname(origin: string): boolean {
 
 function configuredLocalExpoWebOrigins(): Set<string> {
   const origins = new Set<string>();
-  for (const name of ["EXPO_PACKAGER_PROXY_URL", "EXPO_WEB_PREVIEW_URL"] as const) {
-    const origin = configuredOrigin(name);
+  const packager = configuredOrigin("EXPO_PACKAGER_PROXY_URL");
+  const preview = configuredOrigin("EXPO_WEB_PREVIEW_URL");
+  for (const origin of [packager, preview]) {
     if (!origin) continue;
     const url = new URL(origin);
     if (url.protocol === "http:" && isLoopbackApiHost(url.hostname)) origins.add(origin);
