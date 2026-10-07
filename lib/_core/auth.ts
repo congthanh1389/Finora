@@ -160,12 +160,15 @@ export async function localGetAccounts(): Promise<LocalAccount[]> {
 export async function localGetAccount(): Promise<LocalAccount | null> {
   const accounts = await readAccounts();
   const sessionToken = await getSessionToken();
-  if (sessionToken?.startsWith("local-session-")) {
-    const id = Number(sessionToken.replace("local-session-", ""));
-    const active = accounts.find((account) => account.id === id);
-    if (active) return active;
-  }
-  return accounts[0] ?? null;
+  if (!sessionToken?.startsWith("local-session-")) return null;
+
+  const idText = sessionToken.slice("local-session-".length);
+  if (!/^\d+$/.test(idText)) return null;
+
+  const id = Number(idText);
+  if (!Number.isSafeInteger(id) || id <= 0) return null;
+
+  return accounts.find((account) => account.id === id) ?? null;
 }
 
 export async function localRegister(input: {
