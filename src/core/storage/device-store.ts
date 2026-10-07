@@ -296,7 +296,18 @@ export async function archiveDeviceCategory(userId: number, categoryId: number):
   await db.runAsync("UPDATE categories SET is_archived = 1, updated_at = ? WHERE user_id = ? AND id = ?", new Date().toISOString(), userId, categoryId);
   return categoryFromRow(await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId));
 }
-export async function clearDeviceFinancialData(userId: number): Promise<void> {
+export async function restoreDeviceCategory(userId: number, categoryId: number): Promise<Category> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id.");
+  const db = await getDeviceDatabase(); await migrateDatabase(db);
+  const current = await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId);
+  if (!current) throw new Error("Không tìm thấy danh mục.");
+  if (Number((current as any).is_archived) !== 1) throw new Error("Danh mục chưa được lưu trữ.");
+  await db.runAsync("UPDATE categories SET is_archived = 0, updated_at = ? WHERE user_id = ? AND id = ?", new Date().toISOString(), userId, categoryId);
+  return categoryFromRow(await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId));
+}
+
+export async function clearDeviceFinancialData(userId: number): Promise<void>
   if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   const db = await getDeviceDatabase();
   await migrateDatabase(db);
