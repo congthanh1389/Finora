@@ -78,12 +78,6 @@ export function TransactionHistoryView() {
       return { start, end };
     }
     if (periodKey === "7days") return TransactionSummaryService.daysAgo(7, now);
-    if (periodKey === "3months") {
-      return {
-        start: new Date(now.getFullYear(), now.getMonth() - 2, 1),
-        end: new Date(now.getFullYear(), now.getMonth() + 1, 1),
-      };
-    }
     if (periodKey === "year") return TransactionSummaryService.year(now);
     if (periodKey === "lastMonth") {
       return {
@@ -254,7 +248,7 @@ export function TransactionHistoryView() {
             <View className="mt-3 flex-row gap-2">
               {[
                 ["today", "Hôm nay"], ["7days", "7 ngày"], ["month", "Tháng này"],
-                ["lastMonth", "Tháng trước"], ["3months", "3 tháng"], ["year", "Năm nay"],
+                ["lastMonth", "Tháng trước"], ["year", "Năm nay"],
               ].map(([key, label]) => (
                 <Pressable key={key} onPress={() => setPeriodKey(key as typeof periodKey)} className="rounded-full bg-[#F1F5F9] px-3 py-2">
                   <Text className={"text-xs font-semibold " + (periodKey === key ? "text-[#0F766E]" : "text-[#64748B]")}>{label}</Text>
@@ -281,7 +275,7 @@ export function TransactionHistoryView() {
                         ? "Tổng chi"
                         : "Tổng chuyển tiền"}
                 </Text>
-                <Text className="mt-1 text-xl font-bold text-[#0F2A5F]">
+                <Text className="mt-1 text-xl font-extrabold text-[#0F2A5F]">
                   {formatVnd(summary.totals.totalAmount)}
                 </Text>
                 <Text className="mt-1 text-xs text-[#64748B]">
