@@ -274,9 +274,10 @@ export function TransactionHistoryView() {
                       : typeFilter === "expense"
                         ? "Tổng chi"
                         : "Tổng chuyển tiền"}
-                </Text>
-                <Text className="mt-1 text-xl font-extrabold text-[#059669]">
-                  {formatVnd(summary.totals.totalAmount)}
+                  {": "}
+                  <Text className="text-xl font-extrabold text-[#059669]">
+                    {formatVnd(summary.totals.totalAmount)}
+                  </Text>
                 </Text>
                 <Text className="mt-1 text-xs text-[#64748B]">
                   {summary.totals.transactionCount} giao dịch
