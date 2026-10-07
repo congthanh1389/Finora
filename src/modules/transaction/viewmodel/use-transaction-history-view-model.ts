@@ -95,7 +95,7 @@ export function useTransactionHistoryViewModel() {
       }
 
       const [page, references, summaryResult] = await Promise.all([
-        dependencies.transactionRepository.listHistoryPage(
+        dependencies.historyService.listPage(
           user.id,
           0,
           typeFilter,
