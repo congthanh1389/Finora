@@ -212,6 +212,7 @@ export async function updateDeviceCategory(userId: number, categoryId: number, n
   if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id.");
   if (typeof name !== "string" || !name.trim()) throw new Error("Category name cannot be empty.");
+  if (icon !== undefined && (typeof icon !== "string" || !icon.trim())) throw new Error("Invalid category icon.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const current = await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId);
   if (!current) throw new Error("Không tìm thấy danh mục."); const trimmed = name.trim(); if (!trimmed) throw new Error("Tên danh mục không được để trống.");
