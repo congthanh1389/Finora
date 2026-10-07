@@ -464,6 +464,12 @@ export async function listDeviceWalletsWithBalances(userId: number): Promise<(Wa
 function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | "updatedAt">) {
   if (!Number.isSafeInteger(input.userId) || input.userId <= 0) throw new Error("Invalid user id.");
   if (!Number.isSafeInteger(input.amount) || input.amount <= 0) throw new Error("Transaction amount must be a positive integer.");
+  if (input.type !== "income" && input.type !== "expense" && input.type !== "transfer") {
+    throw new Error("Invalid transaction type.");
+  }
+  if (typeof input.currency !== "string" || !/^[A-Z]{3}$/.test(input.currency)) {
+    throw new Error("Invalid transaction currency.");
+  }
   if (input.categoryId != null && (!Number.isSafeInteger(input.categoryId) || input.categoryId <= 0)) {
     throw new Error("Invalid category id.");
   }
