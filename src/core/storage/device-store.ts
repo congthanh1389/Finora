@@ -462,6 +462,7 @@ export async function listDeviceWalletsWithBalances(userId: number): Promise<(Wa
 }
 
 function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | "updatedAt">) {
+  if (!Number.isSafeInteger(input.userId) || input.userId <= 0) throw new Error("Invalid user id.");
   if (!Number.isSafeInteger(input.amount) || input.amount <= 0) throw new Error("Transaction amount must be a positive integer.");
   if (input.type === "transfer") {
     if (input.walletId != null || input.categoryId != null) throw new Error("Transfer must use source and destination wallets.");
@@ -474,7 +475,10 @@ function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | 
 }
 export async function createDeviceTransaction(input: Omit<Transaction, "id" | "createdAt" | "updatedAt">): Promise<Transaction> {
   const db = await getDeviceDatabase(); await migrateDatabase(db); validateTransactionInput(input);
-  const now = new Date(); const occurredAt = input.occurredAt ?? now; let transaction: Transaction;
+  const now = new Date();
+  const occurredAt = input.occurredAt ?? now;
+  if (Number.isNaN(occurredAt.getTime())) throw new Error("Transaction date is invalid.");
+  let transaction: Transaction;
   await db.withTransactionAsync(async () => {
     if (input.categoryId != null) {
       const category = await db.getFirstAsync<{ id: number; type: string; is_archived: number }>(
