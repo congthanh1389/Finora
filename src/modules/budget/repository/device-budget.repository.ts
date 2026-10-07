@@ -283,6 +283,9 @@ export class DeviceBudgetRepository {
     const rows = await this.listByPeriod(userId, periodStart!, periodEnd!);
     const updated = rows.find((item) => item.id === budgetId);
     if (!updated) throw new Error("Không thể đọc ngân sách sau khi cập nhật.");
+    if (updated.userId !== userId || updated.id !== budgetId) {
+      throw new Error("Dữ liệu ngân sách sau cập nhật không khớp.");
+    }
     return updated;
   }
 
