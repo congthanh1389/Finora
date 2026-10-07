@@ -153,24 +153,7 @@ async function readDeviceAccounts(): Promise<LocalAccount[]> {
     merged.push({ ...secure, email: secure.email ?? "" });
   }
 
-  if (merged.length > 0) return merged;
-
-  const currentUser = await getUserInfo();
-  if (currentUser?.email) {
-    try {
-      await upsertDeviceLocalAccount({
-        id: currentUser.id,
-        openId: currentUser.openId,
-        name: currentUser.name,
-        email: currentUser.email,
-        loginMethod: currentUser.loginMethod,
-        lastSignedIn: new Date(currentUser.lastSignedIn),
-      });
-    } catch {}
-    return [{ ...currentUser, password: "" }];
-  }
-
-  return [];
+  return merged;
 }
 
 export async function localGetAccount(email?: string): Promise<LocalAccount | null> {
