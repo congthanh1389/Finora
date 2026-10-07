@@ -307,7 +307,7 @@ export async function restoreDeviceCategory(userId: number, categoryId: number):
   return categoryFromRow(await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId));
 }
 
-export async function clearDeviceFinancialData(userId: number): Promise<void>
+export async function clearDeviceFinancialData(userId: number): Promise<void> {
   if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   const db = await getDeviceDatabase();
   await migrateDatabase(db);
