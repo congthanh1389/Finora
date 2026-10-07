@@ -8,7 +8,7 @@ export class DashboardService {
   constructor(private readonly repository: DashboardRepository) {}
 
   async load(userId: number): Promise<DashboardData> {
-    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id");
     return this.repository.getDashboardData(userId);
   }
 }
