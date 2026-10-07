@@ -3,10 +3,7 @@ import * as Auth from "@/lib/_core/auth";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Platform } from "react-native";
 
-type UseAuthOptions = {
-  autoFetch?: boolean;
-};
-
+type UseAuthOptions = { autoFetch?: boolean };
 type AuthStateListener = (user: Auth.User | null) => void;
 const authStateListeners = new Set<AuthStateListener>();
 
@@ -29,14 +26,10 @@ export function useAuth(options?: UseAuthOptions) {
       if (Platform.OS === "web") {
         console.log("[useAuth] Web platform: fetching user from API...");
         const apiUser = await Api.getMe();
-
         if (apiUser) {
           const userInfo: Auth.User = {
-            id: apiUser.id,
-            openId: apiUser.openId,
-            name: apiUser.name,
-            email: apiUser.email,
-            loginMethod: apiUser.loginMethod,
+            id: apiUser.id, openId: apiUser.openId, name: apiUser.name,
+            email: apiUser.email, loginMethod: apiUser.loginMethod,
             lastSignedIn: new Date(apiUser.lastSignedIn),
           };
           setUser(userInfo);
@@ -52,8 +45,14 @@ export function useAuth(options?: UseAuthOptions) {
 
       console.log("[useAuth] Native platform: validating local session...");
       const sessionToken = await Auth.getSessionToken();
+      if (!sessionToken) {
+        console.log("[useAuth] Local session token missing, setting user to null");
+        setUser(null);
+        return;
+      }
+
       const localAccount = await Auth.localGetAccount();
-      if (!sessionToken || !localAccount) {
+      if (!localAccount) {
         console.log("[useAuth] Local session/account missing, setting user to null");
         setUser(null);
         return;
@@ -62,18 +61,14 @@ export function useAuth(options?: UseAuthOptions) {
       const expectedToken = `local-session-${localAccount.id}`;
       if (sessionToken !== expectedToken) {
         console.log("[useAuth] Local session token is invalid, clearing session");
-        await Auth.removeSessionToken();
-        await Auth.clearUserInfo();
+        await Auth.localLogout();
         setUser(null);
         return;
       }
 
       const user: Auth.User = {
-        id: localAccount.id,
-        openId: localAccount.openId,
-        name: localAccount.name,
-        email: localAccount.email,
-        loginMethod: localAccount.loginMethod,
+        id: localAccount.id, openId: localAccount.openId, name: localAccount.name,
+        email: localAccount.email, loginMethod: localAccount.loginMethod,
         lastSignedIn: new Date(localAccount.lastSignedIn),
       };
       await Auth.setUserInfo(user);
@@ -91,11 +86,8 @@ export function useAuth(options?: UseAuthOptions) {
 
   const logout = useCallback(async () => {
     try {
-      if (Platform.OS === "web") {
-        await Api.logout();
-      } else {
-        await Auth.localLogout();
-      }
+      if (Platform.OS === "web") await Api.logout();
+      else await Auth.localLogout();
     } catch {
       console.error("[Auth] Logout failed");
     } finally {
@@ -118,27 +110,17 @@ export function useAuth(options?: UseAuthOptions) {
       setLoading(false);
     };
     authStateListeners.add(listener);
-    return () => {
-      authStateListeners.delete(listener);
-    };
+    return () => authStateListeners.delete(listener);
   }, []);
 
   useEffect(() => {
     console.log("[useAuth] useEffect triggered");
-    if (autoFetch) {
-      fetchUser();
-    } else {
+    if (autoFetch) fetchUser();
+    else {
       console.log("[useAuth] autoFetch disabled, setting loading to false");
       setLoading(false);
     }
   }, [autoFetch, fetchUser]);
 
-  return {
-    user,
-    loading,
-    error,
-    isAuthenticated,
-    refresh: fetchUser,
-    logout,
-  };
+  return { user, loading, error, isAuthenticated, refresh: fetchUser, logout };
 }
