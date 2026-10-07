@@ -1,10 +1,7 @@
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { useCallback, useState } from "react";
-import { useFocusEffect, useRouter } from "expo-router";
-import * as Auth from "@/lib/_core/auth";
-import { DashboardService } from "@/src/modules/dashboard/service/dashboard.service";
-import { DeviceDashboardRepository } from "@/src/modules/dashboard/repository/device-dashboard.repository";
-import type { DashboardData } from "@/src/modules/dashboard/types/dashboard.types";
+import { useState } from "react";
+import { useRouter } from "expo-router";
+import { useDashboardViewModel } from "@/src/modules/dashboard/viewmodel/use-dashboard-view-model";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
 import { ScreenContainer } from "@/components/screen-container";
@@ -57,21 +54,7 @@ function changePercent(current: number, previous: number) {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [greeting] = useState(getGreeting);
-  const [greetingMessage] = useState(() => getRandomMessage(greeting.messages));
-
-  const load = useCallback(async () => {
-    try {
-      const user = await Auth.getUserInfo();
-      if (!user) return setData(null);
-      setData(await new DashboardService(new DeviceDashboardRepository()).load(user.id));
-    } catch {
-      setData(null);
-    }
-  }, []);
-
-  useFocusEffect(useCallback(() => { void load(); }, [load]));
+  const { data } = useDashboardViewModel();
 
   const current = data?.currentMonth;
   const previous = data?.previousMonth;
