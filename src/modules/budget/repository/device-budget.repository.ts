@@ -155,7 +155,13 @@ export class DeviceBudgetRepository {
       "SELECT id, type, is_archived FROM categories WHERE user_id = ? AND id = ?", input.userId, input.categoryId,
     );
     if (!category) throw new Error("Không tìm thấy danh mục.");
-    if (category.type !== "expense" || Number(category.is_archived) === 1) throw new Error("Chỉ có thể lập ngân sách cho danh mục chi tiêu đang hoạt động.");
+    if (!positiveSafeInteger(Number(category.id))) {
+      throw new Error("Invalid budget category reference.");
+    }
+    if (category.type !== "expense" || ![0, 1].includes(Number(category.is_archived))) {
+      throw new Error("Invalid persisted category state.");
+    }
+    if (Number(category.is_archived) === 1) throw new Error("Chỉ có thể lập ngân sách cho danh mục chi tiêu đang hoạt động.");
     if (input.walletId != null) {
       const wallet = await db.getFirstAsync<{ id: number; currency: string; is_archived: number }>(
         "SELECT id, currency, is_archived FROM wallets WHERE user_id = ? AND id = ?", input.userId, input.walletId,
