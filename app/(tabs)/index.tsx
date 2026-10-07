@@ -54,6 +54,8 @@ function changePercent(current: number, previous: number) {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [greeting] = useState(getGreeting);
+  const [greetingMessage] = useState(() => getRandomMessage(greeting.messages));
   const { data } = useDashboardViewModel();
 
   const current = data?.currentMonth;
