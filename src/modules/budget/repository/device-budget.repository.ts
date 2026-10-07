@@ -258,7 +258,12 @@ export class DeviceBudgetRepository {
         "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? AND period_start = ? AND period_end = ? AND (wallet_id = ? OR (wallet_id IS NULL AND ? IS NULL)) AND id <> ? LIMIT 1",
         userId, nextCategoryId, current.period_start, current.period_end, nextWalletId, nextWalletId, budgetId,
       );
-      if (duplicate) throw new Error("Ngân sách cho danh mục và ví này đã tồn tại.");
+      if (duplicate) {
+        if (!positiveSafeInteger(Number(duplicate.id))) {
+          throw new Error("Invalid persisted budget identifier.");
+        }
+        throw new Error("Ngân sách cho danh mục và ví này đã tồn tại.");
+      }
       await db.runAsync(
         "UPDATE budgets SET category_id = ?, wallet_id = ?, amount = ?, updated_at = ? WHERE user_id = ? AND id = ?",
         nextCategoryId, nextWalletId, input.amount ?? Number(current.amount), new Date().toISOString(), userId, budgetId,
