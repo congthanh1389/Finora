@@ -22,8 +22,8 @@ export class WalletService {
   }
   async getWallet(userId: number, walletId: number): Promise<WalletSummary | undefined> { const wallet = await this.repository.findById(userId, walletId); return wallet ? this.toSummary(wallet) : undefined; }
   async updateWallet(userId: number, walletId: number, input: Partial<Pick<WalletSummary, "name" | "type" | "allowNegative">>): Promise<WalletSummary> {
-    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
-    if (!Number.isInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id");
+    if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id");
+    if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id");
     if (input.name !== undefined && !input.name.trim()) throw new Error("Wallet name is required");
     const current = await this.repository.findById(userId, walletId);
     if (!current) throw new Error("Wallet not found.");
