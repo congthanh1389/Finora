@@ -4,13 +4,13 @@ import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-nativ
 
 import * as Auth from "@/lib/_core/auth";
 import { ScreenContainer } from "@/components/screen-container";
-import { CategoryService } from "@/src/modules/category/service/category.service";
+import { createCategoryDependencies } from "@/src/modules/category/category.factory";
 import { CategoryIcon, EXPENSE_CATEGORY_ICONS, INCOME_CATEGORY_ICONS } from "@/components/ui/category-icons";
 import type { Category } from "@/drizzle/schema";
 
 export default function CategoryScreen() {
   const router = useRouter();
-  const service = useMemo(() => new CategoryService(), []);
+  const { categoryService: service } = useMemo(() => createCategoryDependencies(), []);
   const [type, setType] = useState<Category["type"]>("expense");
   const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState("");
