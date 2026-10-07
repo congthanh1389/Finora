@@ -7,7 +7,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { CategoryService } from "@/src/modules/category/service/category.service";
 import { BudgetService } from "@/src/modules/budget/service/budget.service";
 import { DeviceBudgetRepository } from "@/src/modules/budget/repository/device-budget.repository";
-import { listDeviceWallets, type DeviceLocalAccount } from "@/src/core/storage/device-store";
+import { listDeviceWallets } from "@/src/core/storage/device-store";
 import type { Category, Wallet } from "@/drizzle/schema";
 import type { BudgetSummary } from "@/src/modules/budget/types/budget.types";
 
