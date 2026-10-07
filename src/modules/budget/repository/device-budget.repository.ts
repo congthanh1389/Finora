@@ -187,7 +187,12 @@ export class DeviceBudgetRepository {
         input.walletId ?? null,
         input.walletId ?? null,
       );
-      if (duplicate) throw new Error("Ngân sách cho danh mục và ví này đã tồn tại.");
+      if (duplicate) {
+        if (!positiveSafeInteger(Number(duplicate.id))) {
+          throw new Error("Invalid persisted budget identifier.");
+        }
+        throw new Error("Ngân sách cho danh mục và ví này đã tồn tại.");
+      }
       result = await db.runAsync(
         "INSERT INTO budgets (user_id, category_id, wallet_id, amount, currency, period_start, period_end, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         input.userId, input.categoryId, input.walletId ?? null, input.amount, input.currency ?? "VND",
