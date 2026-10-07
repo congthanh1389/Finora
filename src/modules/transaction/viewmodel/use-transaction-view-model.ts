@@ -95,7 +95,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
         throw new Error("Không tìm thấy người dùng hiện tại.");
       }
 
-      const currentWallets = (await walletService.listWallets(currentUser.id)).filter(
+      const currentWallets = (await dependencies.walletService.listWallets(currentUser.id)).filter(
         (wallet) => !wallet.isArchived,
       );
       const matchingCategories = await loadCategories(currentUser.id, transactionType);
