@@ -7,7 +7,7 @@ function makeCategory(overrides: Record<string, unknown> = {}) {
     id: 1,
     userId: 1,
     name: "Nhà Cửa",
-    type: "expense",
+    type: "expense" as const,
     parentId: null,
     icon: "home-outline",
     isArchived: 0,
