@@ -8,6 +8,7 @@ import * as Auth from "@/lib/_core/auth";
 import { CategoryRepository } from "../../category/repository/category.repository";
 import { DeviceWalletRepository } from "../../wallet/repository/device-wallet.repository";
 import { TransactionEditService } from "../service/transaction-edit.service";
+import { DeviceTransactionEditRepository } from "../repository/device-transaction-edit.repository";
 
 function formatAmount(value: string) {
   const digits = value.replace(/[^0-9]/g, "");
@@ -19,7 +20,8 @@ export function TransactionEditView() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string }>();
   const transactionId = Number(params.id);
-  const editService = useMemo(() => new TransactionEditService(), []);
+  const editRepository = useMemo(() => new DeviceTransactionEditRepository(), []);
+  const editService = useMemo(() => new TransactionEditService(editRepository), [editRepository]);
   const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
   const categoryRepository = useMemo(() => new CategoryRepository(), []);
 
