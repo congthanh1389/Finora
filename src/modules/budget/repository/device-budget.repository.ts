@@ -91,47 +91,44 @@ export class DeviceBudgetRepository {
   async update(userId: number, budgetId: number, input: UpdateBudgetInput): Promise<BudgetSummary> {
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
-    const current = await db.getFirstAsync<{
-      id: number; user_id: number; category_id: number; wallet_id: number | null; amount: number; currency: string;
-      period_start: string; period_end: string; created_at: string; updated_at: string;
-    }>(
-      "SELECT id, user_id, category_id, wallet_id, amount, currency, period_start, period_end, created_at, updated_at FROM budgets WHERE user_id = ? AND id = ?",
-      userId, budgetId,
-    );
-    if (!current) throw new Error("Không tìm thấy ngân sách.");
-    const nextCategoryId = input.categoryId ?? Number(current.category_id);
-    const nextWalletId = input.walletId === undefined ? (current.wallet_id == null ? null : Number(current.wallet_id)) : input.walletId;
-    const category = await db.getFirstAsync<{ id: number; type: string; is_archived: number }>(
-      "SELECT id, type, is_archived FROM categories WHERE user_id = ? AND id = ?", userId, nextCategoryId,
-    );
-    if (!category || category.type !== "expense" || Number(category.is_archived) === 1) throw new Error("Chỉ có thể dùng danh mục chi tiêu đang hoạt động.");
-    if (nextWalletId != null) {
-      const wallet = await db.getFirstAsync<{ id: number; currency: string; is_archived: number }>(
-        "SELECT id, currency, is_archived FROM wallets WHERE user_id = ? AND id = ?", userId, nextWalletId,
+    let periodStart: Date;
+    let periodEnd: Date;
+    await db.withTransactionAsync(async () => {
+      const current = await db.getFirstAsync<{
+        id: number; user_id: number; category_id: number; wallet_id: number | null; amount: number; currency: string;
+        period_start: string; period_end: string; created_at: string; updated_at: string;
+      }>(
+        "SELECT id, user_id, category_id, wallet_id, amount, currency, period_start, period_end, created_at, updated_at FROM budgets WHERE user_id = ? AND id = ?",
+        userId, budgetId,
       );
-      if (!wallet) throw new Error("Không tìm thấy ví.");
-      if (Number(wallet.is_archived) === 1) throw new Error("Không thể dùng ví đã lưu trữ.");
-      if (String(wallet.currency) !== String(current.currency)) throw new Error("Tiền tệ ngân sách không khớp với ví.");
-    }
-    const duplicate = await db.getFirstAsync<{ id: number }>(
-      "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? AND period_start = ? AND period_end = ? AND (wallet_id = ? OR (wallet_id IS NULL AND ? IS NULL)) AND id <> ? LIMIT 1",
-      userId,
-      nextCategoryId,
-      current.period_start,
-      current.period_end,
-      nextWalletId,
-      nextWalletId,
-      budgetId,
-    );
-    if (duplicate) throw new Error("Ngân sách cho danh mục và ví này đã tồn tại.");
-    await db.runAsync(
-      "UPDATE budgets SET category_id = ?, wallet_id = ?, amount = ?, updated_at = ? WHERE user_id = ? AND id = ?",
-      nextCategoryId,
-      nextWalletId,
-      input.amount ?? Number(current.amount),
-      new Date().toISOString(), userId, budgetId,
-    );
-    const rows = await this.listByPeriod(userId, new Date(current.period_start), new Date(current.period_end));
+      if (!current) throw new Error("Không tìm thấy ngân sách.");
+      const nextCategoryId = input.categoryId ?? Number(current.category_id);
+      const nextWalletId = input.walletId === undefined ? (current.wallet_id == null ? null : Number(current.wallet_id)) : input.walletId;
+      const category = await db.getFirstAsync<{ id: number; type: string; is_archived: number }>(
+        "SELECT id, type, is_archived FROM categories WHERE user_id = ? AND id = ?", userId, nextCategoryId,
+      );
+      if (!category || category.type !== "expense" || Number(category.is_archived) === 1) throw new Error("Chỉ có thể dùng danh mục chi tiêu đang hoạt động.");
+      if (nextWalletId != null) {
+        const wallet = await db.getFirstAsync<{ id: number; currency: string; is_archived: number }>(
+          "SELECT id, currency, is_archived FROM wallets WHERE user_id = ? AND id = ?", userId, nextWalletId,
+        );
+        if (!wallet) throw new Error("Không tìm thấy ví.");
+        if (Number(wallet.is_archived) === 1) throw new Error("Không thể dùng ví đã lưu trữ.");
+        if (String(wallet.currency) !== String(current.currency)) throw new Error("Tiền tệ ngân sách không khớp với ví.");
+      }
+      const duplicate = await db.getFirstAsync<{ id: number }>(
+        "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? AND period_start = ? AND period_end = ? AND (wallet_id = ? OR (wallet_id IS NULL AND ? IS NULL)) AND id <> ? LIMIT 1",
+        userId, nextCategoryId, current.period_start, current.period_end, nextWalletId, nextWalletId, budgetId,
+      );
+      if (duplicate) throw new Error("Ngân sách cho danh mục và ví này đã tồn tại.");
+      await db.runAsync(
+        "UPDATE budgets SET category_id = ?, wallet_id = ?, amount = ?, updated_at = ? WHERE user_id = ? AND id = ?",
+        nextCategoryId, nextWalletId, input.amount ?? Number(current.amount), new Date().toISOString(), userId, budgetId,
+      );
+      periodStart = new Date(current.period_start);
+      periodEnd = new Date(current.period_end);
+    });
+    const rows = await this.listByPeriod(userId, periodStart!, periodEnd!);
     const updated = rows.find((item) => item.id === budgetId);
     if (!updated) throw new Error("Không thể đọc ngân sách sau khi cập nhật.");
     return updated;
