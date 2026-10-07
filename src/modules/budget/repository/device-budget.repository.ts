@@ -248,6 +248,9 @@ export class DeviceBudgetRepository {
           "SELECT id, currency, is_archived FROM wallets WHERE user_id = ? AND id = ?", userId, nextWalletId,
         );
         if (!wallet) throw new Error("Không tìm thấy ví.");
+        if (!positiveSafeInteger(Number(wallet.id)) || !/^[A-Z]{3}$/.test(String(wallet.currency)) || ![0, 1].includes(Number(wallet.is_archived))) {
+          throw new Error("Invalid persisted wallet state.");
+        }
         if (Number(wallet.is_archived) === 1) throw new Error("Không thể dùng ví đã lưu trữ.");
         if (String(wallet.currency) !== String(current.currency)) throw new Error("Tiền tệ ngân sách không khớp với ví.");
       }
