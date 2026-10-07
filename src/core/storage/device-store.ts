@@ -532,6 +532,15 @@ function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | 
   if (input.categoryId != null && (!Number.isSafeInteger(input.categoryId) || input.categoryId <= 0)) {
     throw new Error("Invalid category id.");
   }
+  if (input.walletId != null && (!Number.isSafeInteger(input.walletId) || input.walletId <= 0)) {
+    throw new Error("Invalid wallet id.");
+  }
+  if (input.sourceWalletId != null && (!Number.isSafeInteger(input.sourceWalletId) || input.sourceWalletId <= 0)) {
+    throw new Error("Invalid source wallet id.");
+  }
+  if (input.destinationWalletId != null && (!Number.isSafeInteger(input.destinationWalletId) || input.destinationWalletId <= 0)) {
+    throw new Error("Invalid destination wallet id.");
+  }
   if (input.note != null && typeof input.note !== "string") {
     throw new Error("Invalid transaction note.");
   }
