@@ -473,10 +473,10 @@ function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | 
   if (input.categoryId != null && (!Number.isSafeInteger(input.categoryId) || input.categoryId <= 0)) {
     throw new Error("Invalid category id.");
   }
+  if (input.note != null && typeof input.note !== "string") {
+    throw new Error("Invalid transaction note.");
+  }
   if (input.type === "transfer") {
-    if (input.note != null && typeof input.note !== "string") {
-      throw new Error("Invalid transaction note.");
-    }
     if (!Number.isSafeInteger(input.sourceWalletId) || input.sourceWalletId == null || input.sourceWalletId <= 0) {
       throw new Error("Invalid source wallet id.");
     }
