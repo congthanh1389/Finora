@@ -1,3 +1,4 @@
+/* eslint-disable import/namespace */
 import { DeviceDashboardRepository } from "../repository/device-dashboard.repository";
 
 export class DashboardService {
