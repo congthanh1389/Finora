@@ -5,13 +5,6 @@ const repository = {
   update: vi.fn(),
 };
 
-vi.mock("../../repository/category.repository", () => ({
-  CategoryRepository: class {
-    listByUser = repository.listByUser;
-    update = repository.update;
-  },
-}));
-
 import { CategoryService } from "../category.service";
 
 function makeCategory(overrides = {}) {
@@ -41,7 +34,7 @@ describe("CategoryService.updateCategory", () => {
     repository.listByUser.mockResolvedValue([current]);
     repository.update.mockResolvedValue(updated);
 
-    const service = new CategoryService();
+    const service = new CategoryService(repository);
     const result = await service.updateCategory(
       1,
       1,
