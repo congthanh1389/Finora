@@ -14,7 +14,7 @@ const percent = (value: number) => new Intl.NumberFormat("vi-VN", { maximumFract
 
 const quickActions = [
   { icon: "01_finance_wallet", label: "Ví của tôi", box: "bg-[#EFF6FF]", route: "/wallet" },
-  { icon: "02_management_budget", label: "Ngân sách", box: "bg-[#FFF7ED]", route: null },
+  { icon: "02_management_budget", label: "Ngân sách", box: "bg-[#FFF7ED]", route: "/budget" },
   { icon: "04_reports_report", label: "Báo cáo", box: "bg-[#F5F3FF]", route: "/reports" },
 ] as const;
 
@@ -102,7 +102,7 @@ export default function HomeScreen() {
 
           <TouchableOpacity activeOpacity={0.88} onPress={() => router.push("/transaction/new")} className="flex-row items-center justify-center rounded-full bg-[#22B8A8] px-5 py-4"><Text className="mr-3 text-3xl font-light text-white">+</Text><Text className="text-base font-bold text-white">Thêm giao dịch</Text><Text className="ml-auto text-2xl text-white">›</Text></TouchableOpacity>
 
-          <View className="flex-row gap-3">{quickActions.map((action) => <TouchableOpacity key={action.label} activeOpacity={0.85} onPress={action.route ? () => router.push(action.route) : undefined} disabled={!action.route} className={`flex-1 items-center rounded-2xl border border-white p-3.5 shadow-sm ${action.box} ${!action.route ? "opacity-60" : ""}`}><FinoraMockupIcon name={action.icon} size={46} /><Text className="mt-2 text-center text-sm font-semibold text-[#0F2A5F]">{action.label}</Text><Text className="mt-0.5 text-lg text-[#64748B]">›</Text></TouchableOpacity>)}</View>
+          <View className="flex-row gap-3">{quickActions.map((action) => <TouchableOpacity key={action.label} activeOpacity={0.85} onPress={action.route ? () => router.push(action.route) : undefined} disabled={!action.route} className={`flex-1 items-center rounded-2xl border border-white p-3.5 shadow-sm ${action.box}`}><FinoraMockupIcon name={action.icon} size={46} /><Text className="mt-2 text-center text-sm font-semibold text-[#0F2A5F]">{action.label}</Text><Text className="mt-0.5 text-lg text-[#64748B]">›</Text></TouchableOpacity>)}</View>
 
           <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
             <View className="flex-row items-center"><FinoraMockupIcon name="util_calendar" size={23} /><Text className="ml-2 flex-1 text-lg font-bold uppercase text-[#0F2A5F]">{data?.monthLabel ?? "tháng hiện tại"}</Text><Text className="text-xs font-medium text-[#64748B]">Xem chi tiết ›</Text></View>
