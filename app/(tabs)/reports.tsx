@@ -3,6 +3,7 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useReportViewModel } from "@/src/modules/report/viewmodel/use-report-view-model";
+import type { ReportPeriod } from "@/src/modules/report/service/report.service";
 
 const money = (value: number) => new Intl.NumberFormat("vi-VN").format(value) + " ₫";
 
@@ -24,7 +25,7 @@ export default function ReportsScreen() {
         <Text className="mt-1 text-sm text-[#64748B]">Phân tích thu, chi và dòng tiền theo thời gian.</Text>
 
         <View className="mt-4 flex-row gap-2">
-          {(["current", "previous", "year"] as PeriodKey[]).map((key) => (
+          {(["current", "previous", "year"] as ReportPeriod[]).map((key) => (
             <TouchableOpacity key={key} onPress={() => setPeriod(key)} className={`flex-1 rounded-full px-3 py-2.5 ${period === key ? "bg-[#22B8A8]" : "bg-white border border-[#E2E8F0]"}`}>
               <Text className={`text-center text-xs font-bold ${period === key ? "text-white" : "text-[#64748B]"}`}>
                 {key === "current" ? "Tháng này" : key === "previous" ? "Tháng trước" : "Năm nay"}
