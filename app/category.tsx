@@ -41,9 +41,9 @@ export default function CategoryScreen() {
   );
 
   function confirmDelete(category: Category) {
-    Alert.alert("Xóa danh mục", `Bạn có chắc muốn xóa “${category.name}” khỏi danh sách?`, [
+    Alert.alert("Lưu trữ danh mục", `Bạn có chắc muốn lưu trữ “${category.name}” khỏi danh sách đang dùng?`, [
       { text: "Hủy", style: "cancel" },
-      { text: "Xóa", style: "destructive", onPress: () => void deleteCategory(category.id) },
+      { text: "Lưu trữ", style: "destructive", onPress: () => void deleteCategory(category.id) },
     ]);
   }
 
