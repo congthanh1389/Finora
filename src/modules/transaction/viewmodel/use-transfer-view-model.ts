@@ -2,10 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFocusEffect } from "expo-router";
 
 import * as Auth from "@/lib/_core/auth";
-import { DeviceTransactionRepository } from "../repository/device-transaction.repository";
-import { TransactionService } from "../service/transaction.service";
-import { DeviceWalletRepository } from "../../wallet/repository/device-wallet.repository";
-import { WalletService } from "../../wallet/service/wallet.service";
+import { createTransactionDependencies } from "../transaction.factory";
 import type { WalletSummary } from "../../wallet/types/wallet.types";
 
 export function useTransferViewModel() {
@@ -18,13 +15,7 @@ export function useTransferViewModel() {
   const [isCreating, setCreating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
-  const walletService = useMemo(() => new WalletService(walletRepository), [walletRepository]);
-  const transactionRepository = useMemo(() => new DeviceTransactionRepository(), []);
-  const transactionService = useMemo(
-    () => new TransactionService(transactionRepository),
-    [transactionRepository],
-  );
+  const dependencies = useMemo(() => createTransactionDependencies(), []);
 
   const load = useCallback(async () => {
     try {
@@ -35,7 +26,7 @@ export function useTransferViewModel() {
         setWallets([]);
         return;
       }
-      const list = (await walletService.listWallets(user.id)).filter((wallet) => !wallet.isArchived);
+      const list = (await dependencies.walletService.listWallets(user.id)).filter((wallet) => !wallet.isArchived);
       setWallets(list);
       setSourceWalletId((current) => current ?? list[0]?.id ?? null);
       setDestinationWalletId((current) => current ?? list[1]?.id ?? null);
@@ -44,7 +35,7 @@ export function useTransferViewModel() {
     } finally {
       setLoading(false);
     }
-  }, [walletService]);
+  }, [dependencies.walletService]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -79,7 +70,7 @@ export function useTransferViewModel() {
         throw new Error("Hai ví phải dùng cùng loại tiền.");
       }
 
-      await transactionService.createTransaction({
+      await dependencies.transactionService.createTransaction({
         userId: user.id,
         type: "transfer",
         amount: parsedAmount,
