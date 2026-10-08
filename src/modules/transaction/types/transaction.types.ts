@@ -33,5 +33,4 @@ export type TransactionHistoryFilters = {
   categoryId?: number;
   minAmount?: number;
   maxAmount?: number;
-  search?: string;
 };
