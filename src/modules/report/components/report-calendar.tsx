@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 
 type ReportCalendarProps = {
@@ -47,13 +47,6 @@ export function ReportCalendar({
   const [month, setMonth] = useState(() => startOfMonth(value ?? new Date()));
   const [selected, setSelected] = useState<Date | null>(value ? normalizeDate(value) : null);
 
-  useEffect(() => {
-    if (visible) {
-      const next = value ? normalizeDate(value) : new Date();
-      setSelected(next);
-      setMonth(startOfMonth(next));
-    }
-  }, [value, visible]);
 
   const days = useMemo(() => {
     const firstDay = startOfMonth(month);
