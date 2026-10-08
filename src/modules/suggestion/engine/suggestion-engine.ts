@@ -101,8 +101,8 @@ function pushBudgetSuggestions(input: SuggestionInput, suggestions: Suggestion[]
 
 function pushCategorySuggestion(input: SuggestionInput, suggestions: Suggestion[]): void {
   const top = [...input.categories]
-    .filter((item) => item.expense > 0)
-    .sort((a, b) => b.expense - a.expense)[0];
+    .filter((item) => item.amount > 0)
+    .sort((a, b) => b.amount - a.amount)[0];
 
   if (!top || top.percentage < 25) return;
 
@@ -118,8 +118,8 @@ function pushCategorySuggestion(input: SuggestionInput, suggestions: Suggestion[
 
 function pushWalletSuggestion(input: SuggestionInput, suggestions: Suggestion[]): void {
   const wallet = [...input.wallets]
-    .filter((item) => item.amount > 0)
-    .sort((a, b) => b.amount - a.amount)[0];
+    .filter((item) => item.expense > 0)
+    .sort((a, b) => b.expense - a.expense)[0];
 
   if (!wallet || input.expense <= 0 || wallet.expense < input.expense * 0.25) return;
 
