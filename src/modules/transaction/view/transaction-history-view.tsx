@@ -1,5 +1,5 @@
-import { ActivityIndicator, Alert, FlatList, Pressable, Text, TextInput, View } from "react-native";
-import { useCallback, useMemo } from "react";
+import { ActivityIndicator, Alert, FlatList, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
@@ -12,6 +12,12 @@ import type { Transaction } from "../../../../drizzle/schema";
 
 function formatVnd(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value) + " ₫";
+}
+
+function formatAmountInput(value: string) {
+  const digits = value.replace(/[^0-9]/g, "");
+  if (!digits) return "";
+  return new Intl.NumberFormat("vi-VN").format(Number(digits));
 }
 
 const walletTypeLabels: Record<WalletType, string> = {
@@ -58,10 +64,32 @@ export function TransactionHistoryView() {
     setCustomEnd,
     loadMore,
     deleteTransaction,
+    walletFilterId,
+    categoryFilterId,
+    minAmount,
+    maxAmount,
+    search,
+    searchInput,
+    minAmountInput,
+    maxAmountInput,
+    setWalletFilterId,
+    setCategoryFilterId,
+    setSearchInput,
+    setMinAmountInput,
+    setMaxAmountInput,
+    applyAdvancedFilters,
+    clearAdvancedFilters,
+    hasAdvancedFilters,
   } = useTransactionHistoryViewModel();
 
   const walletMap = useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets]);
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
+  const listRef = useRef<FlatList<Transaction>>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const scrollToTop = useCallback(() => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, []);
 
     const renderItem = useCallback(
         ({ item: transaction, index }: { item: Transaction; index: number }) => {
@@ -137,6 +165,7 @@ const isTransfer = transaction.type === "transfer";
     <ScreenContainer className="bg-[#F8FAFC]">
 
       <FlatList
+        ref={listRef}
         data={transactions}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderItem}
@@ -175,6 +204,88 @@ const isTransfer = transaction.type === "transfer";
           </View>
 
           <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
+            <Text className="text-base font-bold text-[#0F2A5F]">Tìm kiếm giao dịch</Text>
+            <View className="mt-3 flex-row gap-2">
+              <TextInput
+                value={searchInput}
+                onChangeText={setSearchInput}
+                placeholder="Ghi chú, ví hoặc danh mục..."
+                returnKeyType="search"
+                onSubmitEditing={applyAdvancedFilters}
+                className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2.5 text-sm"
+              />
+              <Pressable onPress={applyAdvancedFilters} className="rounded-xl bg-[#0F2A5F] px-4 py-2.5">
+                <Text className="font-bold text-white">Tìm</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-[#0F2A5F]">Bộ lọc nâng cao</Text>
+              {hasAdvancedFilters ? (
+                <Pressable onPress={clearAdvancedFilters}>
+                  <Text className="text-xs font-bold text-[#BE123C]">Xóa lọc</Text>
+                </Pressable>
+              ) : null}
+            </View>
+
+            <Text className="mt-3 text-xs font-semibold text-[#64748B]">Ví</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
+              <View className="flex-row gap-2">
+                <Pressable onPress={() => setWalletFilterId(undefined)} className={"rounded-full px-3 py-2 " + (walletFilterId === undefined ? "bg-[#0F2A5F]" : "bg-[#F1F5F9]")}>
+                  <Text className={"text-xs font-bold " + (walletFilterId === undefined ? "text-white" : "text-[#64748B]")}>Tất cả ví</Text>
+                </Pressable>
+                {wallets.map((wallet) => (
+                  <Pressable key={wallet.id} onPress={() => setWalletFilterId(wallet.id)} className={"rounded-full px-3 py-2 " + (walletFilterId === wallet.id ? "bg-[#0F2A5F]" : "bg-[#F1F5F9]")}>
+                    <Text className={"text-xs font-semibold " + (walletFilterId === wallet.id ? "text-white" : "text-[#64748B]")}>{wallet.name}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+
+            <Text className="mt-3 text-xs font-semibold text-[#64748B]">Danh mục</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
+              <View className="flex-row gap-2">
+                <Pressable onPress={() => setCategoryFilterId(undefined)} className={"rounded-full px-3 py-2 " + (categoryFilterId === undefined ? "bg-[#0F2A5F]" : "bg-[#F1F5F9]")}>
+                  <Text className={"text-xs font-bold " + (categoryFilterId === undefined ? "text-white" : "text-[#64748B]")}>Tất cả danh mục</Text>
+                </Pressable>
+                {categories.map((category) => (
+                  <Pressable key={category.id} onPress={() => setCategoryFilterId(category.id)} className={"rounded-full px-3 py-2 " + (categoryFilterId === category.id ? "bg-[#0F2A5F]" : "bg-[#F1F5F9]")}>
+                    <Text className={"text-xs font-semibold " + (categoryFilterId === category.id ? "text-white" : "text-[#64748B]")}>{category.name}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+
+            <Text className="mt-3 text-xs font-semibold text-[#64748B]">Khoảng tiền</Text>
+            <View className="mt-2 flex-row gap-2">
+              <TextInput
+                value={minAmountInput}
+                onChangeText={(value) => setMinAmountInput(formatAmountInput(value))}
+                placeholder="Từ"
+                keyboardType="numeric"
+                className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2.5 text-sm"
+              />
+              <TextInput
+                value={maxAmountInput}
+                onChangeText={(value) => setMaxAmountInput(formatAmountInput(value))}
+                placeholder="Đến"
+                keyboardType="numeric"
+                className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2.5 text-sm"
+              />
+              <Pressable onPress={applyAdvancedFilters} className="rounded-xl bg-[#22B8A8] px-4 py-2.5">
+                <Text className="font-bold text-white">Lọc</Text>
+              </Pressable>
+            </View>
+            {hasAdvancedFilters ? (
+              <Text className="mt-3 text-xs text-[#0F766E]">
+                Đang lọc{search ? " · "" + search + """ : ""}{walletFilterId !== undefined ? " · theo ví" : ""}{categoryFilterId !== undefined ? " · theo danh mục" : ""}{minAmount !== undefined || maxAmount !== undefined ? " · theo khoảng tiền" : ""}
+              </Text>
+            ) : null}
+          </View>
+
+          <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
             <Text className="text-base font-bold text-[#0F2A5F]">Tổng quan giao dịch</Text>
             <View className="mt-3 flex-row gap-2">
               {[
@@ -195,7 +306,7 @@ const isTransfer = transaction.type === "transfer";
                 <TextInput value={customEnd} onChangeText={setCustomEnd} placeholder="YYYY-MM-DD" className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2 text-sm" />
               </View>
             ) : null}
-            {summary ? (
+            {summary && !hasAdvancedFilters ? (
               <View className="mt-4 rounded-2xl bg-[#F8FAFC] p-4">
                 <Text className="text-xs font-semibold text-[#64748B]">
                   {typeFilter === "all"
@@ -255,14 +366,23 @@ const isTransfer = transaction.type === "transfer";
           if (!isLoading && !isLoadingMore && hasMore) void loadMore();
         }}
         onEndReachedThreshold={0.5}
+        onScroll={(event) => {
+          setShowScrollTop(event.nativeEvent.contentOffset.y > 500);
+        }}
+        scrollEventThrottle={200}
         initialNumToRender={12}
         maxToRenderPerBatch={10}
         windowSize={7}
         removeClippedSubviews
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 32 }}
-        extraData={{ typeFilter, periodKey, isLoadingMore }}
+        extraData={{ typeFilter, periodKey, isLoadingMore, walletFilterId, categoryFilterId, minAmount, maxAmount, search }}
       />
+      {showScrollTop ? (
+        <Pressable onPress={scrollToTop} className="absolute bottom-5 right-5 h-12 w-12 items-center justify-center rounded-full bg-[#0F2A5F] shadow-lg">
+          <Text className="text-xl font-bold text-white">↑</Text>
+        </Pressable>
+      ) : null}
     </ScreenContainer>
   );
 }
