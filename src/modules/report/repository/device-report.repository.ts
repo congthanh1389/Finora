@@ -149,14 +149,17 @@ export class DeviceReportRepository {
          COALESCE((SELECT SUM(t.amount) FROM transactions t
            WHERE t.user_id = b.user_id AND t.type = 'expense'
              AND t.category_id = b.category_id
-             AND t.occurred_at >= b.period_start AND t.occurred_at < b.period_end
+             AND t.occurred_at >= CASE WHEN b.period_start > ? THEN b.period_start ELSE ? END
+             AND t.occurred_at < CASE WHEN b.period_end < ? THEN b.period_end ELSE ? END
              AND (b.wallet_id IS NULL OR t.wallet_id = b.wallet_id)), 0) AS spent
        FROM budgets b
        LEFT JOIN categories c ON c.id = b.category_id AND c.user_id = b.user_id
        LEFT JOIN wallets w ON w.id = b.wallet_id AND w.user_id = b.user_id
-       WHERE b.user_id = ? AND b.period_start = ? AND b.period_end = ?
+       WHERE b.user_id = ?
+         AND b.period_start < ?
+         AND b.period_end > ?
        ORDER BY spent DESC, b.id ASC`,
-      userId, startIso, endIso,
+      userId, startIso, endIso, startIso, endIso,
     );
 
     return {
