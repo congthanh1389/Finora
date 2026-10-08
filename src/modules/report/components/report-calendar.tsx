@@ -46,6 +46,7 @@ export function ReportCalendar({
 }: ReportCalendarProps) {
   const [month, setMonth] = useState(() => startOfMonth(value ?? new Date()));
   const [selected, setSelected] = useState<Date | null>(value ? normalizeDate(value) : null);
+  const [calendarVisible, setCalendarVisible] = useState(false);
 
 
   const weeks = useMemo(() => {
@@ -83,18 +84,14 @@ export function ReportCalendar({
             </Pressable>
           </View>
 
-          <View className="mt-5 flex-row rounded-t-2xl border border-b-0 border-[#E2E8F0] bg-[#F1F5F9] py-2">
-            {WEEKDAYS.map((day, index) => (
-              <View
-                key={day}
-                className={`flex-1 items-center ${index < 6 ? "border-r border-[#E2E8F0]" : ""}`}
-              >
-                <Text className="text-xs font-bold text-[#64748B]">{day}</Text>
-              </View>
-            ))}
-          </View>
+          <View className="mt-5 rounded-2xl border border-[#E2E8F0] bg-white p-3">
+            <View className="flex-row rounded-xl bg-[#F1F5F9] py-2">
+              {WEEKDAYS.map((day) => (
+                <Text key={day} className="flex-1 text-center text-xs font-bold text-[#64748B]">{day}</Text>
+              ))}
+            </View>
 
-          <View className="mt-0 overflow-hidden rounded-b-2xl border border-t-0 border-[#E2E8F0] bg-[#F8FAFC]">
+            <View className="mt-2 overflow-hidden rounded-xl border border-[#E2E8F0] bg-[#F8FAFC]">
             {weeks.map((week, weekIndex) => (
               <View
                 key={`week-${weekIndex}`}
