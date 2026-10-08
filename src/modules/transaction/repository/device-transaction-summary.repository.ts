@@ -2,6 +2,7 @@ import { getDeviceDatabase, initializeDeviceStorage } from "../../../core/storag
 import type {
   TransactionSummaryFilter,
   TransactionSummaryResult,
+import type { TransactionHistoryFilters } from "../types/transaction.types";
 } from "../types/transaction-summary.types";
 
 type SummaryRow = {
@@ -13,7 +14,8 @@ type SummaryRow = {
   expense_count: number;
   transfer_amount: number | null;
   transfer_count: number;
-};
+    filter: TransactionSummaryFilter = "all",
+    filters?: TransactionHistoryFilters,
 
 export class DeviceTransactionSummaryRepository {
   async getSummary(
@@ -25,25 +27,57 @@ export class DeviceTransactionSummaryRepository {
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
 
-    const typeClause = filter === "all" ? "" : " AND type = ?";
+    const conditions = ["t.user_id = ?", "t.occurred_at >= ?", "t.occurred_at < ?"];
     const params: (string | number)[] = [userId, start.toISOString(), end.toISOString()];
-    if (filter !== "all") params.push(filter);
+
+    if (filter !== "all") {
+      conditions.push("t.type = ?");
+      params.push(filter);
+    }
+    if (filters?.walletId !== undefined) {
+      conditions.push("(t.wallet_id = ? OR t.source_wallet_id = ? OR t.destination_wallet_id = ?)");
+      params.push(filters.walletId, filters.walletId, filters.walletId);
+    }
+    if (filters?.categoryId !== undefined) {
+      conditions.push("t.category_id = ?");
+      params.push(filters.categoryId);
+    }
+    if (filters?.minAmount !== undefined) {
+      conditions.push("t.amount >= ?");
+      params.push(filters.minAmount);
+    }
+    if (filters?.maxAmount !== undefined) {
+      conditions.push("t.amount <= ?");
+      params.push(filters.maxAmount);
+    }
+    if (filters?.search?.trim()) {
+      const search = filters.search.trim();
+      conditions.push(`(
+        INSTR(LOWER(COALESCE(t.note, '')), LOWER(?)) > 0
+        OR INSTR(LOWER(COALESCE(w.name, '')), LOWER(?)) > 0
+        OR INSTR(LOWER(COALESCE(sw.name, '')), LOWER(?)) > 0
+        OR INSTR(LOWER(COALESCE(dw.name, '')), LOWER(?)) > 0
+        OR INSTR(LOWER(COALESCE(c.name, '')), LOWER(?)) > 0
+      )`);
+      params.push(search, search, search, search, search);
+    }
 
     const row = await db.getFirstAsync<SummaryRow>(
       `SELECT
-         COALESCE(SUM(amount), 0) AS total_amount,
+         COALESCE(SUM(t.amount), 0) AS total_amount,
          COUNT(*) AS transaction_count,
-         COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income_amount,
+         COALESCE(SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE 0 END), 0) AS income_amount,
          SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END) AS income_count,
-         COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense_amount,
+         COALESCE(SUM(CASE WHEN t.type = 'expense' THEN t.amount ELSE 0 END), 0) AS expense_amount,
          SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END) AS expense_count,
-         COALESCE(SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END), 0) AS transfer_amount,
+         COALESCE(SUM(CASE WHEN t.type = 'transfer' THEN t.amount ELSE 0 END), 0) AS transfer_amount,
          SUM(CASE WHEN type = 'transfer' THEN 1 ELSE 0 END) AS transfer_count
-       FROM transactions
-       WHERE user_id = ?
-         AND occurred_at >= ?
-         AND occurred_at < ?${typeClause}`,
-      ...params,
+       FROM transactions t
+       LEFT JOIN wallets w ON w.id = t.wallet_id AND w.user_id = t.user_id
+       LEFT JOIN wallets sw ON sw.id = t.source_wallet_id AND sw.user_id = t.user_id
+       LEFT JOIN wallets dw ON dw.id = t.destination_wallet_id AND dw.user_id = t.user_id
+       LEFT JOIN categories c ON c.id = t.category_id AND c.user_id = t.user_id
+       WHERE ${conditions.join(" AND ")}`,
     );
 
     const incomeAmount = Number(row?.income_amount ?? 0);
