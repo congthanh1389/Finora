@@ -5,8 +5,7 @@ import {
   listDeviceTransactions,
 } from "../../../core/storage/device-store";
 import type { Transaction } from "../../../../drizzle/schema";
-import type { CreateTransactionInput, TransactionType } from "../types/transaction.types";
-import type { TransactionHistoryFilters } from "../service/transaction-history.service";
+import type { CreateTransactionInput, TransactionHistoryFilters, TransactionType } from "../types/transaction.types";
 
 const HISTORY_PAGE_SIZE = 50;
 const TRANSACTION_SELECT_COLUMNS = `id, user_id, type, amount, currency, wallet_id, source_wallet_id, destination_wallet_id, category_id, note, occurred_at, created_at, updated_at`;
