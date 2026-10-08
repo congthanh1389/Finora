@@ -8,6 +8,14 @@ import type { TransactionType } from "../types/transaction.types";
 
 export type TransactionHistoryFilter = "all" | TransactionType;
 
+export type TransactionHistoryFilters = {
+  walletId?: number;
+  categoryId?: number;
+  minAmount?: number;
+  maxAmount?: number;
+  search?: string;
+};
+
 export interface TransactionHistoryRepository {
   listHistoryPage(
     userId: number,
@@ -16,6 +24,7 @@ export interface TransactionHistoryRepository {
     limit: number,
     start?: Date,
     end?: Date,
+    filters?: TransactionHistoryFilters,
   ): Promise<{ transactions: Transaction[]; hasMore: boolean }>;
 }
 
@@ -35,11 +44,27 @@ export class TransactionHistoryService {
     limit: number,
     start?: Date,
     end?: Date,
+    filters?: TransactionHistoryFilters,
   ) {
     if (!Number.isInteger(userId) || userId <= 0) throw new Error("Người dùng không hợp lệ.");
     if (!Number.isInteger(offset) || offset < 0) throw new Error("Vị trí phân trang không hợp lệ.");
     if (!Number.isInteger(limit) || limit <= 0) throw new Error("Kích thước trang không hợp lệ.");
-    return this.repository.listHistoryPage(userId, offset, type, limit, start, end);
+    if (filters?.walletId !== undefined && (!Number.isInteger(filters.walletId) || filters.walletId <= 0)) {
+      throw new Error("Ví lọc không hợp lệ.");
+    }
+    if (filters?.categoryId !== undefined && (!Number.isInteger(filters.categoryId) || filters.categoryId <= 0)) {
+      throw new Error("Danh mục lọc không hợp lệ.");
+    }
+    if (filters?.minAmount !== undefined && (!Number.isSafeInteger(filters.minAmount) || filters.minAmount < 0)) {
+      throw new Error("Mức tiền tối thiểu không hợp lệ.");
+    }
+    if (filters?.maxAmount !== undefined && (!Number.isSafeInteger(filters.maxAmount) || filters.maxAmount < 0)) {
+      throw new Error("Mức tiền tối đa không hợp lệ.");
+    }
+    if (filters?.minAmount !== undefined && filters?.maxAmount !== undefined && filters.minAmount > filters.maxAmount) {
+      throw new Error("Khoảng tiền không hợp lệ.");
+    }
+    return this.repository.listHistoryPage(userId, offset, type, limit, start, end, filters);
   }
 
   async loadReferences(userId: number): Promise<{ wallets: WalletSummary[]; categories: Awaited<ReturnType<CategoryService["listCategories"]>> }> {
