@@ -199,35 +199,58 @@ export default function ReportsScreen() {
             </View>
 
             <View className="mt-4 rounded-3xl border border-[#E2E8F0] bg-white p-5">
-              <Text className="text-lg font-bold text-[#0F2A5F]">Dòng tiền</Text>
+              <View className="flex-row items-center justify-between">
+                <View>
+                  <Text className="text-lg font-bold text-[#0F2A5F]">Dòng tiền</Text>
+                  <Text className="mt-1 text-xs text-[#94A3B8]">Thu và chi theo ngày</Text>
+                </View>
+                <View className="flex-row gap-3">
+                  <View className="flex-row items-center gap-1.5">
+                    <View className="h-2.5 w-2.5 rounded-full bg-[#22B8A8]" />
+                    <Text className="text-[10px] font-semibold text-[#64748B]">Thu</Text>
+                  </View>
+                  <View className="flex-row items-center gap-1.5">
+                    <View className="h-2.5 w-2.5 rounded-full bg-[#FB7185]" />
+                    <Text className="text-[10px] font-semibold text-[#64748B]">Chi</Text>
+                  </View>
+                </View>
+              </View>
               {(data?.cashFlow ?? []).length === 0 ? (
-                <Text className="mt-4 text-sm text-[#64748B]">
+                <Text className="mt-4 rounded-2xl bg-[#F8FAFC] py-8 text-center text-sm text-[#64748B]">
                   Chưa có giao dịch trong kỳ này.
                 </Text>
               ) : (
-                <View className="mt-5 flex-row items-end gap-1">
-                  {(data?.cashFlow ?? []).slice(-14).map((item) => (
-                    <View key={item.date} className="flex-1 items-center">
-                      <View className="h-28 w-full justify-end">
+                <View className="mt-5 rounded-2xl bg-[#F8FAFC] px-2 pt-4">
+                  <View className="h-32 flex-row items-end gap-1.5">
+                    {(data?.cashFlow ?? []).slice(-14).map((item) => (
+                      <View key={item.date} className="flex-1 flex-row items-end justify-center gap-0.5">
                         <View
-                          className="w-full rounded-t-md bg-[#22B8A8]"
-                          style={{ height: Math.max(2, (item.income / maxFlow) * 112) }}
+                          className="w-2.5 rounded-t-full bg-[#22B8A8]"
+                          style={{ height: Math.max(3, (item.income / maxFlow) * 112) }}
                         />
-                        {item.expense > 0 ? (
-                          <View
-                            className="mt-1 w-full rounded-t-md bg-[#FB7185]"
-                            style={{ height: Math.max(2, (item.expense / maxFlow) * 112) }}
-                          />
-                        ) : null}
+                        <View
+                          className="w-2.5 rounded-t-full bg-[#FB7185]"
+                          style={{ height: Math.max(3, (item.expense / maxFlow) * 112) }}
+                        />
                       </View>
-                      <Text className="mt-1 text-[8px] text-[#94A3B8]">{item.date.slice(8)}</Text>
-                    </View>
-                  ))}
+                    ))}
+                  </View>
+                  <View className="mt-2 flex-row border-t border-[#E2E8F0] pt-2">
+                    {(data?.cashFlow ?? []).slice(-14).map((item) => (
+                      <Text key={item.date} className="flex-1 text-center text-[8px] text-[#94A3B8]">
+                        {item.date.slice(8)}
+                      </Text>
+                    ))}
+                  </View>
                 </View>
               )}
-              <View className="mt-3 flex-row gap-4">
-                <Text className="text-[11px] text-[#64748B]">● Thu</Text>
-                <Text className="text-[11px] text-[#64748B]">● Chi</Text>
+              <View className="mt-2 flex-row justify-between">
+                <Text className="text-[10px] text-[#94A3B8]">
+                  Tối đa {money(maxFlow)}
+                </Text>
+                <Text className="text-[10px] text-[#94A3B8]">
+                  {(data?.cashFlow ?? []).slice(-14).length} ngày gần nhất
+                </Text>
               </View>
             </View>
 
