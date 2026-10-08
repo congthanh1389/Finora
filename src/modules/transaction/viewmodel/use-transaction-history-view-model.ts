@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import * as Auth from "@/lib/_core/auth";
 import { createTransactionDependencies } from "../transaction.factory";
 import type { Transaction } from "../../../../drizzle/schema";
@@ -120,13 +121,11 @@ export function useTransactionHistoryViewModel() {
     }
   }, [dependencies, period, typeFilter]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
+  useFocusEffect(
+    useCallback(() => {
       void load();
-    }, 0);
-
-    return () => clearTimeout(timer);
-  }, [load]);
+    }, [load]),
+  );
 
   const loadMore = useCallback(async () => {
     if (isLoading || isLoadingMore || !hasMore || !period) return;
