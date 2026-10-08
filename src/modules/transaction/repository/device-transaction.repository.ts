@@ -8,7 +8,7 @@ import type { Transaction } from "../../../../drizzle/schema";
 import type { CreateTransactionInput, TransactionHistoryFilters, TransactionType } from "../types/transaction.types";
 
 const HISTORY_PAGE_SIZE = 50;
-const TRANSACTION_SELECT_COLUMNS = `id, user_id, type, amount, currency, wallet_id, source_wallet_id, destination_wallet_id, category_id, note, occurred_at, created_at, updated_at`;
+const TRANSACTION_SELECT_COLUMNS = `t.id, t.user_id, t.type, t.amount, t.currency, t.wallet_id, t.source_wallet_id, t.destination_wallet_id, t.category_id, t.note, t.occurred_at, t.created_at, t.updated_at`;
 
 function transactionFromRow(row: any): Transaction {
   const id = Number(row.id);
@@ -178,7 +178,7 @@ export class DeviceTransactionRepository {
 
     const db = await getDeviceDatabase();
     const rows = await db.getAllAsync(
-      `SELECT ${TRANSACTION_SELECT_COLUMNS.replaceAll("id,", "t.id,").replaceAll("user_id,", "t.user_id,").replaceAll("type,", "t.type,").replaceAll("amount,", "t.amount,").replaceAll("currency,", "t.currency,").replaceAll("wallet_id,", "t.wallet_id,").replaceAll("source_wallet_id,", "t.source_wallet_id,").replaceAll("destination_wallet_id,", "t.destination_wallet_id,").replaceAll("category_id,", "t.category_id,").replaceAll("note,", "t.note,").replaceAll("occurred_at,", "t.occurred_at,").replaceAll("created_at,", "t.created_at,").replaceAll("updated_at", "t.updated_at")} 
+      `SELECT ${TRANSACTION_SELECT_COLUMNS} 
        FROM transactions t
        LEFT JOIN wallets w ON w.id = t.wallet_id AND w.user_id = t.user_id
        LEFT JOIN wallets sw ON sw.id = t.source_wallet_id AND sw.user_id = t.user_id
