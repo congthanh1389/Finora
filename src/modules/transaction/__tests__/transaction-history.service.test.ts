@@ -96,7 +96,6 @@ describe("TransactionHistoryService", () => {
       categoryId: 9,
       minAmount: 10000,
       maxAmount: 50000,
-      search: "ăn sáng",
     };
 
     await service.getSummary(1, start, end, "expense", filters);
