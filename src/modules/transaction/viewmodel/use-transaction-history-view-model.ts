@@ -5,6 +5,7 @@ import { createTransactionDependencies } from "../transaction.factory";
 import type { Transaction } from "../../../../drizzle/schema";
 import type { WalletSummary } from "../../wallet/types/wallet.types";
 import type { TransactionSummaryResult } from "../types/transaction-summary.types";
+import type { TransactionHistoryFilters } from "../service/transaction-history.service";
 import type { TransactionType } from "../types/transaction.types";
 import { TransactionSummaryService } from "../service/transaction-summary.service";
 
@@ -69,6 +70,14 @@ export function useTransactionHistoryViewModel() {
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
   const [summary, setSummary] = useState<TransactionSummaryResult | null>(null);
+  const [walletFilterId, setWalletFilterId] = useState<number | undefined>();
+  const [categoryFilterId, setCategoryFilterId] = useState<number | undefined>();
+  const [minAmount, setMinAmount] = useState<number | undefined>();
+  const [maxAmount, setMaxAmount] = useState<number | undefined>();
+  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [minAmountInput, setMinAmountInput] = useState("");
+  const [maxAmountInput, setMaxAmountInput] = useState("");
 
   const period = useMemo(
     () => calculatePeriod(periodKey, customStart, customEnd),
@@ -119,7 +128,7 @@ export function useTransactionHistoryViewModel() {
     } finally {
       setLoading(false);
     }
-  }, [dependencies, period, typeFilter]);
+  }, [dependencies, filters, period, typeFilter]);
 
   useFocusEffect(
     useCallback(() => {
@@ -148,7 +157,37 @@ export function useTransactionHistoryViewModel() {
     } finally {
       setLoadingMore(false);
     }
-  }, [dependencies, hasMore, isLoading, isLoadingMore, period, transactions.length, typeFilter]);
+  }, [dependencies, filters, hasMore, isLoading, isLoadingMore, period, transactions.length, typeFilter]);
+
+  const applyAdvancedFilters = useCallback(() => {
+    const parseAmount = (value: string) => {
+      const normalized = value.split(".").join("").split(",").join("").replace(/[^0-9]/g, "");
+      if (!normalized) return undefined;
+      const parsed = Number(normalized);
+      return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : undefined;
+    };
+    setMinAmount(parseAmount(minAmountInput));
+    setMaxAmount(parseAmount(maxAmountInput));
+    setSearch(searchInput.trim());
+  }, [maxAmountInput, minAmountInput, searchInput]);
+
+  const clearAdvancedFilters = useCallback(() => {
+    setWalletFilterId(undefined);
+    setCategoryFilterId(undefined);
+    setMinAmount(undefined);
+    setMaxAmount(undefined);
+    setSearch("");
+    setSearchInput("");
+    setMinAmountInput("");
+    setMaxAmountInput("");
+  }, []);
+
+  const hasAdvancedFilters =
+    walletFilterId !== undefined ||
+    categoryFilterId !== undefined ||
+    minAmount !== undefined ||
+    maxAmount !== undefined ||
+    Boolean(search);
 
   const deleteTransaction = useCallback(async (transactionId: number) => {
     await dependencies.historyService.deleteTransaction(
