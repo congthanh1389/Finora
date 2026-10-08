@@ -14,10 +14,10 @@ export type ReportRepositoryData = {
   previousTransfer: number;
   previousIncomeCount: number;
   previousExpenseCount: number;
-  categories: Array<{ categoryId: number | null; name: string; amount: number }>;
-  wallets: Array<{ walletId: number; name: string; amount: number }>;
-  cashFlow: Array<{ date: string; income: number; expense: number }>;
-  budgets: Array<{ budgetId: number; categoryId: number; categoryName: string; limit: number; spent: number }>;
+  categories: { categoryId: number | null; name: string; amount: number }[];
+  wallets: { walletId: number; name: string; amount: number }[];
+  cashFlow: { date: string; income: number; expense: number }[];
+  budgets: { budgetId: number; categoryId: number; categoryName: string; limit: number; spent: number }[];
 };
 
 type SummaryRow = {
