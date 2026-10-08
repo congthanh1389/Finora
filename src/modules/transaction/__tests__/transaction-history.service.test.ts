@@ -89,6 +89,23 @@ describe("TransactionHistoryService", () => {
     );
   });
 
+  it("forwards advanced filters to the summary service", async () => {
+    const { service, summaryService } = createService();
+    const start = new Date("2026-10-01T00:00:00.000Z");
+    const end = new Date("2026-11-01T00:00:00.000Z");
+    const filters = {
+      walletId: 7,
+      categoryId: 9,
+      minAmount: 10000,
+      maxAmount: 50000,
+      search: "ăn sáng",
+    };
+
+    await service.getSummary(1, start, end, "expense", filters);
+
+    expect(summaryService.getSummary).toHaveBeenCalledWith(1, start, end, "expense", filters);
+  });
+
   it("rejects invalid paging input", async () => {
     const { service } = createService();
 
