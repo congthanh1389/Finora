@@ -128,7 +128,7 @@ export function useTransactionHistoryViewModel() {
           filters,
         ),
         dependencies.historyService.loadReferences(user.id),
-        dependencies.historyService.getSummary(user.id, period.start, period.end, typeFilter),
+        dependencies.historyService.getSummary(user.id, period.start, period.end, typeFilter, filters),
       ]);
 
       setTransactions(page.transactions);
