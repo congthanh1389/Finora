@@ -33,7 +33,7 @@ describe("TransactionSummaryService", () => {
     const service = new TransactionSummaryService(repository);
     const start = new Date("2026-10-01");
     const end = new Date("2026-11-01");
-    const filters: TransactionHistoryFilters = { walletId: 2, categoryId: 3, minAmount: 100000, maxAmount: 500000, search: "ăn" };
+    const filters: TransactionHistoryFilters = { walletId: 2, categoryId: 3, minAmount: 100000, maxAmount: 500000 };
     const data = await service.getSummary(1, start, end, "expense", filters);
     expect(repository.getSummary).toHaveBeenCalledWith(1, start, end, "expense", filters);
     expect(data.totals.netCashflow).toBe(3000000);
