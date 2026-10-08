@@ -39,6 +39,26 @@ const periodLabels: Record<ReportPeriod, string> = {
   custom: "Tùy chọn",
 };
 
+const cashFlowGranularityLabel = (period: ReportPeriod, count: number) => {
+  if (period === "quarter" || (period === "custom" && count > 31 && count <= 120)) {
+    return "tuần";
+  }
+  if (period === "year" || (period === "custom" && count > 120)) {
+    return "tháng";
+  }
+  return "ngày";
+};
+
+const cashFlowPointLabel = (date: string, period: ReportPeriod, count: number) => {
+  if (period === "year" || (period === "custom" && count > 120)) {
+    return `T${Number(date.slice(5, 7))}`;
+  }
+  if (period === "quarter" || (period === "custom" && count > 31 && count <= 120)) {
+    return `${date.slice(8)}/${date.slice(5, 7)}`;
+  }
+  return date.slice(8);
+};
+
 export default function ReportsScreen() {
   const {
     data,
@@ -242,7 +262,9 @@ export default function ReportsScreen() {
               <View className="flex-row items-center justify-between">
                 <View>
                   <Text className="text-lg font-bold text-[#0F2A5F]">Dòng tiền</Text>
-                  <Text className="mt-1 text-xs font-semibold text-[#7C3AED]">Thu và chi theo ngày</Text>
+                  <Text className="mt-1 text-xs font-semibold text-[#7C3AED]">
+                    Thu và chi theo {cashFlowGranularityLabel(period, data?.cashFlow.length ?? 0)}
+                  </Text>
                 </View>
                 <View className="flex-row gap-3">
                   <View className="flex-row items-center gap-1.5">
@@ -279,7 +301,7 @@ export default function ReportsScreen() {
                         />
                       </View>
                       <Text className="mt-2 text-[9px] font-semibold text-[#475569]">
-                        {item.date.slice(8)}
+                        {cashFlowPointLabel(item.date, period, data?.cashFlow.length ?? 0)}
                       </Text>
                     </View>
                   ))}
@@ -287,7 +309,7 @@ export default function ReportsScreen() {
               )}
               <View className="mt-2 flex-row justify-end">
                 <Text className="text-[10px] font-semibold text-[#64748B]">
-                  {(data?.cashFlow ?? []).length} ngày trong kỳ
+                  {(data?.cashFlow ?? []).length} {cashFlowGranularityLabel(period, data?.cashFlow.length ?? 0)} trong kỳ
                 </Text>
               </View>
             </View>
