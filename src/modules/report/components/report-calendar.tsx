@@ -50,7 +50,7 @@ export function ReportCalendar({
     const firstDay = startOfMonth(month);
     const mondayFirstIndex = (firstDay.getDay() + 6) % 7;
     const dates = Array.from({ length: daysInMonth(month) }, (_, index) => index + 1);
-    const cells: Array<number | null> = [
+    const cells: (number | null)[] = [
       ...Array.from({ length: mondayFirstIndex }, () => null),
       ...dates,
     ];
