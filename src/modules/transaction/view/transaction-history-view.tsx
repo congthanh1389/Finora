@@ -234,6 +234,9 @@ const isTransfer = transaction.type === "transfer";
             </ScrollView>
 
             <Text className="mt-3 text-xs font-semibold text-[#64748B]">Danh mục</Text>
+            {typeFilter === "transfer" ? (
+              <Text className="mt-2 text-xs text-[#64748B]">Chuyển tiền không sử dụng danh mục.</Text>
+            ) : null}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
               <View className="flex-row gap-2">
                 <Pressable onPress={() => setCategoryFilterId(undefined)} className="rounded-full px-3 py-2"
@@ -273,7 +276,7 @@ const isTransfer = transaction.type === "transfer";
             </View>
             {hasAdvancedFilters ? (
               <Text className="mt-3 text-xs text-[#0F766E]">
-                Đang lọc{search ? ` · "${search}"` : ""}{walletFilterId !== undefined ? " · theo ví" : ""}{categoryFilterId !== undefined ? " · theo danh mục" : ""}{minAmount !== undefined || maxAmount !== undefined ? " · theo khoảng tiền" : ""}
+                Đang lọc{walletFilterId !== undefined ? " · theo ví" : ""}{categoryFilterId !== undefined ? " · theo danh mục" : ""}{minAmount !== undefined || maxAmount !== undefined ? " · theo khoảng tiền" : ""}
               </Text>
             ) : null}
           </View>
