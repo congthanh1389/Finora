@@ -1,63 +1,65 @@
 import { getDeviceDatabase, initializeDeviceStorage } from "../../../core/storage/device-store";
+import type { ReportPeriodRange } from "../model/report.types";
 
-export type ReportCategoryRow = {
-  categoryId: number | null;
-  name: string;
-  amount: number;
-};
-
-export type ReportWalletRow = {
-  walletId: number;
-  name: string;
-  amount: number;
-};
-
-export type ReportSummary = {
+export type ReportRepositoryData = {
+  periodStart: string;
+  periodEnd: string;
   income: number;
   expense: number;
   transfer: number;
   incomeCount: number;
   expenseCount: number;
+  previousIncome: number;
+  previousExpense: number;
+  previousTransfer: number;
+  previousIncomeCount: number;
+  previousExpenseCount: number;
+  categories: Array<{ categoryId: number | null; name: string; amount: number }>;
+  wallets: Array<{ walletId: number; name: string; amount: number }>;
+  cashFlow: Array<{ date: string; income: number; expense: number }>;
 };
 
-export type ReportData = ReportSummary & {
-  categoryRows: ReportCategoryRow[];
-  walletRows: ReportWalletRow[];
-  periodStart: string;
-  periodEnd: string;
-  previous: ReportSummary;
+type SummaryRow = {
+  income: number | null;
+  expense: number | null;
+  transfer: number | null;
+  income_count: number | null;
+  expense_count: number | null;
 };
+
+function assertUserId(userId: number): void {
+  if (!Number.isSafeInteger(userId) || userId <= 0) {
+    throw new Error("Invalid user id");
+  }
+}
+
+function assertDateRange(start: Date, end: Date, name: string): void {
+  if (
+    !(start instanceof Date) ||
+    Number.isNaN(start.getTime()) ||
+    !(end instanceof Date) ||
+    Number.isNaN(end.getTime()) ||
+    start >= end
+  ) {
+    throw new Error(`Invalid ${name} report period.`);
+  }
+}
 
 export class DeviceReportRepository {
-  async getCurrentMonth(userId: number, now = new Date()): Promise<ReportData> {
-    const from = new Date(now.getFullYear(), now.getMonth(), 1);
-    const to = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    const previousFrom = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const previousTo = from;
-    return this.getReport(userId, from, to, previousFrom, previousTo);
-  }
-
-  async getReport(
-    userId: number,
-    from: Date,
-    to: Date,
-    previousFrom: Date,
-    previousTo: Date,
-  ): Promise<ReportData> {
-    if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
-    if (!(from instanceof Date) || !(to instanceof Date) || from >= to) throw new Error("Invalid report period.");
+  async getReport(userId: number, range: ReportPeriodRange): Promise<ReportRepositoryData> {
+    assertUserId(userId);
+    assertDateRange(range.start, range.end, "current");
+    assertDateRange(range.previousStart, range.previousEnd, "previous");
 
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
-    const fromIso = from.toISOString();
-    const toIso = to.toISOString();
-    const previousFromIso = previousFrom.toISOString();
-    const previousToIso = previousTo.toISOString();
 
-    const summary = await db.getFirstAsync<ReportSummary & {
-      income_count: number;
-      expense_count: number;
-    }>(
+    const startIso = range.start.toISOString();
+    const endIso = range.end.toISOString();
+    const previousStartIso = range.previousStart.toISOString();
+    const previousEndIso = range.previousEnd.toISOString();
+
+    const summary = await db.getFirstAsync<SummaryRow>(
       `SELECT
          COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
          COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense,
@@ -66,13 +68,12 @@ export class DeviceReportRepository {
          COALESCE(SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END), 0) AS expense_count
        FROM transactions
        WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?`,
-      userId, fromIso, toIso,
+      userId,
+      startIso,
+      endIso,
     );
 
-    const previous = await db.getFirstAsync<ReportSummary & {
-      income_count: number;
-      expense_count: number;
-    }>(
+    const previous = await db.getFirstAsync<SummaryRow>(
       `SELECT
          COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
          COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense,
@@ -81,58 +82,104 @@ export class DeviceReportRepository {
          COALESCE(SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END), 0) AS expense_count
        FROM transactions
        WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?`,
-      userId, previousFromIso, previousToIso,
+      userId,
+      previousStartIso,
+      previousEndIso,
     );
 
-    const categoryRows = await db.getAllAsync<{ category_id: number | null; name: string | null; amount: number }>(
-      `SELECT t.category_id, COALESCE(c.name, 'Khác') AS name, SUM(t.amount) AS amount
+    const categories = await db.getAllAsync<{
+      category_id: number | null;
+      name: string | null;
+      amount: number | null;
+    }>(
+      `SELECT
+         t.category_id,
+         COALESCE(c.name, 'Khác') AS name,
+         COALESCE(SUM(t.amount), 0) AS amount
        FROM transactions t
-       LEFT JOIN categories c ON c.id = t.category_id
-       WHERE t.user_id = ? AND t.type = 'expense'
-         AND t.occurred_at >= ? AND t.occurred_at < ?
+       LEFT JOIN categories c ON c.id = t.category_id AND c.user_id = t.user_id
+       WHERE t.user_id = ?
+         AND t.type = 'expense'
+         AND t.occurred_at >= ?
+         AND t.occurred_at < ?
        GROUP BY t.category_id, c.name
-       ORDER BY amount DESC
-       LIMIT 5`,
-      userId, fromIso, toIso,
+       ORDER BY amount DESC`,
+      userId,
+      startIso,
+      endIso,
     );
 
-    const walletRows = await db.getAllAsync<{ wallet_id: number; name: string | null; amount: number }>(
-      `SELECT t.wallet_id, COALESCE(w.name, 'Ví không xác định') AS name, SUM(t.amount) AS amount
+    const wallets = await db.getAllAsync<{
+      wallet_id: number;
+      name: string | null;
+      amount: number | null;
+    }>(
+      `SELECT
+         t.wallet_id,
+         COALESCE(w.name, 'Ví không xác định') AS name,
+         COALESCE(SUM(t.amount), 0) AS amount
        FROM transactions t
-       LEFT JOIN wallets w ON w.id = t.wallet_id
-       WHERE t.user_id = ? AND t.type = 'expense' AND t.wallet_id IS NOT NULL
-         AND t.occurred_at >= ? AND t.occurred_at < ?
+       LEFT JOIN wallets w ON w.id = t.wallet_id AND w.user_id = t.user_id
+       WHERE t.user_id = ?
+         AND t.type = 'expense'
+         AND t.wallet_id IS NOT NULL
+         AND t.occurred_at >= ?
+         AND t.occurred_at < ?
        GROUP BY t.wallet_id, w.name
-       ORDER BY amount DESC
-       LIMIT 5`,
-      userId, fromIso, toIso,
+       ORDER BY amount DESC`,
+      userId,
+      startIso,
+      endIso,
+    );
+
+    const cashFlow = await db.getAllAsync<{
+      date: string;
+      income: number | null;
+      expense: number | null;
+    }>(
+      `SELECT
+         substr(occurred_at, 1, 10) AS date,
+         COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
+         COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense
+       FROM transactions
+       WHERE user_id = ?
+         AND occurred_at >= ?
+         AND occurred_at < ?
+       GROUP BY substr(occurred_at, 1, 10)
+       ORDER BY date ASC`,
+      userId,
+      startIso,
+      endIso,
     );
 
     return {
+      periodStart: startIso,
+      periodEnd: endIso,
       income: Number(summary?.income ?? 0),
       expense: Number(summary?.expense ?? 0),
       transfer: Number(summary?.transfer ?? 0),
       incomeCount: Number(summary?.income_count ?? 0),
       expenseCount: Number(summary?.expense_count ?? 0),
-      categoryRows: categoryRows.map((row) => ({
+      previousIncome: Number(previous?.income ?? 0),
+      previousExpense: Number(previous?.expense ?? 0),
+      previousTransfer: Number(previous?.transfer ?? 0),
+      previousIncomeCount: Number(previous?.income_count ?? 0),
+      previousExpenseCount: Number(previous?.expense_count ?? 0),
+      categories: categories.map((row) => ({
         categoryId: row.category_id == null ? null : Number(row.category_id),
         name: String(row.name ?? "Khác"),
-        amount: Number(row.amount),
+        amount: Number(row.amount ?? 0),
       })),
-      walletRows: walletRows.map((row) => ({
+      wallets: wallets.map((row) => ({
         walletId: Number(row.wallet_id),
         name: String(row.name ?? "Ví không xác định"),
-        amount: Number(row.amount),
+        amount: Number(row.amount ?? 0),
       })),
-      periodStart: fromIso,
-      periodEnd: toIso,
-      previous: {
-        income: Number(previous?.income ?? 0),
-        expense: Number(previous?.expense ?? 0),
-        transfer: Number(previous?.transfer ?? 0),
-        incomeCount: Number(previous?.income_count ?? 0),
-        expenseCount: Number(previous?.expense_count ?? 0),
-      },
+      cashFlow: cashFlow.map((row) => ({
+        date: String(row.date),
+        income: Number(row.income ?? 0),
+        expense: Number(row.expense ?? 0),
+      })),
     };
   }
 }
