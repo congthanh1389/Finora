@@ -270,7 +270,7 @@ function buildInsights(snapshot: Omit<ReportSnapshot, "insights">): ReportInsigh
     });
   }
 
-  if (snapshot.comparison.expenseChange > 10) {
+  if (snapshot.comparison.expenseChange !== null && snapshot.comparison.expenseChange > 10) {
     insights.push({
       type: "warning",
       title: "Chi tiêu đang tăng",
