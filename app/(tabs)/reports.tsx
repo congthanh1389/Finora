@@ -39,23 +39,24 @@ const periodLabels: Record<ReportPeriod, string> = {
   custom: "Tùy chọn",
 };
 
-const cashFlowGranularityLabel = (period: ReportPeriod, count: number) => {
-  if (period === "quarter" || (period === "custom" && count > 31 && count <= 120)) {
-    return "tuần";
-  }
-  if (period === "year" || (period === "custom" && count > 120)) {
-    return "tháng";
-  }
-  return "ngày";
+const getCashFlowGranularity = (period: ReportPeriod, customRange: { start: Date; end: Date | null } | null) => {
+  if (period === "today" || period === "week" || period === "month") return "day";
+  if (period === "quarter") return "week";
+  if (period === "year") return "month";
+  if (!customRange?.start || !customRange.end) return "day";
+
+  const durationDays = Math.round(
+    (customRange.end.getTime() - customRange.start.getTime()) / (24 * 60 * 60 * 1000),
+  ) + 1;
+
+  if (durationDays <= 31) return "day";
+  if (durationDays <= 120) return "week";
+  return "month";
 };
 
-const cashFlowPointLabel = (date: string, period: ReportPeriod, count: number) => {
-  if (period === "year" || (period === "custom" && count > 120)) {
-    return `T${Number(date.slice(5, 7))}`;
-  }
-  if (period === "quarter" || (period === "custom" && count > 31 && count <= 120)) {
-    return `${date.slice(8)}/${date.slice(5, 7)}`;
-  }
+const cashFlowPointLabel = (date: string, granularity: string) => {
+  if (granularity === "month") return `T${Number(date.slice(5, 7))}`;
+  if (granularity === "week") return `${date.slice(8)}/${date.slice(5, 7)}`;
   return date.slice(8);
 };
 
@@ -80,7 +81,7 @@ export default function ReportsScreen() {
     [data],
   );
   const topCategories = data?.categories.slice(0, 5) ?? [];
-  const topWallets = data?.wallets ?? [];
+  const topWallets = data?.wallets ?? [];\n  const cashFlowGranularity = getCashFlowGranularity(period, customRange);\n  const hasCashFlowActivity = (data?.cashFlow ?? []).some((item) => item.income !== 0 || item.expense !== 0);
 
   const openCalendar = (mode: "start" | "end") => {
     setDraftDate(mode === "start" ? customRange?.start ?? new Date() : customRange?.end ?? customRange?.start ?? new Date());
@@ -251,7 +252,7 @@ export default function ReportsScreen() {
                     <Text
                       className={`mt-1 text-base font-bold ${String(label) === "Chi" ? (Number(value) <= 0 ? "text-[#047857]" : "text-[#BE123C]") : Number(value) >= 0 ? "text-[#047857]" : "text-[#BE123C]"}`}
                     >
-                      {Number(value) === 0 ? "—" : percent(Number(value))}
+                      {value == null ? "—" : percent(Number(value))}
                     </Text>
                   </View>
                 ))}
@@ -263,7 +264,7 @@ export default function ReportsScreen() {
                 <View>
                   <Text className="text-lg font-bold text-[#0F2A5F]">Dòng tiền</Text>
                   <Text className="mt-1 text-xs font-semibold text-[#7C3AED]">
-                    Thu và chi theo {cashFlowGranularityLabel(period, data?.cashFlow.length ?? 0)}
+                    Thu và chi theo {cashFlowGranularity}
                   </Text>
                 </View>
                 <View className="flex-row gap-3">
@@ -277,7 +278,7 @@ export default function ReportsScreen() {
                   </View>
                 </View>
               </View>
-              {(data?.cashFlow ?? []).length === 0 ? (
+              {!hasCashFlowActivity ? (
                 <Text className="mt-4 rounded-2xl bg-[#F8FAFC] py-8 text-center text-sm text-[#64748B]">
                   Chưa có giao dịch trong kỳ này.
                 </Text>
@@ -301,7 +302,7 @@ export default function ReportsScreen() {
                         />
                       </View>
                       <Text className="mt-2 text-[9px] font-semibold text-[#475569]">
-                        {cashFlowPointLabel(item.date, period, data?.cashFlow.length ?? 0)}
+                        {cashFlowPointLabel(item.date, cashFlowGranularity)}
                       </Text>
                     </View>
                   ))}
