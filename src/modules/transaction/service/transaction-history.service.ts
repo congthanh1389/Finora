@@ -71,8 +71,8 @@ export class TransactionHistoryService {
     };
   }
 
-  getSummary(userId: number, start: Date, end: Date, type: TransactionHistoryFilter) {
-    return this.summaryService.getSummary(userId, start, end, type);
+  getSummary(userId: number, start: Date, end: Date, type: TransactionHistoryFilter, filters?: TransactionHistoryFilters) {
+    return this.summaryService.getSummary(userId, start, end, type, filters);
   }
 
   deleteTransaction(userId: number, transactionId: number) {
