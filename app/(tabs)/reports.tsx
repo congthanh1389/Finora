@@ -319,6 +319,7 @@ export default function ReportsScreen() {
       </ScrollView>
 
       <ReportCalendar
+        key={calendarMode ? `${calendarMode}-${draftDate?.getTime() ?? "none"}` : "closed"}
         visible={calendarMode !== null}
         value={draftDate}
         title={calendarMode === "start" ? "Chọn ngày bắt đầu" : "Chọn ngày kết thúc"}
