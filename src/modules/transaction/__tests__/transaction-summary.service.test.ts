@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { TransactionSummaryService } from "../service/transaction-summary.service";
 import type { TransactionSummaryResult } from "../types/transaction-summary.types";
+import type { TransactionHistoryFilters } from "../types/transaction.types";
 
 function result(): TransactionSummaryResult {
   return {
@@ -32,8 +33,9 @@ describe("TransactionSummaryService", () => {
     const service = new TransactionSummaryService(repository);
     const start = new Date("2026-10-01");
     const end = new Date("2026-11-01");
-    const data = await service.getSummary(1, start, end, "expense");
-    expect(repository.getSummary).toHaveBeenCalledWith(1, start, end, "expense");
+    const filters: TransactionHistoryFilters = { walletId: 2, categoryId: 3, minAmount: 100000, maxAmount: 500000, search: "ăn" };
+    const data = await service.getSummary(1, start, end, "expense", filters);
+    expect(repository.getSummary).toHaveBeenCalledWith(1, start, end, "expense", filters);
     expect(data.totals.netCashflow).toBe(3000000);
   });
 
