@@ -176,7 +176,7 @@ export default function ReportsScreen() {
                 <Text className="mt-1 text-base font-bold text-[#047857]">
                   {money(data?.summary.income ?? 0)}
                 </Text>
-                <Text className="mt-1 text-[11px] text-[#64748B]">
+                <Text className="mt-1 text-[11px] font-semibold text-[#475569]">
                   {data?.summary.incomeCount ?? 0} giao dịch
                 </Text>
               </View>
@@ -258,8 +258,8 @@ export default function ReportsScreen() {
                 </View>
               )}
               <View className="mt-2 flex-row justify-end">
-                <Text className="text-[10px] text-[#94A3B8]">
-                  {(data?.cashFlow ?? []).slice(-14).length} ngày gần nhất
+                <Text className="text-[10px] font-semibold text-[#64748B]">
+                  {(data?.cashFlow ?? []).slice(-5).length} ngày gần nhất
                 </Text>
               </View>
             </View>
@@ -281,7 +281,7 @@ export default function ReportsScreen() {
                         style={{ width: `${Math.min(item.percentage, 100)}%` }}
                       />
                     </View>
-                    <Text className="mt-1 text-[11px] text-[#94A3B8]">
+                    <Text className="mt-1 text-[11px] font-semibold text-[#475569]">
                       {item.percentage.toFixed(1)}% tổng chi
                     </Text>
                   </View>
