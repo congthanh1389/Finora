@@ -1,5 +1,5 @@
 import { ActivityIndicator, Alert, FlatList, Pressable, Text, TextInput, View } from "react-native";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useRouter } from "expo-router";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
@@ -8,6 +8,7 @@ import { resolveCategoryIconName } from "../../category/utils/category-icon-reso
 import { ScreenContainer } from "@/components/screen-container";
 import type { WalletType } from "../../wallet/types/wallet.types";
 import { useTransactionHistoryViewModel } from "../viewmodel/use-transaction-history-view-model";
+import type { Transaction } from "../../../../drizzle/schema";
 
 function formatVnd(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value) + " ₫";
@@ -62,8 +63,7 @@ export function TransactionHistoryView() {
   const walletMap = useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets]);
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
 
-    const renderItem = useMemo(
-      () =>
+    const renderItem = useCallback(
         ({ item: transaction, index }: { item: Transaction; index: number }) => {
 const isTransfer = transaction.type === "transfer";
                 const isIncome = transaction.type === "income";
@@ -130,7 +130,7 @@ const isTransfer = transaction.type === "transfer";
                   </View>
                 );
         },
-      [categoryMap, deleteTransaction, router, transactions, walletMap],
+      [categoryMap, deleteTransaction, router, transactions.length, walletMap],
     );
 
   return (
