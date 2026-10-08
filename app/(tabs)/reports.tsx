@@ -99,20 +99,43 @@ export default function ReportsScreen() {
           Nhìn nhanh tình hình tài chính của bạn.
         </Text>
 
-        <View className="mt-4 flex-row flex-wrap gap-2">
-          {(Object.keys(periodLabels) as ReportPeriod[]).map((key) => (
-            <Pressable
-              key={key}
-              onPress={() => setPeriod(key)}
-              className={`rounded-full px-4 py-2.5 ${period === key ? "bg-[#22B8A8]" : "border border-[#7C3AED] bg-white"}`}
+        <View className="mt-4">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingRight: 4 }}
+          >
+            {(["today", "week", "month", "quarter", "year"] as ReportPeriod[]).map((key) => {
+              const active = period === key;
+              return (
+                <Pressable
+                  key={key}
+                  onPress={() => setPeriod(key)}
+                  className={`rounded-2xl px-4 py-2.5 ${active ? "bg-[#22B8A8]" : "border border-[#E2E8F0] bg-white"}`}
+                >
+                  <Text
+                    className={`text-center text-xs font-bold ${active ? "text-white" : "text-[#475569]"}`}
+                  >
+                    {periodLabels[key]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          <Pressable
+            onPress={() => setPeriod("custom")}
+            className={`mt-2 self-start flex-row items-center rounded-2xl px-4 py-2.5 ${period === "custom" ? "bg-[#7C3AED]" : "border border-[#E2E8F0] bg-white"}`}
+          >
+            <Text className={`mr-2 text-sm ${period === "custom" ? "text-white" : "text-[#7C3AED]"}`}>
+              📅
+            </Text>
+            <Text
+              className={`text-xs font-bold ${period === "custom" ? "text-white" : "text-[#475569]"}`}
             >
-              <Text
-                className={`text-center text-xs font-bold ${period === key ? "text-white" : "text-[#7C3AED]"}`}
-              >
-                {periodLabels[key]}
-              </Text>
-            </Pressable>
-          ))}
+              Tùy chọn
+            </Text>
+          </Pressable>
         </View>
 
         {period === "custom" ? (
