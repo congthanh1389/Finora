@@ -197,13 +197,14 @@ export class DeviceBudgetRepository {
     let result: { lastInsertRowId: number };
     await db.withTransactionAsync(async () => {
       const duplicate = await db.getFirstAsync<{ id: number }>(
-        "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? AND period_start = ? AND period_end = ? AND (wallet_id = ? OR (wallet_id IS NULL AND ? IS NULL)) LIMIT 1",
+        input.walletId == null
+          ? "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? AND period_start = ? AND period_end = ? AND wallet_id IS NULL LIMIT 1"
+          : "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? AND period_start = ? AND period_end = ? AND wallet_id = ? LIMIT 1",
         input.userId,
         input.categoryId,
         input.periodStart.toISOString(),
         input.periodEnd.toISOString(),
-        input.walletId ?? null,
-        input.walletId ?? null,
+        ...(input.walletId == null ? [] : [input.walletId]),
       );
       if (duplicate) {
         if (!positiveSafeInteger(Number(duplicate.id))) {
@@ -279,8 +280,14 @@ export class DeviceBudgetRepository {
         if (String(wallet.currency) !== String(current.currency)) throw new Error("Tiền tệ ngân sách không khớp với ví.");
       }
       const duplicate = await db.getFirstAsync<{ id: number }>(
-        "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? AND period_start = ? AND period_end = ? AND (wallet_id = ? OR (wallet_id IS NULL AND ? IS NULL)) AND id <> ? LIMIT 1",
-        userId, nextCategoryId, current.period_start, current.period_end, nextWalletId, nextWalletId, budgetId,
+        nextWalletId == null
+          ? "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? AND period_start = ? AND period_end = ? AND wallet_id IS NULL AND id <> ? LIMIT 1"
+          : "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? AND period_start = ? AND period_end = ? AND wallet_id = ? AND id <> ? LIMIT 1",
+        userId,
+        nextCategoryId,
+        current.period_start,
+        current.period_end,
+        ...(nextWalletId == null ? [budgetId] : [nextWalletId, budgetId]),
       );
       if (duplicate) {
         if (!positiveSafeInteger(Number(duplicate.id))) {
