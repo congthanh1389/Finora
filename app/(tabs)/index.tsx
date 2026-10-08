@@ -8,6 +8,7 @@ import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
 import { ScreenContainer } from "@/components/screen-container";
 import { useReportViewModel } from "@/src/modules/report/viewmodel/use-report-view-model";
 import { useReminderViewModel } from "@/src/modules/reminder/viewmodel/use-reminder-view-model";
+import { useReminderStatus } from "@/src/modules/reminder/state/reminder-state";
 
 const money = (value: number) => new Intl.NumberFormat("vi-VN").format(value) + " ₫";
 const percent = (value: number) => new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 }).format(value) + "%";
@@ -62,6 +63,7 @@ export default function HomeScreen() {
   const { data } = useDashboardViewModel();
   const { data: reportData } = useReportViewModel();
   const reminders = useReminderViewModel(reportData);
+  const { newCount } = useReminderStatus(reminders);
 
   const current = data?.currentMonth;
   const previous = data?.previousMonth;
@@ -80,10 +82,10 @@ export default function HomeScreen() {
               onPress={() => router.push("/reminders")}
               className="mr-2 h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm"
             >
-              <Ionicons name="notifications-outline" size={25} color="#1F2937" />
-              {reminders.length > 0 ? (
+              <Ionicons name="notifications-outline" size={25} color={newCount > 0 ? "#F59E0B" : "#1F2937"} />
+              {newCount > 0 ? (
                 <View className="absolute -right-0.5 -top-0.5 h-5 min-w-5 items-center justify-center rounded-full bg-[#EF4444] px-1">
-                  <Text className="text-[10px] font-bold text-white">{reminders.length}</Text>
+                  <Text className="text-[10px] font-bold text-white">{newCount}</Text>
                 </View>
               ) : null}
             </TouchableOpacity>
