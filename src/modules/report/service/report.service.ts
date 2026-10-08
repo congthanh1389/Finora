@@ -133,7 +133,24 @@ export function getReportPeriodRange(
 }
 
 function changeRate(value: number, base: number): number {
-  return base === 0 ? (value === 0 ? 0 : 100) : ((value - base) / Math.abs(base)) * 100;
+  return base === 0 ? 0 : ((value - base) / Math.abs(base)) * 100;
+}
+
+function buildCashFlowCalendar(
+  points: { date: string; income: number; expense: number }[],
+  start: Date,
+  end: Date,
+): ReportSnapshot["cashFlow"] {
+  const byDate = new Map(points.map((item) => [item.date, item]));
+  const result: ReportSnapshot["cashFlow"] = [];
+  for (const cursor = new Date(start); cursor < end; cursor.setDate(cursor.getDate() + 1)) {
+    const date = [cursor.getFullYear(), String(cursor.getMonth() + 1).padStart(2, "0"), String(cursor.getDate()).padStart(2, "0")].join("-");
+    const point = byDate.get(date);
+    const income = point?.income ?? 0;
+    const expense = point?.expense ?? 0;
+    result.push({ date, income, expense, net: income - expense });
+  }
+  return result;
 }
 
 function buildInsights(snapshot: Omit<ReportSnapshot, "insights">): ReportInsight[] {
@@ -244,10 +261,7 @@ export class ReportService {
         currency: item.currency,
         percentage: walletTotal === 0 ? 0 : (item.amount / walletTotal) * 100,
       })),
-      cashFlow: raw.cashFlow.map((item) => ({
-        ...item,
-        net: item.income - item.expense,
-      })),
+      cashFlow: buildCashFlowCalendar(raw.cashFlow, range.start, range.end),
       budgets: raw.budgets.map((item) => {
         const percentageUsed = item.limit === 0 ? 0 : (item.spent / item.limit) * 100;
         return {
