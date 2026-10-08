@@ -84,7 +84,7 @@ export function useBudgetViewModel() {
   const totalAmount = budgets.reduce((sum, item) => sum + item.amount, 0);
   const totalSpent = budgets.reduce((sum, item) => sum + item.spent, 0);
 
-  return { budgets, categories, wallets, selectedCategoryId, selectedWalletId, amountText, editingId, error, loading, totalAmount, totalSpent, totalRemaining: totalAmount - totalSpent,
+  const totalRemaining = Math.max(0, totalAmount - totalSpent);
     setSelectedCategoryId: (id: number | null) => { setSelectedCategoryId(id); setError(""); },
     setSelectedWalletId,
     setAmountText: (value: string) => { setAmountText(formatAmountInput(value)); setError(""); },
