@@ -97,33 +97,40 @@ export class DeviceReportRepository {
          w.name,
          w.type,
          w.currency,
-         w.opening_balance
-           + COALESCE((
-               SELECT SUM(
-                 CASE
-                   WHEN t.type = 'income' AND t.wallet_id = w.id THEN t.amount
-                   WHEN t.type = 'expense' AND t.wallet_id = w.id THEN -t.amount
-                   WHEN t.type = 'transfer' AND t.source_wallet_id = w.id THEN -t.amount
-                   WHEN t.type = 'transfer' AND t.destination_wallet_id = w.id THEN t.amount
-                   ELSE 0
-                 END
-               )
-               FROM transactions t
-               WHERE t.user_id = w.user_id
-             ), 0) AS balance,
-         COALESCE((
-           SELECT SUM(t.amount)
-           FROM transactions t
-           WHERE t.user_id = w.user_id
-             AND t.type = 'expense'
-             AND t.wallet_id = w.id
-             AND t.occurred_at >= ?
-             AND t.occurred_at < ?
-         ), 0) AS amount
+         w.opening_balance + COALESCE(wallet_effect.balance, 0) AS balance,
+         COALESCE(period_expense.amount, 0) AS amount
        FROM wallets w
+       LEFT JOIN (
+         SELECT wallet_id, SUM(effect) AS balance
+         FROM (
+           SELECT wallet_id,
+             SUM(CASE WHEN type = 'income' THEN amount WHEN type = 'expense' THEN -amount ELSE 0 END) AS effect
+           FROM transactions
+           WHERE user_id = ? AND wallet_id IS NOT NULL AND type IN ('income', 'expense')
+           GROUP BY wallet_id
+           UNION ALL
+           SELECT source_wallet_id AS wallet_id, SUM(-amount) AS effect
+           FROM transactions
+           WHERE user_id = ? AND source_wallet_id IS NOT NULL AND type = 'transfer'
+           GROUP BY source_wallet_id
+           UNION ALL
+           SELECT destination_wallet_id AS wallet_id, SUM(amount) AS effect
+           FROM transactions
+           WHERE user_id = ? AND destination_wallet_id IS NOT NULL AND type = 'transfer'
+           GROUP BY destination_wallet_id
+         ) effects
+         GROUP BY wallet_id
+       ) wallet_effect ON wallet_effect.wallet_id = w.id
+       LEFT JOIN (
+         SELECT wallet_id, SUM(amount) AS amount
+         FROM transactions
+         WHERE user_id = ? AND type = 'expense' AND wallet_id IS NOT NULL
+           AND occurred_at >= ? AND occurred_at < ?
+         GROUP BY wallet_id
+       ) period_expense ON period_expense.wallet_id = w.id
        WHERE w.user_id = ?
        ORDER BY amount DESC, w.created_at DESC`,
-      startIso, endIso, userId,
+      userId, userId, userId, userId, startIso, endIso, userId,
     );
 
     const cashFlow = await db.getAllAsync<{ date: string; income: number | null; expense: number | null }>(
@@ -150,20 +157,37 @@ export class DeviceReportRepository {
       `SELECT b.id, b.category_id, c.name AS category_name,
          b.wallet_id, w.name AS wallet_name, w.type AS wallet_type, b.currency,
          b.amount,
-         COALESCE((SELECT SUM(t.amount) FROM transactions t
-           WHERE t.user_id = b.user_id AND t.type = 'expense'
-             AND t.category_id = b.category_id
-             AND t.occurred_at >= ?
-             AND t.occurred_at < ?
-             AND (b.wallet_id IS NULL OR t.wallet_id = b.wallet_id)), 0) AS spent
+         CASE
+           WHEN b.wallet_id IS NULL THEN COALESCE(category_expense.spent, 0)
+           ELSE COALESCE(wallet_expense.spent, 0)
+         END AS spent
        FROM budgets b
        LEFT JOIN categories c ON c.id = b.category_id AND c.user_id = b.user_id
        LEFT JOIN wallets w ON w.id = b.wallet_id AND w.user_id = b.user_id
+       LEFT JOIN (
+         SELECT user_id, category_id, SUM(amount) AS spent
+         FROM transactions
+         WHERE user_id = ? AND type = 'expense'
+           AND occurred_at >= ? AND occurred_at < ?
+         GROUP BY user_id, category_id
+       ) category_expense
+         ON category_expense.user_id = b.user_id
+        AND category_expense.category_id = b.category_id
+       LEFT JOIN (
+         SELECT user_id, category_id, wallet_id, SUM(amount) AS spent
+         FROM transactions
+         WHERE user_id = ? AND type = 'expense'
+           AND occurred_at >= ? AND occurred_at < ?
+         GROUP BY user_id, category_id, wallet_id
+       ) wallet_expense
+         ON wallet_expense.user_id = b.user_id
+        AND wallet_expense.category_id = b.category_id
+        AND wallet_expense.wallet_id = b.wallet_id
        WHERE b.user_id = ?
          AND b.period_start < ?
          AND b.period_end > ?
        ORDER BY spent DESC, b.id ASC`,
-      startIso, endIso, userId, endIso, startIso,
+      userId, startIso, endIso, userId, startIso, endIso, userId, endIso, startIso,
     );
 
     return {
