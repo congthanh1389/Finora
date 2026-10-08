@@ -127,6 +127,7 @@ export function ReportCalendar({
                 })}
               </View>
             ))}
+            </View>
           </View>
 
           <View className="mt-3 flex-row justify-between">
