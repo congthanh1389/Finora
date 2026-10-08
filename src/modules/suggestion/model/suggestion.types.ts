@@ -17,26 +17,26 @@ export type SuggestionInput = {
   previousExpense: number;
   savingsRate: number;
   previousSavingsRate: number;
-  categories: Array<{
+  categories: {
     categoryId: number | null;
     name: string;
     amount: number;
     percentage: number;
-  }>;
-  budgets: Array<{
+  }[];
+  budgets: {
     budgetId: number;
     categoryName: string;
     limit: number;
     spent: number;
     percentageUsed: number;
     isOverBudget: boolean;
-  }>;
-  wallets: Array<{
+  }[];
+  wallets: {
     walletId: number;
     name: string;
     expense: number;
     balance: number;
-  }>;
+  }[];
 };
 
 export type SuggestionEngineOptions = {
