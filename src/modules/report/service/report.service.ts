@@ -132,8 +132,11 @@ export function getReportPeriodRange(
   return { start, end, previousStart, previousEnd: start };
 }
 
-function changeRate(value: number, base: number): number {
-  return base === 0 ? 0 : ((value - base) / Math.abs(base)) * 100;
+function changeRate(value: number, base: number): number | null {
+  if (base === 0) {
+    return null;
+  }
+  return ((value - base) / Math.abs(base)) * 100;
 }
 
 type CashFlowGranularity = "day" | "week" | "month";
