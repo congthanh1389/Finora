@@ -81,7 +81,11 @@ export default function ReportsScreen() {
     [data],
   );
   const topCategories = data?.categories.slice(0, 5) ?? [];
-  const topWallets = data?.wallets ?? [];\n  const cashFlowGranularity = getCashFlowGranularity(period, customRange);\n  const hasCashFlowActivity = (data?.cashFlow ?? []).some((item) => item.income !== 0 || item.expense !== 0);
+  const topWallets = data?.wallets ?? [];
+  const cashFlowGranularity = getCashFlowGranularity(period, customRange);
+  const hasCashFlowActivity = (data?.cashFlow ?? []).some(
+    (item) => item.income !== 0 || item.expense !== 0,
+  );
 
   const openCalendar = (mode: "start" | "end") => {
     setDraftDate(mode === "start" ? customRange?.start ?? new Date() : customRange?.end ?? customRange?.start ?? new Date());
