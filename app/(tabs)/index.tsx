@@ -80,7 +80,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => router.push("/reminders")}
-              className="mr-2 h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm"
+              className={`mr-2 h-11 w-11 items-center justify-center rounded-full shadow-sm ${newCount > 0 ? "bg-[#FFFBEB]" : "bg-white"}`}
             >
               <Ionicons name="notifications-outline" size={25} color={newCount > 0 ? "#F59E0B" : "#1F2937"} />
               {newCount > 0 ? (
