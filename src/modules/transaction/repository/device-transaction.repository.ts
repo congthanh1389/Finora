@@ -138,7 +138,7 @@ export class DeviceTransactionRepository {
     await initializeDeviceStorage();
 
     const conditions = ["t.user_id = ?"];
-    const params: unknown[] = [userId];
+    const params: (string | number | null)[] = [userId];
 
     if (type !== "all") {
       conditions.push("t.type = ?");
