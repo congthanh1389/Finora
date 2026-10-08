@@ -1,4 +1,4 @@
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { useMemo } from "react";
 import { useRouter } from "expo-router";
 
@@ -64,8 +64,85 @@ export function TransactionHistoryView() {
 
   return (
     <ScreenContainer className="bg-[#F8FAFC]">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
-        <View className="gap-4 px-5 pt-4">
+    const renderItem = useMemo(
+      () =>
+        ({ item: transaction, index }: { item: Transaction; index: number }) => {
+const isTransfer = transaction.type === "transfer";
+                const isIncome = transaction.type === "income";
+                const wallet = transaction.walletId == null ? undefined : walletMap.get(transaction.walletId);
+                const sourceWallet = transaction.sourceWalletId == null ? undefined : walletMap.get(transaction.sourceWalletId);
+                const destinationWallet = transaction.destinationWalletId == null ? undefined : walletMap.get(transaction.destinationWalletId);
+                const category = transaction.categoryId == null ? undefined : categoryMap.get(transaction.categoryId);
+                return (
+                  <View key={transaction.id} className={"flex-row items-center py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
+                    <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isTransfer ? "bg-[#EFF6FF]" : isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
+                      {isTransfer ? <FinoraMockupIcon name="01_finance_wallet" size={28} /> : <CategoryIcon name={resolveCategoryIconName(category?.icon)} size={28} />}
+                    </View>
+                    <View className="ml-3 flex-1">
+                      <Text className="font-semibold text-[#0F2A5F]">
+                        {isTransfer ? (transaction.note || "Chuyển tiền") : (category?.name || (isIncome ? "Khoản thu" : "Khoản chi"))}
+                      </Text>
+                      <Text className="mt-1 text-xs text-[#64748B]">
+                        {isTransfer
+                          ? (sourceWallet?.name || "Ví nguồn") + " → " + (destinationWallet?.name || "Ví nhận")
+                          : (wallet?.name || "Ví") + " · " + (wallet ? walletTypeLabels[wallet.type] : "Không rõ loại ví")}
+                      </Text>
+                      <Text className="mt-1 text-[11px] text-[#94A3B8]">{formatDate(transaction.occurredAt)}</Text>
+                    </View>
+                    <View className="items-end gap-2">
+                      <Text className={"text-sm font-bold " + (isTransfer ? "text-[#0F2A5F]" : isIncome ? "text-[#22B8A8]" : "text-[#E11D48]")}>
+                        {isTransfer ? "" : isIncome ? "+" : "−"}{formatVnd(transaction.amount)}
+                      </Text>
+                      <View className="flex-row gap-2">
+                        {!isTransfer ? (
+                          <Pressable onPress={() => router.push(`/transaction/edit?id=${transaction.id}`)} className="rounded-full bg-[#E6FFFA] px-3 py-1.5">
+                            <Text className="text-xs font-bold text-[#0F766E]">Sửa</Text>
+                          </Pressable>
+                        ) : null}
+                        <Pressable
+                          onPress={() => {
+                            Alert.alert(
+                              "Xóa giao dịch",
+                              "Bạn có chắc muốn xóa giao dịch này không?",
+                              [
+                                { text: "Hủy", style: "cancel" },
+                                {
+                                  text: "Xóa",
+                                  style: "destructive",
+                                  onPress: async () => {
+                                    try {
+                                      await deleteTransaction(transaction.id);
+                                    } catch (err) {
+                                      Alert.alert(
+                                        "Không thể xóa",
+                                        err instanceof Error ? err.message : "Đã xảy ra lỗi.",
+                                      );
+                                    }
+                                  },
+                                },
+                              ],
+                            );
+                          }}
+                          className="rounded-full bg-[#FFF1F2] px-3 py-1.5"
+                        >
+                          <Text className="text-xs font-bold text-[#BE123C]">Xóa</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  </View>
+                );
+        },
+      [categoryMap, deleteTransaction, router, walletMap],
+    );
+
+
+      <FlatList
+        data={transactions}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={renderItem}
+        ListHeaderComponent={
+          <View className="gap-4 px-5 pt-4">
+
           <View className="flex-row items-center">
             <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-white">
               <Text className="text-2xl text-[#475569]">‹</Text>
@@ -141,19 +218,21 @@ export function TransactionHistoryView() {
               <Text className="mt-3 text-xs text-[#BE123C]">Khoảng ngày không hợp lệ.</Text>
             ) : null}
           </View>
-
-          {isLoading ? (
-            <View className="items-center rounded-3xl border border-[#E2E8F0] bg-white py-12">
+          </View>
+        }
+        ListEmptyComponent={
+          isLoading ? (
+            <View className="mx-5 items-center rounded-3xl border border-[#E2E8F0] bg-white py-12">
               <ActivityIndicator />
               <Text className="mt-3 text-sm text-[#64748B]">Đang tải giao dịch...</Text>
             </View>
           ) : error ? (
-            <View className="rounded-3xl border border-[#FECACA] bg-white p-5">
+            <View className="mx-5 rounded-3xl border border-[#FECACA] bg-white p-5">
               <Text className="text-base font-bold text-[#991B1B]">Không thể tải giao dịch</Text>
               <Text className="mt-1 text-sm text-[#64748B]">Vui lòng thử lại.</Text>
             </View>
-          ) : transactions.length === 0 ? (
-            <View className="items-center rounded-3xl border border-dashed border-[#CBD5E1] bg-white px-6 py-12">
+          ) : (
+            <View className="mx-5 items-center rounded-3xl border border-dashed border-[#CBD5E1] bg-white px-6 py-12">
               <FinoraMockupIcon name="07_navigation_transactions" size={52} />
               <Text className="mt-4 text-lg font-bold text-[#0F2A5F]">Chưa có giao dịch</Text>
               <Text className="mt-1 text-center text-sm text-[#64748B]">Hãy tạo khoản thu hoặc khoản chi đầu tiên.</Text>
@@ -161,84 +240,29 @@ export function TransactionHistoryView() {
                 <Text className="font-bold text-white">Thêm giao dịch</Text>
               </Pressable>
             </View>
-          ) : (
-            <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
-              {transactions.map((transaction, index) => {
-                const isTransfer = transaction.type === "transfer";
-                const isIncome = transaction.type === "income";
-                const wallet = transaction.walletId == null ? undefined : walletMap.get(transaction.walletId);
-                const sourceWallet = transaction.sourceWalletId == null ? undefined : walletMap.get(transaction.sourceWalletId);
-                const destinationWallet = transaction.destinationWalletId == null ? undefined : walletMap.get(transaction.destinationWalletId);
-                const category = transaction.categoryId == null ? undefined : categoryMap.get(transaction.categoryId);
-                return (
-                  <View key={transaction.id} className={"flex-row items-center py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
-                    <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isTransfer ? "bg-[#EFF6FF]" : isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
-                      {isTransfer ? <FinoraMockupIcon name="01_finance_wallet" size={28} /> : <CategoryIcon name={resolveCategoryIconName(category?.icon)} size={28} />}
-                    </View>
-                    <View className="ml-3 flex-1">
-                      <Text className="font-semibold text-[#0F2A5F]">
-                        {isTransfer ? (transaction.note || "Chuyển tiền") : (category?.name || (isIncome ? "Khoản thu" : "Khoản chi"))}
-                      </Text>
-                      <Text className="mt-1 text-xs text-[#64748B]">
-                        {isTransfer
-                          ? (sourceWallet?.name || "Ví nguồn") + " → " + (destinationWallet?.name || "Ví nhận")
-                          : (wallet?.name || "Ví") + " · " + (wallet ? walletTypeLabels[wallet.type] : "Không rõ loại ví")}
-                      </Text>
-                      <Text className="mt-1 text-[11px] text-[#94A3B8]">{formatDate(transaction.occurredAt)}</Text>
-                    </View>
-                    <View className="items-end gap-2">
-                      <Text className={"text-sm font-bold " + (isTransfer ? "text-[#0F2A5F]" : isIncome ? "text-[#22B8A8]" : "text-[#E11D48]")}>
-                        {isTransfer ? "" : isIncome ? "+" : "−"}{formatVnd(transaction.amount)}
-                      </Text>
-                      <View className="flex-row gap-2">
-                        {!isTransfer ? (
-                          <Pressable onPress={() => router.push(`/transaction/edit?id=${transaction.id}`)} className="rounded-full bg-[#E6FFFA] px-3 py-1.5">
-                            <Text className="text-xs font-bold text-[#0F766E]">Sửa</Text>
-                          </Pressable>
-                        ) : null}
-                        <Pressable
-                          onPress={() => {
-                            Alert.alert(
-                              "Xóa giao dịch",
-                              "Bạn có chắc muốn xóa giao dịch này không?",
-                              [
-                                { text: "Hủy", style: "cancel" },
-                                {
-                                  text: "Xóa",
-                                  style: "destructive",
-                                  onPress: async () => {
-                                    try {
-                                      await deleteTransaction(transaction.id);
-                                    } catch (err) {
-                                      Alert.alert(
-                                        "Không thể xóa",
-                                        err instanceof Error ? err.message : "Đã xảy ra lỗi.",
-                                      );
-                                    }
-                                  },
-                                },
-                              ],
-                            );
-                          }}
-                          className="rounded-full bg-[#FFF1F2] px-3 py-1.5"
-                        >
-                          <Text className="text-xs font-bold text-[#BE123C]">Xóa</Text>
-                        </Pressable>
-                      </View>
-                    </View>
-                  </View>
-                );
-              })}
-
-              {hasMore ? (
-                <Pressable onPress={() => void loadMore()} disabled={isLoadingMore} className="mt-4 items-center rounded-2xl bg-[#F1F5F9] py-3">
-                  {isLoadingMore ? <ActivityIndicator /> : <Text className="text-sm font-bold text-[#0F766E]">Tải thêm giao dịch</Text>}
-                </Pressable>
-              ) : null}
+          )
+        }
+        ListFooterComponent={
+          hasMore ? (
+            <View className="mx-5 items-center py-5">
+              {isLoadingMore ? <ActivityIndicator /> : <Text className="text-xs text-[#64748B]">Đang chuẩn bị thêm giao dịch...</Text>}
             </View>
-          )}
-        </View>
-      </ScrollView>
+          ) : (
+            <View className="h-8" />
+          )
+        }
+        onEndReached={() => {
+          if (!isLoading && !isLoadingMore && hasMore) void loadMore();
+        }}
+        onEndReachedThreshold={0.5}
+        initialNumToRender={12}
+        maxToRenderPerBatch={10}
+        windowSize={7}
+        removeClippedSubviews
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+        extraData={{ typeFilter, periodKey, isLoadingMore }}
+      />
     </ScreenContainer>
   );
 }
