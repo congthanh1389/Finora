@@ -31,6 +31,9 @@ const rawReport = {
     { date: "2026-10-01", income: 1000000, expense: 300000 },
     { date: "2026-10-02", income: 0, expense: 700000 },
   ],
+  budgets: [
+    { budgetId: 1, categoryId: 1, categoryName: "Ăn uống", limit: 3000000, spent: 2500000 },
+  ],
 };
 
 describe("ReportService", () => {
