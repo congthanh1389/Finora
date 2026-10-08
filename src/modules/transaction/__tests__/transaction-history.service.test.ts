@@ -61,6 +61,34 @@ describe("TransactionHistoryService", () => {
     expect(repository.listHistoryPage).toHaveBeenCalledWith(1, 0, "expense", 50, start, end);
   });
 
+  it("delegates advanced filters to the repository", async () => {
+    const { service, repository } = createService();
+
+    await service.listPage(1, 0, "all", 50, undefined, undefined, {
+      walletId: 7,
+      categoryId: 9,
+      minAmount: 10000,
+      maxAmount: 50000,
+      search: "ăn sáng",
+    });
+
+    expect(repository.listHistoryPage).toHaveBeenCalledWith(
+      1,
+      0,
+      "all",
+      50,
+      undefined,
+      undefined,
+      {
+        walletId: 7,
+        categoryId: 9,
+        minAmount: 10000,
+        maxAmount: 50000,
+        search: "ăn sáng",
+      },
+    );
+  });
+
   it("rejects invalid paging input", async () => {
     const { service } = createService();
 
