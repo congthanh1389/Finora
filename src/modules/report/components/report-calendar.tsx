@@ -94,7 +94,7 @@ export function ReportCalendar({
             ))}
           </View>
 
-          <View className="mt-3 overflow-hidden rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC]">
+          <View className="mt-0 overflow-hidden rounded-b-2xl border border-t-0 border-[#E2E8F0] bg-[#F8FAFC]">
             {weeks.map((week, weekIndex) => (
               <View
                 key={`week-${weekIndex}`}
