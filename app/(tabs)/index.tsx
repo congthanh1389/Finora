@@ -1,6 +1,7 @@
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useDashboardViewModel } from "@/src/modules/dashboard/viewmodel/use-dashboard-view-model";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
@@ -79,7 +80,7 @@ export default function HomeScreen() {
               onPress={() => router.push("/reminders")}
               className="mr-2 h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm"
             >
-              <FinoraMockupIcon name="05_notifications_bell" size={25} />
+              <Ionicons name="notifications-outline" size={25} color="#1F2937" />
               {reminders.length > 0 ? (
                 <View className="absolute -right-0.5 -top-0.5 h-5 min-w-5 items-center justify-center rounded-full bg-[#EF4444] px-1">
                   <Text className="text-[10px] font-bold text-white">{reminders.length}</Text>
