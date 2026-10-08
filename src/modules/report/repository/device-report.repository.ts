@@ -15,7 +15,7 @@ export type ReportRepositoryData = {
   previousIncomeCount: number;
   previousExpenseCount: number;
   categories: { categoryId: number | null; name: string; amount: number }[];
-  wallets: { walletId: number; name: string; amount: number; balance: number }[];
+  wallets: { walletId: number; name: string; amount: number; balance: number; type: string; currency: string }[];
   cashFlow: { date: string; income: number; expense: number }[];
   budgets: { budgetId: number; categoryId: number; categoryName: string; limit: number; spent: number; walletId: number | null; walletName: string | null; walletType: string | null; currency: string }[];
 };
