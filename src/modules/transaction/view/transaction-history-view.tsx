@@ -280,7 +280,7 @@ const isTransfer = transaction.type === "transfer";
             </View>
             {hasAdvancedFilters ? (
               <Text className="mt-3 text-xs text-[#0F766E]">
-                Đang lọc{search ? " · "" + search + """ : ""}{walletFilterId !== undefined ? " · theo ví" : ""}{categoryFilterId !== undefined ? " · theo danh mục" : ""}{minAmount !== undefined || maxAmount !== undefined ? " · theo khoảng tiền" : ""}
+                Đang lọc{search ? ` · "${search}"` : ""}{walletFilterId !== undefined ? " · theo ví" : ""}{categoryFilterId !== undefined ? " · theo danh mục" : ""}{minAmount !== undefined || maxAmount !== undefined ? " · theo khoảng tiền" : ""}
               </Text>
             ) : null}
           </View>
