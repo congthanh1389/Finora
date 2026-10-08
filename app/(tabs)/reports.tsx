@@ -244,10 +244,7 @@ export default function ReportsScreen() {
                   </View>
                 </View>
               )}
-              <View className="mt-2 flex-row justify-between">
-                <Text className="text-[10px] text-[#94A3B8]">
-                  Tối đa {money(maxFlow)}
-                </Text>
+              <View className="mt-2 flex-row justify-end">
                 <Text className="text-[10px] text-[#94A3B8]">
                   {(data?.cashFlow ?? []).slice(-14).length} ngày gần nhất
                 </Text>
