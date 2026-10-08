@@ -5,6 +5,8 @@ import { ScreenContainer } from "@/components/screen-container";
 import type { ReportPeriod } from "@/src/modules/report/model/report.types";
 import { ReportCalendar } from "@/src/modules/report/components/report-calendar";
 import { useReportViewModel } from "@/src/modules/report/viewmodel/use-report-view-model";
+import { useSuggestionViewModel } from "@/src/modules/suggestion/viewmodel/use-suggestion-view-model";
+import { SuggestionCard } from "@/src/modules/suggestion/components/suggestion-card";
 
 const money = (value: number) =>
   new Intl.NumberFormat("vi-VN").format(Math.round(value)) + " ₫";
@@ -69,6 +71,7 @@ export default function ReportsScreen() {
     setCustomRange,
     loading,
   } = useReportViewModel();
+  const suggestions = useSuggestionViewModel(data);
   const [calendarMode, setCalendarMode] = useState<"start" | "end" | null>(null);
   const [draftDate, setDraftDate] = useState<Date | null>(null);
 
@@ -377,13 +380,16 @@ export default function ReportsScreen() {
             </View>
 
             <View className="mt-4 rounded-3xl border border-[#E2E8F0] bg-white p-5">
-              <Text className="text-lg font-bold text-[#0F2A5F]">Gợi ý</Text>
-              {(data?.insights ?? []).map((item) => (
-                <View key={item.title} className="mt-3 rounded-2xl bg-[#F8FAFC] p-4">
-                  <Text className="text-sm font-bold text-[#334155]">{item.title}</Text>
-                  <Text className="mt-1 text-xs leading-5 text-[#64748B]">{item.description}</Text>
-                </View>
-              ))}
+              <Text className="text-lg font-bold text-[#0F2A5F]">💡 Gợi ý cho bạn</Text>
+              {suggestions.length === 0 ? (
+                <Text className="mt-4 text-sm text-[#64748B]">
+                  Chưa có điểm nổi bật cần lưu ý trong kỳ này.
+                </Text>
+              ) : (
+                suggestions.map((suggestion) => (
+                  <SuggestionCard key={suggestion.id} suggestion={suggestion} />
+                ))
+              )}
             </View>
 
             <View className="mt-4 rounded-3xl border border-[#E2E8F0] bg-white p-5">
