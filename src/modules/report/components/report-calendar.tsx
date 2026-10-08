@@ -46,9 +46,6 @@ export function ReportCalendar({
 }: ReportCalendarProps) {
   const [month, setMonth] = useState(() => startOfMonth(value ?? new Date()));
   const [selected, setSelected] = useState<Date | null>(value ? normalizeDate(value) : null);
-  const [calendarVisible, setCalendarVisible] = useState(false);
-
-
   const weeks = useMemo(() => {
     const firstDay = startOfMonth(month);
     const mondayFirstIndex = (firstDay.getDay() + 6) % 7;
