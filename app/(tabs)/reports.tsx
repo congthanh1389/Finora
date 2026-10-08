@@ -185,7 +185,7 @@ export default function ReportsScreen() {
                 <Text className="mt-1 text-base font-bold text-[#BE123C]">
                   {money(data?.summary.expense ?? 0)}
                 </Text>
-                <Text className="mt-1 text-[11px] text-[#64748B]">
+                <Text className="mt-1 text-[11px] font-bold text-[#475569]">
                   {data?.summary.expenseCount ?? 0} giao dịch
                 </Text>
               </View>
@@ -313,7 +313,7 @@ export default function ReportsScreen() {
                         style={{ width: `${Math.min(item.percentageUsed, 100)}%` }}
                       />
                     </View>
-                    <Text className="mt-1 text-[11px] text-[#94A3B8]">
+                    <Text className="mt-1 text-[11px] font-bold text-[#475569]">
                       {item.isOverBudget ? "Đã vượt ngân sách" : `${item.percentageUsed.toFixed(0)}% đã sử dụng`}
                     </Text>
                   </View>
