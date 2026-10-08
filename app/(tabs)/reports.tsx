@@ -314,7 +314,7 @@ export default function ReportsScreen() {
               )}
               <View className="mt-2 flex-row justify-end">
                 <Text className="text-[10px] font-semibold text-[#64748B]">
-                  {(data?.cashFlow ?? []).length} {cashFlowGranularityLabel(period, data?.cashFlow.length ?? 0)} trong kỳ
+                  {(data?.cashFlow ?? []).length} {cashFlowGranularity} trong kỳ
                 </Text>
               </View>
             </View>
