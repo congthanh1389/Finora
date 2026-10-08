@@ -2,6 +2,7 @@ import type {
   TransactionSummaryFilter,
   TransactionSummaryResult,
 } from "../types/transaction-summary.types";
+import type { TransactionHistoryFilters } from "../types/transaction.types";
 
 export interface TransactionSummaryRepository {
   getSummary(
@@ -9,6 +10,7 @@ export interface TransactionSummaryRepository {
     start: Date,
     end: Date,
     filter?: TransactionSummaryFilter,
+    filters?: TransactionHistoryFilters,
   ): Promise<TransactionSummaryResult>;
 }
 
@@ -20,6 +22,7 @@ export class TransactionSummaryService {
     start: Date,
     end: Date,
     filter: TransactionSummaryFilter = "all",
+    filters?: TransactionHistoryFilters,
   ) {
     if (!Number.isInteger(userId) || userId <= 0) throw new Error("Invalid user id");
     if (!(start instanceof Date) || Number.isNaN(start.getTime())) throw new Error("Invalid start date");
@@ -30,7 +33,7 @@ export class TransactionSummaryService {
       throw new Error("Invalid transaction filter");
     }
 
-    return this.repository.getSummary(userId, start, end, filter);
+    return this.repository.getSummary(userId, start, end, filter, filters);
   }
 
   static currentMonth(now = new Date()) {
