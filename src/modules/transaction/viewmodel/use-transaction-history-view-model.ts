@@ -74,8 +74,6 @@ export function useTransactionHistoryViewModel() {
   const [categoryFilterId, setCategoryFilterId] = useState<number | undefined>();
   const [minAmount, setMinAmount] = useState<number | undefined>();
   const [maxAmount, setMaxAmount] = useState<number | undefined>();
-  const [search, setSearch] = useState("");
-  const [searchInput, setSearchInput] = useState("");
   const [minAmountInput, setMinAmountInput] = useState("");
   const [maxAmountInput, setMaxAmountInput] = useState("");
 
@@ -85,7 +83,7 @@ export function useTransactionHistoryViewModel() {
   );
 
   const filters = useMemo<TransactionHistoryFilters | undefined>(() => {
-    if (walletFilterId === undefined && categoryFilterId === undefined && minAmount === undefined && maxAmount === undefined && !search) {
+    if (walletFilterId === undefined && categoryFilterId === undefined && minAmount === undefined && maxAmount === undefined) {
       return undefined;
     }
     return {
@@ -93,9 +91,8 @@ export function useTransactionHistoryViewModel() {
       categoryId: categoryFilterId,
       minAmount,
       maxAmount,
-      search: search || undefined,
     };
-  }, [categoryFilterId, maxAmount, minAmount, search, walletFilterId]);
+  }, [categoryFilterId, maxAmount, minAmount, walletFilterId]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -184,15 +181,13 @@ export function useTransactionHistoryViewModel() {
     setMinAmount(parseAmount(minAmountInput));
     setMaxAmount(parseAmount(maxAmountInput));
     setSearch(searchInput.trim());
-  }, [maxAmountInput, minAmountInput, searchInput]);
+  }, [maxAmountInput, minAmountInput]);
 
   const clearAdvancedFilters = useCallback(() => {
     setWalletFilterId(undefined);
     setCategoryFilterId(undefined);
     setMinAmount(undefined);
     setMaxAmount(undefined);
-    setSearch("");
-    setSearchInput("");
     setMinAmountInput("");
     setMaxAmountInput("");
   }, []);
@@ -202,7 +197,7 @@ export function useTransactionHistoryViewModel() {
     categoryFilterId !== undefined ||
     minAmount !== undefined ||
     maxAmount !== undefined ||
-    Boolean(search);
+    false;
 
   const deleteTransaction = useCallback(async (transactionId: number) => {
     await dependencies.historyService.deleteTransaction(
@@ -236,13 +231,10 @@ export function useTransactionHistoryViewModel() {
     categoryFilterId,
     minAmount,
     maxAmount,
-    search,
-    searchInput,
     minAmountInput,
     maxAmountInput,
     setWalletFilterId,
     setCategoryFilterId,
-    setSearchInput,
     setMinAmountInput,
     setMaxAmountInput,
     applyAdvancedFilters,
