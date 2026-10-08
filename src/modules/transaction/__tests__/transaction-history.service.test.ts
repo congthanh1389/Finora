@@ -58,7 +58,7 @@ describe("TransactionHistoryService", () => {
 
     await service.listPage(1, 0, "expense", 50, start, end);
 
-    expect(repository.listHistoryPage).toHaveBeenCalledWith(1, 0, "expense", 50, start, end);
+    expect(repository.listHistoryPage).toHaveBeenCalledWith(1, 0, "expense", 50, start, end, undefined);
   });
 
   it("delegates advanced filters to the repository", async () => {
