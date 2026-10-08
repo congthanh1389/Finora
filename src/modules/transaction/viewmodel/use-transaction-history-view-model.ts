@@ -184,7 +184,6 @@ export function useTransactionHistoryViewModel() {
     };
     setMinAmount(parseAmount(minAmountInput));
     setMaxAmount(parseAmount(maxAmountInput));
-    setSearch(searchInput.trim());
   }, [maxAmountInput, minAmountInput]);
 
   const clearAdvancedFilters = useCallback(() => {
@@ -197,10 +196,6 @@ export function useTransactionHistoryViewModel() {
   }, []);
 
   const hasAdvancedFilters =
-    walletFilterId !== undefined ||
-    categoryFilterId !== undefined ||
-    minAmount !== undefined ||
-    maxAmount !== undefined ||
     walletFilterId !== undefined ||
     categoryFilterId !== undefined ||
     minAmount !== undefined ||
