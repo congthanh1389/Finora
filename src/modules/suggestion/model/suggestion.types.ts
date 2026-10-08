@@ -34,7 +34,7 @@ export type SuggestionInput = {
   wallets: Array<{
     walletId: number;
     name: string;
-    amount: number;
+    expense: number;
     balance: number;
   }>;
 };
