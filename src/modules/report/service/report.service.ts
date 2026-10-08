@@ -136,20 +136,123 @@ function changeRate(value: number, base: number): number {
   return base === 0 ? 0 : ((value - base) / Math.abs(base)) * 100;
 }
 
+type CashFlowGranularity = "day" | "week" | "month";
+
+function formatDateKey(date: Date): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function getCashFlowGranularity(
+  period: ReportPeriod,
+  start: Date,
+  end: Date,
+): CashFlowGranularity {
+  if (period === "today" || period === "week" || period === "month") {
+    return "day";
+  }
+
+  if (period === "quarter") {
+    return "week";
+  }
+
+  if (period === "year") {
+    return "month";
+  }
+
+  const durationDays = Math.round(
+    (end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000),
+  );
+
+  if (durationDays <= 31) {
+    return "day";
+  }
+
+  if (durationDays <= 120) {
+    return "week";
+  }
+
+  return "month";
+}
+
 function buildCashFlowCalendar(
   points: { date: string; income: number; expense: number }[],
   start: Date,
   end: Date,
+  granularity: CashFlowGranularity,
 ): ReportSnapshot["cashFlow"] {
   const byDate = new Map(points.map((item) => [item.date, item]));
   const result: ReportSnapshot["cashFlow"] = [];
-  for (const cursor = new Date(start); cursor < end; cursor.setDate(cursor.getDate() + 1)) {
-    const date = [cursor.getFullYear(), String(cursor.getMonth() + 1).padStart(2, "0"), String(cursor.getDate()).padStart(2, "0")].join("-");
-    const point = byDate.get(date);
-    const income = point?.income ?? 0;
-    const expense = point?.expense ?? 0;
-    result.push({ date, income, expense, net: income - expense });
+
+  if (granularity === "month") {
+    for (
+      let cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+      cursor < end;
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
+    ) {
+      const bucketStart = new Date(cursor);
+      const bucketEnd = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+      let income = 0;
+      let expense = 0;
+
+      for (const [date, point] of byDate) {
+        const pointDate = new Date(
+          Number(date.slice(0, 4)),
+          Number(date.slice(5, 7)) - 1,
+          Number(date.slice(8, 10)),
+        );
+        if (pointDate >= bucketStart && pointDate < bucketEnd) {
+          income += point.income;
+          expense += point.expense;
+        }
+      }
+
+      result.push({
+        date: formatDateKey(bucketStart),
+        income,
+        expense,
+        net: income - expense,
+      });
+    }
+    return result;
   }
+
+  const stepDays = granularity === "week" ? 7 : 1;
+  for (
+    let cursor = new Date(start);
+    cursor < end;
+    cursor.setDate(cursor.getDate() + stepDays)
+  ) {
+    const bucketStart = new Date(cursor);
+    const bucketEnd = new Date(cursor);
+    bucketEnd.setDate(bucketEnd.getDate() + stepDays);
+
+    let income = 0;
+    let expense = 0;
+
+    for (const [date, point] of byDate) {
+      const pointDate = new Date(
+        Number(date.slice(0, 4)),
+        Number(date.slice(5, 7)) - 1,
+        Number(date.slice(8, 10)),
+      );
+      if (pointDate >= bucketStart && pointDate < bucketEnd && pointDate < end) {
+        income += point.income;
+        expense += point.expense;
+      }
+    }
+
+    result.push({
+      date: formatDateKey(bucketStart),
+      income,
+      expense,
+      net: income - expense,
+    });
+  }
+
   return result;
 }
 
@@ -261,7 +364,12 @@ export class ReportService {
         currency: item.currency,
         percentage: walletTotal === 0 ? 0 : (item.amount / walletTotal) * 100,
       })),
-      cashFlow: buildCashFlowCalendar(raw.cashFlow, range.start, range.end),
+      cashFlow: buildCashFlowCalendar(
+        raw.cashFlow,
+        range.start,
+        range.end,
+        getCashFlowGranularity(period, range.start, range.end),
+      ),
       budgets: raw.budgets.map((item) => {
         const percentageUsed = item.limit === 0 ? 0 : (item.spent / item.limit) * 100;
         return {
