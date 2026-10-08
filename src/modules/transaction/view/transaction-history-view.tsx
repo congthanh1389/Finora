@@ -305,7 +305,10 @@ const isTransfer = transaction.type === "transfer";
             {summary ? (
               <View className="mt-4 rounded-2xl bg-[#F8FAFC] p-4">
                 <Text className="text-xs font-semibold text-[#64748B]">
-                  <Text style={{ color: typeFilter === "all" ? "#8B5CF6" : "#64748B" }}>
+                  <Text
+                    className={typeFilter === "all" ? "text-base font-extrabold" : "font-semibold"}
+                    style={{ color: typeFilter === "all" ? "#8B5CF6" : "#64748B" }}
+                  >
                     {typeFilter === "all"
                       ? "Tổng tất cả"
                       : typeFilter === "income"
@@ -315,7 +318,7 @@ const isTransfer = transaction.type === "transfer";
                           : "Tổng chuyển tiền"}
                   </Text>
                   {": "}
-                  <Text className="text-xl font-extrabold text-[#22B8A8]">
+                  <Text className="text-xl font-extrabold" style={{ color: "#0F766E" }}>
                     {formatVnd(summary.totals.totalAmount)}
                   </Text>
                 </Text>
