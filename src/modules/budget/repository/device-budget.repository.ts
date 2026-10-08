@@ -115,7 +115,8 @@ export class DeviceBudgetRepository {
     const periodEndIso = periodEnd.toISOString();
     const rows = await db.getAllAsync(
       [
-        "SELECT b.*, c.name AS category_name, w.name AS wallet_name,",
+        "SELECT b.id, b.user_id, b.category_id, b.wallet_id, b.amount, b.currency, b.period_start, b.period_end, b.created_at, b.updated_at,",
+        "c.name AS category_name, w.name AS wallet_name,"
         "CASE WHEN b.wallet_id IS NULL THEN COALESCE(category_expense.spent, 0)",
         "ELSE COALESCE(wallet_expense.spent, 0) END AS spent",
         "FROM budgets b",
