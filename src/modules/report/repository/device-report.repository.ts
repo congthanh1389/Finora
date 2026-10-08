@@ -84,11 +84,15 @@ export class DeviceReportRepository {
     const wallets = await db.getAllAsync<{
       wallet_id: number;
       name: string | null;
+      type: string | null;
+      currency: string | null;
       amount: number | null;
       balance: number | null;
     }>(
       `SELECT w.id AS wallet_id,
          w.name,
+         w.type,
+         w.currency,
          w.opening_balance
            + COALESCE((
                SELECT SUM(
@@ -176,6 +180,8 @@ export class DeviceReportRepository {
       wallets: wallets.map((row) => ({
         walletId: Number(row.wallet_id),
         name: String(row.name ?? "Ví không xác định"),
+        type: String(row.type ?? "other_asset"),
+        currency: String(row.currency ?? "VND"),
         amount: Number(row.amount ?? 0),
         balance: Number(row.balance ?? 0),
       })),
