@@ -24,8 +24,8 @@ const rawReport = {
     { categoryId: null, name: "Khác", amount: 1500000 },
   ],
   wallets: [
-    { walletId: 1, name: "Tiền mặt", amount: 2500000, balance: 5500000 },
-    { walletId: 2, name: "Ngân hàng", amount: 1500000, balance: 12500000 },
+    { walletId: 1, name: "Tiền mặt", amount: 2500000, balance: 5500000, type: "cash", currency: "VND" },
+    { walletId: 2, name: "Ngân hàng", amount: 1500000, balance: 12500000, type: "bank", currency: "VND" },
   ],
   cashFlow: [
     { date: "2026-10-01", income: 1000000, expense: 300000 },
