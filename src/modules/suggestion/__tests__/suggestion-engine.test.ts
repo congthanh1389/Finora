@@ -15,7 +15,7 @@ function createInput(overrides: Partial<SuggestionInput> = {}): SuggestionInput 
     ],
     budgets: [],
     wallets: [
-      { walletId: 1, name: "Ví tiền mặt", amount: 3_000_000, balance: 7_000_000 },
+      { walletId: 1, name: "Ví tiền mặt", expense: 3_000_000, balance: 7_000_000 },
     ],
     ...overrides,
   };
