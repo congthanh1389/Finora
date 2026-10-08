@@ -32,7 +32,7 @@ const rawReport = {
     { date: "2026-10-02", income: 0, expense: 700000 },
   ],
   budgets: [
-    { budgetId: 1, categoryId: 1, categoryName: "Ăn uống", limit: 3000000, spent: 2500000 },
+    { budgetId: 1, categoryId: 1, categoryName: "Ăn uống", limit: 3000000, spent: 2500000, walletId: 2, walletName: "Ngân hàng", walletType: "bank", currency: "VND" },
   ],
 };
 
@@ -54,6 +54,8 @@ describe("ReportService", () => {
     expect(result.wallets[0].percentage).toBe(62.5);
     expect(result.wallets[0].balance).toBe(5500000);
     expect(result.cashFlow[1].net).toBe(-700000);
+    expect(result.budgets[0].walletName).toBe("Ngân hàng");
+    expect(result.budgets[0].walletType).toBe("bank");
   });
 
   it("rejects invalid user ids", async () => {

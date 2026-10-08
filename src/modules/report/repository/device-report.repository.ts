@@ -17,7 +17,7 @@ export type ReportRepositoryData = {
   categories: { categoryId: number | null; name: string; amount: number }[];
   wallets: { walletId: number; name: string; amount: number; balance: number }[];
   cashFlow: { date: string; income: number; expense: number }[];
-  budgets: { budgetId: number; categoryId: number; categoryName: string; limit: number; spent: number }[];
+  budgets: { budgetId: number; categoryId: number; categoryName: string; limit: number; spent: number; walletId: number | null; walletName: string | null; walletType: string | null; currency: string }[];
 };
 
 type SummaryRow = {
@@ -132,10 +132,16 @@ export class DeviceReportRepository {
       id: number;
       category_id: number;
       category_name: string | null;
+      wallet_id: number | null;
+      wallet_name: string | null;
+      wallet_type: string | null;
+      currency: string | null;
       amount: number;
       spent: number | null;
     }>(
-      `SELECT b.id, b.category_id, c.name AS category_name, b.amount,
+      `SELECT b.id, b.category_id, c.name AS category_name,
+         b.wallet_id, w.name AS wallet_name, w.type AS wallet_type, b.currency,
+         b.amount,
          COALESCE((SELECT SUM(t.amount) FROM transactions t
            WHERE t.user_id = b.user_id AND t.type = 'expense'
              AND t.category_id = b.category_id
@@ -143,6 +149,7 @@ export class DeviceReportRepository {
              AND (b.wallet_id IS NULL OR t.wallet_id = b.wallet_id)), 0) AS spent
        FROM budgets b
        LEFT JOIN categories c ON c.id = b.category_id AND c.user_id = b.user_id
+       LEFT JOIN wallets w ON w.id = b.wallet_id AND w.user_id = b.user_id
        WHERE b.user_id = ? AND b.period_start = ? AND b.period_end = ?
        ORDER BY spent DESC, b.id ASC`,
       userId, startIso, endIso,
@@ -183,6 +190,10 @@ export class DeviceReportRepository {
         categoryName: String(row.category_name ?? "Không xác định"),
         limit: Number(row.amount),
         spent: Number(row.spent ?? 0),
+        walletId: row.wallet_id == null ? null : Number(row.wallet_id),
+        walletName: row.wallet_name == null ? null : String(row.wallet_name),
+        walletType: row.wallet_type == null ? null : String(row.wallet_type),
+        currency: String(row.currency ?? "VND"),
       })),
     };
   }

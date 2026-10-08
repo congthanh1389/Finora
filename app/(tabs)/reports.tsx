@@ -18,6 +18,18 @@ const formatDate = (date: Date | null) =>
       }).format(date)
     : "Chọn ngày";
 
+const walletTypeLabels: Record<string, string> = {
+  cash: "Tiền mặt",
+  bank: "Ngân hàng",
+  ewallet: "Ví điện tử",
+  credit_card: "Thẻ tín dụng",
+  savings: "Tiết kiệm",
+  investment: "Đầu tư",
+  other_asset: "Tài sản khác",
+  receivable: "Khoản phải thu",
+  payable: "Khoản phải trả",
+};
+
 const periodLabels: Record<ReportPeriod, string> = {
   week: "7 ngày",
   month: "Tháng",
@@ -284,7 +296,12 @@ export default function ReportsScreen() {
                 data?.budgets.slice(0, 5).map((item) => (
                   <View key={item.budgetId} className="mt-4">
                     <View className="flex-row">
-                      <Text className="flex-1 text-sm font-semibold text-[#334155]">{item.categoryName}</Text>
+                      <View className="flex-1 pr-3">
+                        <Text className="text-sm font-semibold text-[#334155]">{item.categoryName}</Text>
+                        <Text className="mt-1 text-[11px] text-[#64748B]">
+                          {item.walletName ?? "Tất cả ví"} · {walletTypeLabels[item.walletType ?? ""] ?? "Ví"}
+                        </Text>
+                      </View>
                       <Text className={`text-sm font-bold ${item.isOverBudget ? "text-[#BE123C]" : "text-[#0F172A]"}`}>
                         {money(item.spent)} / {money(item.limit)}
                       </Text>

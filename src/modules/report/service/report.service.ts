@@ -29,6 +29,10 @@ export interface IReportRepository {
       categoryName: string;
       limit: number;
       spent: number;
+      walletId: number | null;
+      walletName: string | null;
+      walletType: string | null;
+      currency: string;
     }[];
   }>;
 }

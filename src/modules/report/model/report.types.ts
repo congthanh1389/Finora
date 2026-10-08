@@ -35,6 +35,8 @@ export type ReportWallet = {
   amount: number;
   percentage: number;
   balance: number;
+  type: string;
+  currency: string;
 };
 
 export type ReportCashFlowPoint = {
@@ -59,6 +61,10 @@ export type ReportBudget = {
   remaining: number;
   percentageUsed: number;
   isOverBudget: boolean;
+  walletId: number | null;
+  walletName: string | null;
+  walletType: string | null;
+  currency: string;
 };
 
 export type ReportInsight = {
