@@ -69,7 +69,6 @@ describe("TransactionHistoryService", () => {
       categoryId: 9,
       minAmount: 10000,
       maxAmount: 50000,
-      search: "ăn sáng",
     });
 
     expect(repository.listHistoryPage).toHaveBeenCalledWith(
@@ -84,7 +83,6 @@ describe("TransactionHistoryService", () => {
         categoryId: 9,
         minAmount: 10000,
         maxAmount: 50000,
-        search: "ăn sáng",
       },
     );
   });
