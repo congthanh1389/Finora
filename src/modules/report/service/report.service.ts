@@ -230,6 +230,8 @@ export class ReportService {
       })),
       wallets: raw.wallets.map((item) => ({
         ...item,
+        type: item.type,
+        currency: item.currency,
         percentage: walletTotal === 0 ? 0 : (item.amount / walletTotal) * 100,
       })),
       cashFlow: raw.cashFlow.map((item) => ({
