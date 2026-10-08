@@ -72,7 +72,7 @@ const isTransfer = transaction.type === "transfer";
                 const destinationWallet = transaction.destinationWalletId == null ? undefined : walletMap.get(transaction.destinationWalletId);
                 const category = transaction.categoryId == null ? undefined : categoryMap.get(transaction.categoryId);
                 return (
-                  <View key={transaction.id} className={"flex-row items-center py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
+                  <View className={"mx-5 flex-row items-center bg-white px-4 py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
                     <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isTransfer ? "bg-[#EFF6FF]" : isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
                       {isTransfer ? <FinoraMockupIcon name="01_finance_wallet" size={28} /> : <CategoryIcon name={resolveCategoryIconName(category?.icon)} size={28} />}
                     </View>
