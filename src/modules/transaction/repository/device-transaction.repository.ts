@@ -8,6 +8,7 @@ import type { Transaction } from "../../../../drizzle/schema";
 import type { CreateTransactionInput, TransactionType } from "../types/transaction.types";
 
 const HISTORY_PAGE_SIZE = 50;
+const TRANSACTION_SELECT_COLUMNS = `id, user_id, type, amount, currency, wallet_id, source_wallet_id, destination_wallet_id, category_id, note, occurred_at, created_at, updated_at`;
 
 function transactionFromRow(row: any): Transaction {
   const id = Number(row.id);
@@ -75,7 +76,7 @@ export class DeviceTransactionRepository {
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const rows = await db.getAllAsync(
-      `SELECT * FROM transactions
+      `SELECT ${TRANSACTION_SELECT_COLUMNS} FROM transactions
        WHERE user_id = ?
        ORDER BY occurred_at DESC, id DESC
        LIMIT ?`,
@@ -124,7 +125,7 @@ export class DeviceTransactionRepository {
     const periodParams = start && end ? [start.toISOString(), end.toISOString()] : [];
     const rows = type === "all"
       ? await db.getAllAsync(
-          `SELECT * FROM transactions
+          `SELECT ${TRANSACTION_SELECT_COLUMNS} FROM transactions
            WHERE user_id = ?${periodClause}
            ORDER BY occurred_at DESC, id DESC
            LIMIT ? OFFSET ?`,
@@ -134,7 +135,7 @@ export class DeviceTransactionRepository {
           offset,
         )
       : await db.getAllAsync(
-          `SELECT * FROM transactions
+          `SELECT ${TRANSACTION_SELECT_COLUMNS} FROM transactions
            WHERE user_id = ? AND type = ?${periodClause}
            ORDER BY occurred_at DESC, id DESC
            LIMIT ? OFFSET ?`,
