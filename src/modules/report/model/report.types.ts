@@ -47,9 +47,9 @@ export type ReportCashFlowPoint = {
 };
 
 export type ReportComparison = {
-  incomeChange: number;
-  expenseChange: number;
-  balanceChange: number;
+  incomeChange: number | null;
+  expenseChange: number | null;
+  balanceChange: number | null;
 };
 
 export type ReportBudget = {
