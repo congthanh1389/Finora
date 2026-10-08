@@ -1,4 +1,5 @@
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useEffect } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 
@@ -6,11 +7,17 @@ import { ScreenContainer } from "@/components/screen-container";
 import { ReminderCard } from "@/src/modules/reminder/components/reminder-card";
 import { useReportViewModel } from "@/src/modules/report/viewmodel/use-report-view-model";
 import { useReminderViewModel } from "@/src/modules/reminder/viewmodel/use-reminder-view-model";
+import { markNotificationsSeen, useReminderStatus } from "@/src/modules/reminder/state/reminder-state";
 
 export default function RemindersScreen() {
   const router = useRouter();
   const { data, loading } = useReportViewModel();
   const reminders = useReminderViewModel(data);
+  const { unreadIds } = useReminderStatus(reminders);
+
+  useEffect(() => {
+    markNotificationsSeen(reminders.map((reminder) => reminder.id));
+  }, [reminders]);
 
   return (
     <ScreenContainer className="bg-[#F8FAFC]">
@@ -39,7 +46,7 @@ export default function RemindersScreen() {
         ) : (
           <View className="mt-6 gap-3">
             {reminders.map((reminder) => (
-              <ReminderCard key={reminder.id} reminder={reminder} />
+              <ReminderCard key={reminder.id} reminder={reminder} isUnread={unreadIds.has(reminder.id)} />
             ))}
           </View>
         )}
