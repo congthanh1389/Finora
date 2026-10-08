@@ -149,7 +149,7 @@ function formatDateKey(date: Date): string {
   ].join("-");
 }
 
-function getCashFlowGranularity(
+export function getCashFlowGranularity(
   period: ReportPeriod,
   start: Date,
   end: Date,
