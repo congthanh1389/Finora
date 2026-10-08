@@ -56,24 +56,37 @@ export class DeviceReportRepository {
     const timezoneMinutes = Math.abs(timezoneOffsetMinutes % 60);
     const timezoneModifier = `${timezoneHours >= 0 ? "+" : "-"}${String(Math.abs(timezoneHours)).padStart(2, "0")} hours${timezoneMinutes === 0 ? "" : ` ${timezoneMinutes >= 0 ? "+" : "-"}${String(Math.abs(timezoneMinutes)).padStart(2, "0")} minutes`}`;
 
-    const summary = await db.getFirstAsync<SummaryRow>(
-      `SELECT COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
-         COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense,
-         COALESCE(SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END), 0) AS transfer,
-         COALESCE(SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END), 0) AS income_count,
-         COALESCE(SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END), 0) AS expense_count
-       FROM transactions WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?`,
-      userId, startIso, endIso,
-    );
-
-    const previous = await db.getFirstAsync<SummaryRow>(
-      `SELECT COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
-         COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense,
-         COALESCE(SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END), 0) AS transfer,
-         COALESCE(SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END), 0) AS income_count,
-         COALESCE(SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END), 0) AS expense_count
-       FROM transactions WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?`,
-      userId, previousStartIso, previousEndIso,
+    const summary = await db.getFirstAsync<SummaryRow & {
+      previous_income: number | null;
+      previous_expense: number | null;
+      previous_transfer: number | null;
+      previous_income_count: number | null;
+      previous_expense_count: number | null;
+    }>(
+      `SELECT
+         COALESCE(SUM(CASE WHEN occurred_at >= ? AND occurred_at < ? AND type = 'income' THEN amount ELSE 0 END), 0) AS income,
+         COALESCE(SUM(CASE WHEN occurred_at >= ? AND occurred_at < ? AND type = 'expense' THEN amount ELSE 0 END), 0) AS expense,
+         COALESCE(SUM(CASE WHEN occurred_at >= ? AND occurred_at < ? AND type = 'transfer' THEN amount ELSE 0 END), 0) AS transfer,
+         COALESCE(SUM(CASE WHEN occurred_at >= ? AND occurred_at < ? AND type = 'income' THEN 1 ELSE 0 END), 0) AS income_count,
+         COALESCE(SUM(CASE WHEN occurred_at >= ? AND occurred_at < ? AND type = 'expense' THEN 1 ELSE 0 END), 0) AS expense_count,
+         COALESCE(SUM(CASE WHEN occurred_at >= ? AND occurred_at < ? AND type = 'income' THEN amount ELSE 0 END), 0) AS previous_income,
+         COALESCE(SUM(CASE WHEN occurred_at >= ? AND occurred_at < ? AND type = 'expense' THEN amount ELSE 0 END), 0) AS previous_expense,
+         COALESCE(SUM(CASE WHEN occurred_at >= ? AND occurred_at < ? AND type = 'transfer' THEN amount ELSE 0 END), 0) AS previous_transfer,
+         COALESCE(SUM(CASE WHEN occurred_at >= ? AND occurred_at < ? AND type = 'income' THEN 1 ELSE 0 END), 0) AS previous_income_count,
+         COALESCE(SUM(CASE WHEN occurred_at >= ? AND occurred_at < ? AND type = 'expense' THEN 1 ELSE 0 END), 0) AS previous_expense_count
+       FROM transactions
+       WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?`,
+      startIso, endIso,
+      startIso, endIso,
+      startIso, endIso,
+      startIso, endIso,
+      startIso, endIso,
+      previousStartIso, previousEndIso,
+      previousStartIso, previousEndIso,
+      previousStartIso, previousEndIso,
+      previousStartIso, previousEndIso,
+      previousStartIso, previousEndIso,
+      userId, previousStartIso, endIso,
     );
 
     const categories = await db.getAllAsync<{ category_id: number | null; name: string | null; amount: number | null }>(
@@ -198,11 +211,11 @@ export class DeviceReportRepository {
       transfer: Number(summary?.transfer ?? 0),
       incomeCount: Number(summary?.income_count ?? 0),
       expenseCount: Number(summary?.expense_count ?? 0),
-      previousIncome: Number(previous?.income ?? 0),
-      previousExpense: Number(previous?.expense ?? 0),
-      previousTransfer: Number(previous?.transfer ?? 0),
-      previousIncomeCount: Number(previous?.income_count ?? 0),
-      previousExpenseCount: Number(previous?.expense_count ?? 0),
+      previousIncome: Number(summary?.previous_income ?? 0),
+      previousExpense: Number(summary?.previous_expense ?? 0),
+      previousTransfer: Number(summary?.previous_transfer ?? 0),
+      previousIncomeCount: Number(summary?.previous_income_count ?? 0),
+      previousExpenseCount: Number(summary?.previous_expense_count ?? 0),
       categories: categories.map((row) => ({
         categoryId: row.category_id == null ? null : Number(row.category_id),
         name: String(row.name ?? "Khác"),
