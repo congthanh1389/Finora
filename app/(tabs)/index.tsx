@@ -5,6 +5,8 @@ import { useDashboardViewModel } from "@/src/modules/dashboard/viewmodel/use-das
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
 import { ScreenContainer } from "@/components/screen-container";
+import { useReportViewModel } from "@/src/modules/report/viewmodel/use-report-view-model";
+import { useReminderViewModel } from "@/src/modules/reminder/viewmodel/use-reminder-view-model";
 
 const money = (value: number) => new Intl.NumberFormat("vi-VN").format(value) + " ₫";
 const percent = (value: number) => new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 }).format(value) + "%";
@@ -57,6 +59,8 @@ export default function HomeScreen() {
   const [greeting] = useState(getGreeting);
   const [greetingMessage] = useState(() => getRandomMessage(greeting.messages));
   const { data } = useDashboardViewModel();
+  const { data: reportData } = useReportViewModel();
+  const reminders = useReminderViewModel(reportData);
 
   const current = data?.currentMonth;
   const previous = data?.previousMonth;
@@ -70,7 +74,18 @@ export default function HomeScreen() {
           <View className="flex-row items-center">
             <FinoraMockupIcon name="00_brand_finora_mark" size={42} />
             <View className="ml-2 flex-1"><Text className="text-[22px] font-bold text-[#0F2A5F]">Finora</Text><Text className="mt-1 text-[21px] font-bold text-[#0F2A5F]">{greeting.title}</Text><Text className="mt-0.5 text-sm text-[#64748B]">{greetingMessage}</Text></View>
-            <View className="mr-2 h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm"><FinoraMockupIcon name="05_calendar_notifications_notification" size={25} /></View>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.push("/reminders")}
+              className="mr-2 h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm"
+            >
+              <FinoraMockupIcon name="05_calendar_notifications_notification" size={25} />
+              {reminders.length > 0 ? (
+                <View className="absolute -right-0.5 -top-0.5 h-5 min-w-5 items-center justify-center rounded-full bg-[#EF4444] px-1">
+                  <Text className="text-[10px] font-bold text-white">{reminders.length}</Text>
+                </View>
+              ) : null}
+            </TouchableOpacity>
             <View className="h-11 w-11 items-center justify-center rounded-full bg-[#EFF6FF]"><Text className="text-lg">●</Text></View>
           </View>
 
