@@ -52,7 +52,7 @@ const PERIOD_SUMMARY_SQL = [
 ].join(" ");
 
 const RECENT_TRANSACTIONS_SQL = [
-  "SELECT t.*,",
+  "SELECT t.id, t.user_id, t.type, t.amount, t.currency, t.wallet_id, t.source_wallet_id, t.destination_wallet_id, t.category_id, t.note, t.occurred_at, t.created_at, t.updated_at,",
   "COALESCE(w.name, source_wallet.name, destination_wallet.name, 'Ví') AS wallet_name,",
   "COALESCE(w.type, source_wallet.type, destination_wallet.type) AS wallet_type,",
   "c.name AS category_name",
