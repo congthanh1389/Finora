@@ -260,10 +260,15 @@ export default function ReportsScreen() {
                   Chưa có giao dịch trong kỳ này.
                 </Text>
               ) : (
-                <View className="mt-5 rounded-2xl bg-[#F8FAFC] px-2 pt-4">
-                  <View className="h-32 flex-row items-end gap-1.5">
-                    {(data?.cashFlow ?? []).map((item) => (
-                      <View key={item.date} className="w-12 flex-row items-end justify-center gap-0.5">
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  className="mt-5 rounded-2xl bg-[#F8FAFC]"
+                  contentContainerStyle={{ paddingHorizontal: 8, paddingTop: 16, paddingBottom: 8, gap: 8 }}
+                >
+                  {(data?.cashFlow ?? []).map((item) => (
+                    <View key={item.date} className="w-12 items-center">
+                      <View className="h-32 flex-row items-end justify-center gap-0.5">
                         <View
                           className="w-2.5 rounded-t-full bg-[#22B8A8]"
                           style={{ height: Math.max(3, (item.income / maxFlow) * 112) }}
@@ -273,16 +278,12 @@ export default function ReportsScreen() {
                           style={{ height: Math.max(3, (item.expense / maxFlow) * 112) }}
                         />
                       </View>
-                    ))}
-                  </View>
-                  <View className="mt-2 flex-row border-t border-[#E2E8F0] pt-2">
-                    {(data?.cashFlow ?? []).map((item) => (
-                      <Text key={item.date} className="flex-1 text-center text-[9px] font-semibold text-[#475569]">
+                      <Text className="mt-2 text-[9px] font-semibold text-[#475569]">
                         {item.date.slice(8)}
                       </Text>
-                    ))}
-                  </View>
-                </View>
+                    </View>
+                  ))}
+                </ScrollView>
               )}
               <View className="mt-2 flex-row justify-end">
                 <Text className="text-[10px] font-semibold text-[#64748B]">
