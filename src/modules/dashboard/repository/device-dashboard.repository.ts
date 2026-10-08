@@ -57,10 +57,10 @@ const RECENT_TRANSACTIONS_SQL = [
   "COALESCE(w.type, source_wallet.type, destination_wallet.type) AS wallet_type,",
   "c.name AS category_name",
   "FROM transactions t",
-  "LEFT JOIN wallets w ON w.id = t.wallet_id",
-  "LEFT JOIN wallets source_wallet ON source_wallet.id = t.source_wallet_id",
-  "LEFT JOIN wallets destination_wallet ON destination_wallet.id = t.destination_wallet_id",
-  "LEFT JOIN categories c ON c.id = t.category_id",
+  "LEFT JOIN wallets w ON w.id = t.wallet_id AND w.user_id = t.user_id",
+  "LEFT JOIN wallets source_wallet ON source_wallet.id = t.source_wallet_id AND source_wallet.user_id = t.user_id",
+  "LEFT JOIN wallets destination_wallet ON destination_wallet.id = t.destination_wallet_id AND destination_wallet.user_id = t.user_id",
+  "LEFT JOIN categories c ON c.id = t.category_id AND c.user_id = t.user_id",
   "WHERE t.user_id = ?",
   "ORDER BY t.occurred_at DESC, t.id DESC",
   "LIMIT ?",
@@ -68,6 +68,7 @@ const RECENT_TRANSACTIONS_SQL = [
 
 export class DeviceDashboardRepository {
   async getTotalActiveWalletBalance(userId: number): Promise<number> {
+    if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const row = await db.getFirstAsync<{ total_balance: number | null }>(
@@ -78,6 +79,7 @@ export class DeviceDashboardRepository {
   }
 
   async getPeriodSummary(userId: number, from: Date, to: Date): Promise<DashboardPeriodSummary> {
+    if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
     const row = await db.getFirstAsync<{ income: number | null; expense: number | null; transfer: number | null }>(
@@ -90,6 +92,7 @@ export class DeviceDashboardRepository {
   }
 
   async listRecent(userId: number, limit = 3): Promise<DashboardRecentTransaction[]> {
+    if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
     const safeLimit = Number.isSafeInteger(limit) && limit > 0 ? limit : 3;
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
