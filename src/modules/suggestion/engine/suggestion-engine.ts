@@ -101,8 +101,8 @@ function pushBudgetSuggestions(input: SuggestionInput, suggestions: Suggestion[]
 
 function pushCategorySuggestion(input: SuggestionInput, suggestions: Suggestion[]): void {
   const top = [...input.categories]
-    .filter((item) => item.amount > 0)
-    .sort((a, b) => b.amount - a.amount)[0];
+    .filter((item) => item.expense > 0)
+    .sort((a, b) => b.expense - a.expense)[0];
 
   if (!top || top.percentage < 25) return;
 
@@ -121,7 +121,7 @@ function pushWalletSuggestion(input: SuggestionInput, suggestions: Suggestion[])
     .filter((item) => item.amount > 0)
     .sort((a, b) => b.amount - a.amount)[0];
 
-  if (!wallet || input.expense <= 0 || wallet.amount < input.expense * 0.5) return;
+  if (!wallet || input.expense <= 0 || wallet.expense < input.expense * 0.25) return;
 
   suggestions.push({
     id: `wallet-top-${wallet.walletId}`,
@@ -129,7 +129,7 @@ function pushWalletSuggestion(input: SuggestionInput, suggestions: Suggestion[])
     severity: "info",
     priority: 35,
     title: `${wallet.name} có mức chi tiêu nổi bật`,
-    description: `Ví này chiếm ${((wallet.amount / input.expense) * 100).toFixed(1)}% tổng chi tiêu trong kỳ.`,
+    description: `Ví này chiếm ${((wallet.expense / input.expense) * 100).toFixed(1)}% tổng chi tiêu trong kỳ.`,
   });
 }
 
