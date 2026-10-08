@@ -111,22 +111,40 @@ export class DeviceBudgetRepository {
 
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
+    const periodStartIso = periodStart.toISOString();
+    const periodEndIso = periodEnd.toISOString();
     const rows = await db.getAllAsync(
       [
         "SELECT b.*, c.name AS category_name, w.name AS wallet_name,",
-        "COALESCE((SELECT SUM(t.amount) FROM transactions t",
-        "WHERE t.user_id = b.user_id AND t.type = 'expense'",
-        "AND t.category_id = b.category_id AND t.occurred_at >= b.period_start AND t.occurred_at < b.period_end",
-        "AND (b.wallet_id IS NULL OR t.wallet_id = b.wallet_id)), 0) AS spent",
+        "CASE WHEN b.wallet_id IS NULL THEN COALESCE(category_expense.spent, 0)",
+        "ELSE COALESCE(wallet_expense.spent, 0) END AS spent",
         "FROM budgets b",
         "LEFT JOIN categories c ON c.id = b.category_id AND c.user_id = b.user_id",
         "LEFT JOIN wallets w ON w.id = b.wallet_id AND w.user_id = b.user_id",
+        "LEFT JOIN (",
+        "SELECT user_id, category_id, SUM(amount) AS spent",
+        "FROM transactions",
+        "WHERE user_id = ? AND type = 'expense' AND occurred_at >= ? AND occurred_at < ?",
+        "GROUP BY user_id, category_id",
+        ") category_expense ON category_expense.user_id = b.user_id AND category_expense.category_id = b.category_id",
+        "LEFT JOIN (",
+        "SELECT user_id, category_id, wallet_id, SUM(amount) AS spent",
+        "FROM transactions",
+        "WHERE user_id = ? AND type = 'expense' AND occurred_at >= ? AND occurred_at < ?",
+        "GROUP BY user_id, category_id, wallet_id",
+        ") wallet_expense ON wallet_expense.user_id = b.user_id AND wallet_expense.category_id = b.category_id AND wallet_expense.wallet_id = b.wallet_id",
         "WHERE b.user_id = ? AND b.period_start = ? AND b.period_end = ?",
-        "ORDER BY c.name ASC, b.id ASC",
+        "ORDER BY spent DESC, c.name ASC, b.id ASC",
       ].join(" "),
       userId,
-      periodStart.toISOString(),
-      periodEnd.toISOString(),
+      periodStartIso,
+      periodEndIso,
+      userId,
+      periodStartIso,
+      periodEndIso,
+      userId,
+      periodStartIso,
+      periodEndIso,
     );
     return rows.map(budgetFromRow);
   }
