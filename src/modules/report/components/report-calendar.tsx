@@ -92,6 +92,7 @@ export function ReportCalendar({
             {weeks.map((week, weekIndex) => (
               <View
                 key={`week-${weekIndex}`}
+                style={{ minHeight: 52 }}
                 className={`flex-row ${weekIndex < weeks.length - 1 ? "border-b border-[#E2E8F0]" : ""}`}
               >
                 {week.map((day, dayIndex) => {
@@ -99,7 +100,8 @@ export function ReportCalendar({
                     return (
                       <View
                         key={`blank-${weekIndex}-${dayIndex}`}
-                        className={`min-h-12 flex-1 p-1 ${dayIndex < 6 ? "border-r border-[#E2E8F0]" : ""}`}
+                        style={{ minHeight: 52 }}
+                        className={`flex-1 p-1 ${dayIndex < 6 ? "border-r border-[#E2E8F0]" : ""}`}
                       />
                     );
                   }
@@ -110,11 +112,13 @@ export function ReportCalendar({
                   return (
                     <View
                       key={day}
-                      className={`min-h-12 flex-1 p-1 ${dayIndex < 6 ? "border-r border-[#E2E8F0]" : ""}`}
+                      style={{ minHeight: 52 }}
+                      className={`flex-1 p-1 ${dayIndex < 6 ? "border-r border-[#E2E8F0]" : ""}`}
                     >
                       <Pressable
                         onPress={() => setSelected(date)}
-                        className={`min-h-10 flex-1 items-center justify-center rounded-xl ${isSelected ? "bg-[#22B8A8]" : "bg-white"}`}
+                        style={{ minHeight: 44 }}
+                        className={`flex-1 items-center justify-center rounded-xl ${isSelected ? "bg-[#22B8A8]" : "bg-white"}`}
                       >
                         <Text
                           className={`text-base font-bold ${isSelected ? "text-white" : "text-[#334155]"}`}
