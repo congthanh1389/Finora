@@ -62,8 +62,6 @@ export function TransactionHistoryView() {
   const walletMap = useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets]);
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
 
-  return (
-    <ScreenContainer className="bg-[#F8FAFC]">
     const renderItem = useMemo(
       () =>
         ({ item: transaction, index }: { item: Transaction; index: number }) => {
@@ -132,9 +130,11 @@ const isTransfer = transaction.type === "transfer";
                   </View>
                 );
         },
-      [categoryMap, deleteTransaction, router, walletMap],
+      [categoryMap, deleteTransaction, router, transactions, walletMap],
     );
 
+  return (
+    <ScreenContainer className="bg-[#F8FAFC]">
 
       <FlatList
         data={transactions}
