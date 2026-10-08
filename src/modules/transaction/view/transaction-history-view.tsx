@@ -203,18 +203,18 @@ const isTransfer = transaction.type === "transfer";
             ))}
           </View>
 
-          <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
-            <Text className="text-base font-bold text-[#0F2A5F]">Tìm kiếm giao dịch</Text>
-            <View className="mt-3 flex-row gap-2">
+          <View className="rounded-2xl border border-[#E2E8F0] bg-white p-3">
+            <View className="flex-row items-center gap-2">
+              <Text className="text-sm font-bold text-[#0F2A5F]">Tìm kiếm</Text>
               <TextInput
                 value={searchInput}
                 onChangeText={setSearchInput}
                 placeholder="Ghi chú, ví hoặc danh mục..."
                 returnKeyType="search"
                 onSubmitEditing={applyAdvancedFilters}
-                className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2.5 text-sm"
+                className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2 text-sm"
               />
-              <Pressable onPress={applyAdvancedFilters} className="rounded-xl bg-[#0F2A5F] px-4 py-2.5">
+              <Pressable onPress={applyAdvancedFilters} className="rounded-xl bg-[#0F2A5F] px-4 py-2">
                 <Text className="font-bold text-white">Tìm</Text>
               </Pressable>
             </View>
@@ -233,12 +233,16 @@ const isTransfer = transaction.type === "transfer";
             <Text className="mt-3 text-xs font-semibold text-[#64748B]">Ví</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
               <View className="flex-row gap-2">
-                <Pressable onPress={() => setWalletFilterId(undefined)} className={"rounded-full px-3 py-2 " + (walletFilterId === undefined ? "bg-[#0F2A5F]" : "bg-[#F1F5F9]")}>
-                  <Text className={"text-xs font-bold " + (walletFilterId === undefined ? "text-white" : "text-[#64748B]")}>Tất cả ví</Text>
+                <Pressable onPress={() => setWalletFilterId(undefined)} className="rounded-full px-3 py-2"
+                  style={{ backgroundColor: walletFilterId === undefined ? "#0F2A5F" : "#E2E8F0" }}>
+                  <Text className="text-xs font-bold"
+                  style={{ color: walletFilterId === undefined ? "#FFFFFF" : "#334155" }}>Tất cả ví</Text>
                 </Pressable>
                 {wallets.map((wallet) => (
-                  <Pressable key={wallet.id} onPress={() => setWalletFilterId(wallet.id)} className={"rounded-full px-3 py-2 " + (walletFilterId === wallet.id ? "bg-[#0F2A5F]" : "bg-[#F1F5F9]")}>
-                    <Text className={"text-xs font-semibold " + (walletFilterId === wallet.id ? "text-white" : "text-[#64748B]")}>{wallet.name}</Text>
+                  <Pressable key={wallet.id} onPress={() => setWalletFilterId(wallet.id)} className="rounded-full px-3 py-2"
+                    style={{ backgroundColor: walletFilterId === wallet.id ? "#0F2A5F" : "#E2E8F0" }}>
+                    <Text className="text-xs font-semibold"
+                    style={{ color: walletFilterId === wallet.id ? "#FFFFFF" : "#334155" }}>{wallet.name}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -247,12 +251,16 @@ const isTransfer = transaction.type === "transfer";
             <Text className="mt-3 text-xs font-semibold text-[#64748B]">Danh mục</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
               <View className="flex-row gap-2">
-                <Pressable onPress={() => setCategoryFilterId(undefined)} className={"rounded-full px-3 py-2 " + (categoryFilterId === undefined ? "bg-[#0F2A5F]" : "bg-[#F1F5F9]")}>
-                  <Text className={"text-xs font-bold " + (categoryFilterId === undefined ? "text-white" : "text-[#64748B]")}>Tất cả danh mục</Text>
+                <Pressable onPress={() => setCategoryFilterId(undefined)} className="rounded-full px-3 py-2"
+                  style={{ backgroundColor: categoryFilterId === undefined ? "#0F2A5F" : "#E2E8F0" }}>
+                  <Text className="text-xs font-bold"
+                  style={{ color: categoryFilterId === undefined ? "#FFFFFF" : "#334155" }}>Tất cả danh mục</Text>
                 </Pressable>
                 {categories.map((category) => (
-                  <Pressable key={category.id} onPress={() => setCategoryFilterId(category.id)} className={"rounded-full px-3 py-2 " + (categoryFilterId === category.id ? "bg-[#0F2A5F]" : "bg-[#F1F5F9]")}>
-                    <Text className={"text-xs font-semibold " + (categoryFilterId === category.id ? "text-white" : "text-[#64748B]")}>{category.name}</Text>
+                  <Pressable key={category.id} onPress={() => setCategoryFilterId(category.id)} className="rounded-full px-3 py-2"
+                    style={{ backgroundColor: categoryFilterId === category.id ? "#0F2A5F" : "#E2E8F0" }}>
+                    <Text className="text-xs font-semibold"
+                    style={{ color: categoryFilterId === category.id ? "#FFFFFF" : "#334155" }}>{category.name}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -306,7 +314,7 @@ const isTransfer = transaction.type === "transfer";
                 <TextInput value={customEnd} onChangeText={setCustomEnd} placeholder="YYYY-MM-DD" className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2 text-sm" />
               </View>
             ) : null}
-            {summary && !hasAdvancedFilters ? (
+            {summary ? (
               <View className="mt-4 rounded-2xl bg-[#F8FAFC] p-4">
                 <Text className="text-xs font-semibold text-[#64748B]">
                   {typeFilter === "all"
