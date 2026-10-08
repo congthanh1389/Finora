@@ -94,6 +94,16 @@ export function getReportPeriodRange(
 ): ReportPeriodRange {
   const current = startOfDay(now);
 
+  if (period === "today") {
+    const end = addDays(current, 1);
+    return {
+      start: current,
+      end,
+      previousStart: addDays(current, -1),
+      previousEnd: current,
+    };
+  }
+
   if (period === "week") {
     const day = current.getDay();
     const start = addDays(current, day === 0 ? -6 : 1 - day);
