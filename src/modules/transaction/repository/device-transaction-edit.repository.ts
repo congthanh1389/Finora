@@ -8,6 +8,7 @@ import {
 import type { Transaction } from "../../../../drizzle/schema";
 
 const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
+const TRANSACTION_SELECT_COLUMNS = "id, user_id, type, amount, currency, wallet_id, source_wallet_id, destination_wallet_id, category_id, note, occurred_at, created_at, updated_at";
 
 function transactionFromRow(row: any): Transaction {
   return {
@@ -43,7 +44,7 @@ export async function getDeviceTransaction(
   await initializeDeviceStorage();
   const db = await getDeviceDatabase();
   const row = await db.getFirstAsync(
-    "SELECT * FROM transactions WHERE user_id = ? AND id = ?",
+    `SELECT ${TRANSACTION_SELECT_COLUMNS} FROM transactions WHERE user_id = ? AND id = ?`,
     userId,
     transactionId,
   );
@@ -57,7 +58,7 @@ export async function deleteDeviceTransaction(userId: number, transactionId: num
 
   await db.withTransactionAsync(async () => {
     const row = await db.getFirstAsync(
-      "SELECT * FROM transactions WHERE user_id = ? AND id = ?",
+      `SELECT ${TRANSACTION_SELECT_COLUMNS} FROM transactions WHERE user_id = ? AND id = ?`,
       userId,
       transactionId,
     );
@@ -84,7 +85,7 @@ export async function updateDeviceTransaction(input: UpdateTransactionInput): Pr
 
   await db.withTransactionAsync(async () => {
     const currentRow = await db.getFirstAsync(
-      "SELECT * FROM transactions WHERE user_id = ? AND id = ?",
+      `SELECT ${TRANSACTION_SELECT_COLUMNS} FROM transactions WHERE user_id = ? AND id = ?`,
       input.userId,
       input.transactionId,
     );
@@ -141,7 +142,7 @@ export async function updateDeviceTransaction(input: UpdateTransactionInput): Pr
     );
 
     const row = await db.getFirstAsync(
-      "SELECT * FROM transactions WHERE user_id = ? AND id = ?",
+      `SELECT ${TRANSACTION_SELECT_COLUMNS} FROM transactions WHERE user_id = ? AND id = ?`,
       input.userId,
       input.transactionId,
     );
