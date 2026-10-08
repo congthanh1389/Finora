@@ -4,7 +4,8 @@ import type {
   ReminderInput,
 } from "../model/reminder.types";
 
-const DEFAULT_LIMIT = 5;
+const DEFAULT_LIMIT = 8;
+const MAX_LIMIT = 8;
 
 function pushBudgetReminders(input: ReminderInput, reminders: Reminder[]): void {
   const over = input.budgets
@@ -87,7 +88,7 @@ export function buildReminders(
   input: ReminderInput,
   options: ReminderEngineOptions = {},
 ): Reminder[] {
-  const limit = Math.max(1, Math.min(options.limit ?? DEFAULT_LIMIT, 10));
+  const limit = Math.max(1, Math.min(options.limit ?? DEFAULT_LIMIT, MAX_LIMIT));
   const reminders: Reminder[] = [];
 
   pushBudgetReminders(input, reminders);
