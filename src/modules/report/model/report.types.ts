@@ -1,4 +1,4 @@
-export type ReportPeriod = "week" | "month" | "quarter" | "year" | "custom";
+export type ReportPeriod = "today" | "week" | "month" | "quarter" | "year" | "custom";
 
 export type ReportCustomRange = {
   start: Date;
