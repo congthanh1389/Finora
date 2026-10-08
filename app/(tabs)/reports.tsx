@@ -187,7 +187,7 @@ export default function ReportsScreen() {
           <>
             <View className="mt-4 rounded-3xl bg-[#0EA5A8] p-5">
               <Text className="text-xs font-bold tracking-wide text-white/80">
-                SỐ DƯ RÒNG · {periodLabels[period].toUpperCase()}
+                DÒNG TIỀN RÒNG · {periodLabels[period].toUpperCase()}
               </Text>
               <Text className="mt-2 text-3xl font-bold text-white">
                 {money(data?.summary.balance ?? 0)}
@@ -231,7 +231,7 @@ export default function ReportsScreen() {
                     <Text
                       className={`mt-1 text-base font-bold ${String(label) === "Chi" ? (Number(value) <= 0 ? "text-[#047857]" : "text-[#BE123C]") : Number(value) >= 0 ? "text-[#047857]" : "text-[#BE123C]"}`}
                     >
-                      {percent(Number(value))}
+                      {Number(value) === 0 ? "—" : percent(Number(value))}
                     </Text>
                   </View>
                 ))}
@@ -262,8 +262,8 @@ export default function ReportsScreen() {
               ) : (
                 <View className="mt-5 rounded-2xl bg-[#F8FAFC] px-2 pt-4">
                   <View className="h-32 flex-row items-end gap-1.5">
-                    {(data?.cashFlow ?? []).slice(-5).map((item) => (
-                      <View key={item.date} className="flex-1 flex-row items-end justify-center gap-0.5">
+                    {(data?.cashFlow ?? []).map((item) => (
+                      <View key={item.date} className="w-12 flex-row items-end justify-center gap-0.5">
                         <View
                           className="w-2.5 rounded-t-full bg-[#22B8A8]"
                           style={{ height: Math.max(3, (item.income / maxFlow) * 112) }}
@@ -276,7 +276,7 @@ export default function ReportsScreen() {
                     ))}
                   </View>
                   <View className="mt-2 flex-row border-t border-[#E2E8F0] pt-2">
-                    {(data?.cashFlow ?? []).slice(-5).map((item) => (
+                    {(data?.cashFlow ?? []).map((item) => (
                       <Text key={item.date} className="flex-1 text-center text-[9px] font-semibold text-[#475569]">
                         {item.date.slice(8)}
                       </Text>
@@ -286,7 +286,7 @@ export default function ReportsScreen() {
               )}
               <View className="mt-2 flex-row justify-end">
                 <Text className="text-[10px] font-semibold text-[#64748B]">
-                  {(data?.cashFlow ?? []).slice(-5).length} ngày gần nhất
+                  {(data?.cashFlow ?? []).length} ngày trong kỳ
                 </Text>
               </View>
             </View>
