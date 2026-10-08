@@ -48,12 +48,21 @@ export function ReportCalendar({
   const [selected, setSelected] = useState<Date | null>(value ? normalizeDate(value) : null);
 
 
-  const days = useMemo(() => {
+  const weeks = useMemo(() => {
     const firstDay = startOfMonth(month);
     const mondayFirstIndex = (firstDay.getDay() + 6) % 7;
-    const blanks = Array.from({ length: mondayFirstIndex }, () => null);
     const dates = Array.from({ length: daysInMonth(month) }, (_, index) => index + 1);
-    return [...blanks, ...dates];
+    const cells: Array<number | null> = [
+      ...Array.from({ length: mondayFirstIndex }, () => null),
+      ...dates,
+    ];
+    while (cells.length % 7 !== 0) {
+      cells.push(null);
+    }
+
+    return Array.from({ length: cells.length / 7 }, (_, rowIndex) =>
+      cells.slice(rowIndex * 7, rowIndex * 7 + 7),
+    );
   }, [month]);
 
   const moveMonth = (offset: number) => {
@@ -82,28 +91,32 @@ export function ReportCalendar({
             ))}
           </View>
 
-          <View className="mt-2 flex-row flex-wrap">
-            {days.map((day, index) => {
-              if (day === null) {
-                return <View key={`blank-${index}`} className="w-[14.285%] p-1" />;
-              }
+          <View className="mt-2">
+            {weeks.map((week, weekIndex) => (
+              <View key={`week-${weekIndex}`} className="flex-row">
+                {week.map((day, dayIndex) => {
+                  if (day === null) {
+                    return <View key={`blank-${weekIndex}-${dayIndex}`} className="flex-1 p-1" />;
+                  }
 
-              const date = new Date(month.getFullYear(), month.getMonth(), day);
-              const isSelected = sameDate(date, selected);
+                  const date = new Date(month.getFullYear(), month.getMonth(), day);
+                  const isSelected = sameDate(date, selected);
 
-              return (
-                <View key={day} className="w-[14.285%] p-1">
-                  <Pressable
-                    onPress={() => setSelected(date)}
-                    className={`h-10 items-center justify-center rounded-full ${isSelected ? "bg-[#22B8A8]" : "bg-transparent"}`}
-                  >
-                    <Text className={`text-sm font-semibold ${isSelected ? "text-white" : "text-[#334155]"}`}>
-                      {day}
-                    </Text>
-                  </Pressable>
-                </View>
-              );
-            })}
+                  return (
+                    <View key={day} className="flex-1 p-1">
+                      <Pressable
+                        onPress={() => setSelected(date)}
+                        className={`h-12 items-center justify-center rounded-full ${isSelected ? "bg-[#22B8A8]" : "bg-transparent"}`}
+                      >
+                        <Text className={`text-base font-semibold ${isSelected ? "text-white" : "text-[#334155]"}`}>
+                          {day}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
           </View>
 
           <View className="mt-3 flex-row justify-between">
