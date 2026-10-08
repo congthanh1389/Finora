@@ -4,17 +4,9 @@ import type { WalletSummary } from "../../wallet/types/wallet.types";
 import { WalletService } from "../../wallet/service/wallet.service";
 import { TransactionEditService } from "./transaction-edit.service";
 import { TransactionSummaryService } from "./transaction-summary.service";
-import type { TransactionType } from "../types/transaction.types";
+import type { TransactionHistoryFilters, TransactionType } from "../types/transaction.types";
 
 export type TransactionHistoryFilter = "all" | TransactionType;
-
-export type TransactionHistoryFilters = {
-  walletId?: number;
-  categoryId?: number;
-  minAmount?: number;
-  maxAmount?: number;
-  search?: string;
-};
 
 export interface TransactionHistoryRepository {
   listHistoryPage(
