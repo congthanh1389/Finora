@@ -164,17 +164,6 @@ export class DeviceTransactionRepository {
       conditions.push("t.amount <= ?");
       params.push(filters.maxAmount);
     }
-    if (filters?.search?.trim()) {
-      const search = filters.search.trim();
-      conditions.push(`(
-        INSTR(LOWER(COALESCE(t.note, '')), LOWER(?)) > 0
-        OR INSTR(LOWER(COALESCE(w.name, '')), LOWER(?)) > 0
-        OR INSTR(LOWER(COALESCE(sw.name, '')), LOWER(?)) > 0
-        OR INSTR(LOWER(COALESCE(dw.name, '')), LOWER(?)) > 0
-        OR INSTR(LOWER(COALESCE(c.name, '')), LOWER(?)) > 0
-      )`);
-      params.push(search, search, search, search, search);
-    }
 
     const db = await getDeviceDatabase();
     const rows = await db.getAllAsync(
