@@ -68,13 +68,10 @@ export function TransactionHistoryView() {
     categoryFilterId,
     minAmount,
     maxAmount,
-    search,
-    searchInput,
     minAmountInput,
     maxAmountInput,
     setWalletFilterId,
     setCategoryFilterId,
-    setSearchInput,
     setMinAmountInput,
     setMaxAmountInput,
     applyAdvancedFilters,
@@ -84,6 +81,11 @@ export function TransactionHistoryView() {
 
   const walletMap = useMemo(() => new Map(wallets.map((wallet) => [wallet.id, wallet])), [wallets]);
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
+  const visibleCategories = useMemo(() => {
+    if (typeFilter === "all") return categories;
+    if (typeFilter === "transfer") return [];
+    return categories.filter((category) => category.type === typeFilter);
+  }, [categories, typeFilter]);
   const listRef = useRef<FlatList<Transaction>>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -203,23 +205,6 @@ const isTransfer = transaction.type === "transfer";
             ))}
           </View>
 
-          <View className="rounded-2xl border border-[#E2E8F0] bg-white p-3">
-            <View className="flex-row items-center gap-2">
-              <Text className="text-sm font-bold text-[#0F2A5F]">Tìm kiếm</Text>
-              <TextInput
-                value={searchInput}
-                onChangeText={setSearchInput}
-                placeholder="Ghi chú, ví hoặc danh mục..."
-                returnKeyType="search"
-                onSubmitEditing={applyAdvancedFilters}
-                className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2 text-sm"
-              />
-              <Pressable onPress={applyAdvancedFilters} className="rounded-xl bg-[#0F2A5F] px-4 py-2">
-                <Text className="font-bold text-white">Tìm</Text>
-              </Pressable>
-            </View>
-          </View>
-
           <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
             <View className="flex-row items-center justify-between">
               <Text className="text-base font-bold text-[#0F2A5F]">Bộ lọc nâng cao</Text>
@@ -256,7 +241,7 @@ const isTransfer = transaction.type === "transfer";
                   <Text className="text-xs font-bold"
                   style={{ color: categoryFilterId === undefined ? "#FFFFFF" : "#334155" }}>Tất cả danh mục</Text>
                 </Pressable>
-                {categories.map((category) => (
+                {visibleCategories.map((category) => (
                   <Pressable key={category.id} onPress={() => setCategoryFilterId(category.id)} className="rounded-full px-3 py-2"
                     style={{ backgroundColor: categoryFilterId === category.id ? "#0F2A5F" : "#E2E8F0" }}>
                     <Text className="text-xs font-semibold"
@@ -384,7 +369,7 @@ const isTransfer = transaction.type === "transfer";
         removeClippedSubviews
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 32 }}
-        extraData={{ typeFilter, periodKey, isLoadingMore, walletFilterId, categoryFilterId, minAmount, maxAmount, search }}
+        extraData={{ typeFilter, periodKey, isLoadingMore, walletFilterId, categoryFilterId, minAmount, maxAmount }}
       />
       {showScrollTop ? (
         <Pressable onPress={scrollToTop} className="absolute bottom-5 right-5 h-12 w-12 items-center justify-center rounded-full bg-[#0F2A5F] shadow-lg">
