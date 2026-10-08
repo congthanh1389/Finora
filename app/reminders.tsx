@@ -1,4 +1,5 @@
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 
 import { ScreenContainer } from "@/components/screen-container";
@@ -13,7 +14,10 @@ export default function RemindersScreen() {
 
   return (
     <ScreenContainer className="bg-[#F8FAFC]">
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+      <TouchableOpacity activeOpacity={0.85} onPress={() => router.back()} className="absolute left-4 top-2 z-10 h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm">
+        <Ionicons name="chevron-back" size={25} color="#0F2A5F" />
+      </TouchableOpacity>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 64, paddingBottom: 40 }}>
         <Text className="text-2xl font-bold text-[#0F2A5F]">Nhắc nhở</Text>
         <Text className="mt-1 text-sm text-[#64748B]">
           Những điểm tài chính cần bạn chú ý trong kỳ này.
@@ -40,12 +44,6 @@ export default function RemindersScreen() {
           </View>
         )}
 
-        <Text
-          onPress={() => router.back()}
-          className="mt-6 text-center text-sm font-semibold text-[#0EA5A8]"
-        >
-          Quay lại
-        </Text>
       </ScrollView>
     </ScreenContainer>
   );
