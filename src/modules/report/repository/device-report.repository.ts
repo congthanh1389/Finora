@@ -15,7 +15,7 @@ export type ReportRepositoryData = {
   previousIncomeCount: number;
   previousExpenseCount: number;
   categories: { categoryId: number | null; name: string; amount: number }[];
-  wallets: { walletId: number; name: string; amount: number }[];
+  wallets: { walletId: number; name: string; amount: number; balance: number }[];
   cashFlow: { date: string; income: number; expense: number }[];
   budgets: { budgetId: number; categoryId: number; categoryName: string; limit: number; spent: number }[];
 };
@@ -81,14 +81,41 @@ export class DeviceReportRepository {
       userId, startIso, endIso,
     );
 
-    const wallets = await db.getAllAsync<{ wallet_id: number; name: string | null; amount: number | null }>(
-      `SELECT t.wallet_id, COALESCE(w.name, 'Ví không xác định') AS name, COALESCE(SUM(t.amount), 0) AS amount
-       FROM transactions t
-       LEFT JOIN wallets w ON w.id = t.wallet_id AND w.user_id = t.user_id
-       WHERE t.user_id = ? AND t.type = 'expense' AND t.wallet_id IS NOT NULL
-         AND t.occurred_at >= ? AND t.occurred_at < ?
-       GROUP BY t.wallet_id, w.name ORDER BY amount DESC`,
-      userId, startIso, endIso,
+    const wallets = await db.getAllAsync<{
+      wallet_id: number;
+      name: string | null;
+      amount: number | null;
+      balance: number | null;
+    }>(
+      `SELECT w.id AS wallet_id,
+         w.name,
+         w.opening_balance
+           + COALESCE((
+               SELECT SUM(
+                 CASE
+                   WHEN t.type = 'income' AND t.wallet_id = w.id THEN t.amount
+                   WHEN t.type = 'expense' AND t.wallet_id = w.id THEN -t.amount
+                   WHEN t.type = 'transfer' AND t.source_wallet_id = w.id THEN -t.amount
+                   WHEN t.type = 'transfer' AND t.destination_wallet_id = w.id THEN t.amount
+                   ELSE 0
+                 END
+               )
+               FROM transactions t
+               WHERE t.user_id = w.user_id
+             ), 0) AS balance,
+         COALESCE((
+           SELECT SUM(t.amount)
+           FROM transactions t
+           WHERE t.user_id = w.user_id
+             AND t.type = 'expense'
+             AND t.wallet_id = w.id
+             AND t.occurred_at >= ?
+             AND t.occurred_at < ?
+         ), 0) AS amount
+       FROM wallets w
+       WHERE w.user_id = ?
+       ORDER BY amount DESC, w.created_at DESC`,
+      startIso, endIso, userId,
     );
 
     const cashFlow = await db.getAllAsync<{ date: string; income: number | null; expense: number | null }>(
@@ -143,6 +170,7 @@ export class DeviceReportRepository {
         walletId: Number(row.wallet_id),
         name: String(row.name ?? "Ví không xác định"),
         amount: Number(row.amount ?? 0),
+        balance: Number(row.balance ?? 0),
       })),
       cashFlow: cashFlow.map((row) => ({
         date: String(row.date),

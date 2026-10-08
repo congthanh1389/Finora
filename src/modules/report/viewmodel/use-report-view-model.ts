@@ -2,7 +2,11 @@ import { useCallback, useMemo, useState } from "react";
 import { useFocusEffect } from "expo-router";
 
 import * as Auth from "@/lib/_core/auth";
-import type { ReportPeriod, ReportSnapshot } from "../model/report.types";
+import type {
+  ReportCustomRange,
+  ReportPeriod,
+  ReportSnapshot,
+} from "../model/report.types";
 import { createReportDependencies } from "../report.factory";
 
 export function useReportViewModel(
@@ -12,9 +16,15 @@ export function useReportViewModel(
   const reportService = service ?? dependencies.reportService;
   const [data, setData] = useState<ReportSnapshot | null>(null);
   const [period, setPeriod] = useState<ReportPeriod>("month");
+  const [customRange, setCustomRange] = useState<ReportCustomRange | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    if (period === "custom" && !customRange) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const user = await Auth.getUserInfo();
@@ -22,11 +32,11 @@ export function useReportViewModel(
         setData(null);
         return;
       }
-      setData(await reportService.getReport(user.id, period));
+      setData(await reportService.getReport(user.id, period, new Date(), customRange ?? undefined));
     } finally {
       setLoading(false);
     }
-  }, [period, reportService]);
+  }, [customRange, period, reportService]);
 
   useFocusEffect(
     useCallback(() => {
@@ -34,10 +44,19 @@ export function useReportViewModel(
     }, [load]),
   );
 
+  const selectPeriod = useCallback((nextPeriod: ReportPeriod) => {
+    setPeriod(nextPeriod);
+    if (nextPeriod !== "custom") {
+      setCustomRange(null);
+    }
+  }, []);
+
   return {
     data,
     period,
-    setPeriod,
+    setPeriod: selectPeriod,
+    customRange,
+    setCustomRange,
     loading,
     reload: load,
   };

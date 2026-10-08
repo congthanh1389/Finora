@@ -1,4 +1,5 @@
 import type {
+  ReportCustomRange,
   ReportPeriod,
   ReportPeriodRange,
   ReportSnapshot,
@@ -20,7 +21,7 @@ export interface IReportRepository {
     previousIncomeCount: number;
     previousExpenseCount: number;
     categories: { categoryId: number | null; name: string; amount: number }[];
-    wallets: { walletId: number; name: string; amount: number }[];
+    wallets: { walletId: number; name: string; amount: number; balance: number }[];
     cashFlow: { date: string; income: number; expense: number }[];
     budgets: {
       budgetId: number;
@@ -48,7 +49,45 @@ function addDays(date: Date, days: number): Date {
   return result;
 }
 
-export function getReportPeriodRange(period: ReportPeriod, now = new Date()): ReportPeriodRange {
+function assertValidDate(date: Date, name: string): void {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    throw new Error(`Invalid ${name} report date.`);
+  }
+}
+
+export function getCustomReportPeriodRange(
+  customRange: ReportCustomRange,
+): ReportPeriodRange {
+  assertValidDate(customRange.start, "start");
+  if (!customRange.end) {
+    throw new Error("Custom report end date is required.");
+  }
+  assertValidDate(customRange.end, "end");
+
+  const start = startOfDay(customRange.start);
+  const selectedEnd = startOfDay(customRange.end);
+
+  if (selectedEnd < start) {
+    throw new Error("Report end date must be on or after start date.");
+  }
+
+  const end = addDays(selectedEnd, 1);
+  const durationDays = Math.round(
+    (end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000),
+  );
+
+  return {
+    start,
+    end,
+    previousStart: addDays(start, -durationDays),
+    previousEnd: start,
+  };
+}
+
+export function getReportPeriodRange(
+  period: Exclude<ReportPeriod, "custom">,
+  now = new Date(),
+): ReportPeriodRange {
   const current = startOfDay(now);
 
   if (period === "week") {
@@ -135,9 +174,19 @@ export class ReportService {
     userId: number,
     period: ReportPeriod,
     now = new Date(),
+    customRange?: ReportCustomRange,
   ): Promise<ReportSnapshot> {
     assertUserId(userId);
-    const range = getReportPeriodRange(period, now);
+
+    const range =
+      period === "custom"
+        ? customRange
+          ? getCustomReportPeriodRange(customRange)
+          : (() => {
+              throw new Error("Custom report range is required.");
+            })()
+        : getReportPeriodRange(period, now);
+
     const raw = await this.repository.getReport(userId, range);
     const balance = raw.income - raw.expense;
     const previousBalance = raw.previousIncome - raw.previousExpense;

@@ -1,4 +1,9 @@
-export type ReportPeriod = "week" | "month" | "quarter" | "year";
+export type ReportPeriod = "week" | "month" | "quarter" | "year" | "custom";
+
+export type ReportCustomRange = {
+  start: Date;
+  end: Date | null;
+};
 
 export type ReportPeriodRange = {
   start: Date;
@@ -29,6 +34,7 @@ export type ReportWallet = {
   name: string;
   amount: number;
   percentage: number;
+  balance: number;
 };
 
 export type ReportCashFlowPoint = {
