@@ -2,8 +2,8 @@ import { getDeviceDatabase, initializeDeviceStorage } from "../../../core/storag
 import type {
   TransactionSummaryFilter,
   TransactionSummaryResult,
-import type { TransactionHistoryFilters } from "../types/transaction.types";
 } from "../types/transaction-summary.types";
+import type { TransactionHistoryFilters } from "../types/transaction.types";
 
 type SummaryRow = {
   total_amount: number | null;
@@ -14,8 +14,7 @@ type SummaryRow = {
   expense_count: number;
   transfer_amount: number | null;
   transfer_count: number;
-    filter: TransactionSummaryFilter = "all",
-    filters?: TransactionHistoryFilters,
+};
 
 export class DeviceTransactionSummaryRepository {
   async getSummary(
@@ -23,6 +22,7 @@ export class DeviceTransactionSummaryRepository {
     start: Date,
     end: Date,
     filter: TransactionSummaryFilter = "all",
+    filters?: TransactionHistoryFilters,
   ): Promise<TransactionSummaryResult> {
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
@@ -67,17 +67,18 @@ export class DeviceTransactionSummaryRepository {
          COALESCE(SUM(t.amount), 0) AS total_amount,
          COUNT(*) AS transaction_count,
          COALESCE(SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE 0 END), 0) AS income_amount,
-         SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END) AS income_count,
+         COALESCE(SUM(CASE WHEN t.type = 'income' THEN 1 ELSE 0 END), 0) AS income_count,
          COALESCE(SUM(CASE WHEN t.type = 'expense' THEN t.amount ELSE 0 END), 0) AS expense_amount,
-         SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END) AS expense_count,
+         COALESCE(SUM(CASE WHEN t.type = 'expense' THEN 1 ELSE 0 END), 0) AS expense_count,
          COALESCE(SUM(CASE WHEN t.type = 'transfer' THEN t.amount ELSE 0 END), 0) AS transfer_amount,
-         SUM(CASE WHEN type = 'transfer' THEN 1 ELSE 0 END) AS transfer_count
+         COALESCE(SUM(CASE WHEN t.type = 'transfer' THEN 1 ELSE 0 END), 0) AS transfer_count
        FROM transactions t
        LEFT JOIN wallets w ON w.id = t.wallet_id AND w.user_id = t.user_id
        LEFT JOIN wallets sw ON sw.id = t.source_wallet_id AND sw.user_id = t.user_id
        LEFT JOIN wallets dw ON dw.id = t.destination_wallet_id AND dw.user_id = t.user_id
        LEFT JOIN categories c ON c.id = t.category_id AND c.user_id = t.user_id
        WHERE ${conditions.join(" AND ")}`,
+      ...params,
     );
 
     const incomeAmount = Number(row?.income_amount ?? 0);
