@@ -9,6 +9,11 @@ import { createBudgetDependencies } from "../budget.factory";
 import type { BudgetSummary } from "../types/budget.types";
 import type { WalletSummary } from "../../wallet/types/wallet.types";
 
+const formatAmountInput = (value: string) => {
+  const digits = value.replace(/[^0-9]/g, "");
+  return digits ? new Intl.NumberFormat("vi-VN").format(Number(digits)) : "";
+};
+
 export function useBudgetViewModel() {
   const { budgetService } = useMemo(() => createBudgetDependencies(), []);
   const { categoryService } = useMemo(() => createCategoryDependencies(), []);
@@ -47,7 +52,7 @@ export function useBudgetViewModel() {
   useFocusEffect(useCallback(() => { void load(); }, [load]));
 
   function resetForm() { setEditingId(null); setAmountText(""); setError(""); setSelectedCategoryId(categories[0]?.id ?? null); setSelectedWalletId(null); }
-  function startEdit(item: BudgetSummary) { setEditingId(item.id); setSelectedCategoryId(item.categoryId); setSelectedWalletId(item.walletId); setAmountText(String(item.amount)); setError(""); }
+  function startEdit(item: BudgetSummary) { setEditingId(item.id); setSelectedCategoryId(item.categoryId); setSelectedWalletId(item.walletId); setAmountText(formatAmountInput(String(item.amount))); setError(""); }
 
   async function saveBudget() {
     try {
@@ -82,6 +87,6 @@ export function useBudgetViewModel() {
   return { budgets, categories, wallets, selectedCategoryId, selectedWalletId, amountText, editingId, error, loading, totalAmount, totalSpent, totalRemaining: totalAmount - totalSpent,
     setSelectedCategoryId: (id: number | null) => { setSelectedCategoryId(id); setError(""); },
     setSelectedWalletId,
-    setAmountText: (value: string) => { setAmountText(value.replace(/[^0-9]/g, "")); setError(""); },
+    setAmountText: (value: string) => { setAmountText(formatAmountInput(value)); setError(""); },
     resetForm, startEdit, saveBudget, deleteBudget, reload: load };
 }
