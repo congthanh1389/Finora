@@ -31,6 +31,7 @@ const walletTypeLabels: Record<string, string> = {
 };
 
 const periodLabels: Record<ReportPeriod, string> = {
+  today: "Hôm nay",
   week: "7 ngày",
   month: "Tháng",
   quarter: "Quý",
@@ -103,10 +104,10 @@ export default function ReportsScreen() {
             <Pressable
               key={key}
               onPress={() => setPeriod(key)}
-              className={`rounded-full px-4 py-2.5 ${period === key ? "bg-[#22B8A8]" : "border border-[#E2E8F0] bg-white"}`}
+              className={`rounded-full px-4 py-2.5 ${period === key ? "bg-[#22B8A8]" : "border border-[#7C3AED] bg-white"}`}
             >
               <Text
-                className={`text-center text-xs font-bold ${period === key ? "text-white" : "text-[#64748B]"}`}
+                className={`text-center text-xs font-bold ${period === key ? "text-white" : "text-[#7C3AED]"}`}
               >
                 {periodLabels[key]}
               </Text>
@@ -171,7 +172,7 @@ export default function ReportsScreen() {
 
             <View className="mt-4 flex-row gap-3">
               <View className="flex-1 rounded-2xl bg-[#ECFDF5] p-4">
-                <Text className="text-xs text-[#64748B]">Tổng thu</Text>
+                <Text className="text-xs font-semibold text-[#7C3AED]">Tổng thu</Text>
                 <Text className="mt-1 text-base font-bold text-[#047857]">
                   {money(data?.summary.income ?? 0)}
                 </Text>
@@ -180,7 +181,7 @@ export default function ReportsScreen() {
                 </Text>
               </View>
               <View className="flex-1 rounded-2xl bg-[#FFF1F2] p-4">
-                <Text className="text-xs text-[#64748B]">Tổng chi</Text>
+                <Text className="text-xs font-semibold text-[#7C3AED]">Tổng chi</Text>
                 <Text className="mt-1 text-base font-bold text-[#BE123C]">
                   {money(data?.summary.expense ?? 0)}
                 </Text>
@@ -199,7 +200,7 @@ export default function ReportsScreen() {
                   ["Ròng", data?.comparison.balanceChange ?? 0],
                 ].map(([label, value]) => (
                   <View key={String(label)} className="flex-1 rounded-2xl bg-[#F8FAFC] p-4">
-                    <Text className="text-xs text-[#64748B]">{label}</Text>
+                    <Text className="text-xs font-semibold text-[#7C3AED]">{label}</Text>
                     <Text
                       className={`mt-1 text-base font-bold ${String(label) === "Chi" ? (Number(value) <= 0 ? "text-[#047857]" : "text-[#BE123C]") : Number(value) >= 0 ? "text-[#047857]" : "text-[#BE123C]"}`}
                     >
@@ -214,7 +215,7 @@ export default function ReportsScreen() {
               <View className="flex-row items-center justify-between">
                 <View>
                   <Text className="text-lg font-bold text-[#0F2A5F]">Dòng tiền</Text>
-                  <Text className="mt-1 text-xs text-[#94A3B8]">Thu và chi theo ngày</Text>
+                  <Text className="mt-1 text-xs font-semibold text-[#7C3AED]">Thu và chi theo ngày</Text>
                 </View>
                 <View className="flex-row gap-3">
                   <View className="flex-row items-center gap-1.5">
@@ -234,7 +235,7 @@ export default function ReportsScreen() {
               ) : (
                 <View className="mt-5 rounded-2xl bg-[#F8FAFC] px-2 pt-4">
                   <View className="h-32 flex-row items-end gap-1.5">
-                    {(data?.cashFlow ?? []).slice(-14).map((item) => (
+                    {(data?.cashFlow ?? []).slice(-5).map((item) => (
                       <View key={item.date} className="flex-1 flex-row items-end justify-center gap-0.5">
                         <View
                           className="w-2.5 rounded-t-full bg-[#22B8A8]"
@@ -248,7 +249,7 @@ export default function ReportsScreen() {
                     ))}
                   </View>
                   <View className="mt-2 flex-row border-t border-[#E2E8F0] pt-2">
-                    {(data?.cashFlow ?? []).slice(-14).map((item) => (
+                    {(data?.cashFlow ?? []).slice(-5).map((item) => (
                       <Text key={item.date} className="flex-1 text-center text-[8px] text-[#94A3B8]">
                         {item.date.slice(8)}
                       </Text>
@@ -333,9 +334,9 @@ export default function ReportsScreen() {
             <View className="mt-4 rounded-3xl border border-[#E2E8F0] bg-white p-5">
               <Text className="text-lg font-bold text-[#0F2A5F]">Theo ví</Text>
               <View className="mt-3 flex-row border-b border-[#E2E8F0] pb-2">
-                <Text className="flex-1 text-[11px] font-bold uppercase text-[#94A3B8]">Ví</Text>
-                <Text className="w-24 text-right text-[11px] font-bold uppercase text-[#94A3B8]">Chi tiêu</Text>
-                <Text className="w-28 text-right text-[11px] font-bold uppercase text-[#94A3B8]">Còn lại</Text>
+                <Text className="flex-1 text-[11px] font-bold uppercase text-[#7C3AED]">Ví</Text>
+                <Text className="w-24 text-right text-[11px] font-bold uppercase text-[#7C3AED]">Chi tiêu</Text>
+                <Text className="w-28 text-right text-[11px] font-bold uppercase text-[#7C3AED]">Còn lại</Text>
               </View>
               {topWallets.length === 0 ? (
                 <Text className="mt-4 text-sm text-[#64748B]">Chưa có ví.</Text>
