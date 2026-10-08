@@ -250,7 +250,7 @@ export default function ReportsScreen() {
                   </View>
                   <View className="mt-2 flex-row border-t border-[#E2E8F0] pt-2">
                     {(data?.cashFlow ?? []).slice(-5).map((item) => (
-                      <Text key={item.date} className="flex-1 text-center text-[8px] text-[#94A3B8]">
+                      <Text key={item.date} className="flex-1 text-center text-[9px] font-semibold text-[#475569]">
                         {item.date.slice(8)}
                       </Text>
                     ))}
