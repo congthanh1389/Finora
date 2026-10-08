@@ -70,11 +70,16 @@ describe("ReportService", () => {
   it("builds calendar-aligned period ranges", () => {
     const now = new Date(2026, 9, 8, 12, 0, 0);
 
+    const today = getReportPeriodRange("today", now);
     const week = getReportPeriodRange("week", now);
     const month = getReportPeriodRange("month", now);
     const quarter = getReportPeriodRange("quarter", now);
     const year = getReportPeriodRange("year", now);
 
+    expect(today.start).toEqual(new Date(2026, 9, 8));
+    expect(today.end).toEqual(new Date(2026, 9, 9));
+    expect(today.previousStart).toEqual(new Date(2026, 9, 7));
+    expect(today.previousEnd).toEqual(new Date(2026, 9, 8));
     expect(week.start).toEqual(new Date(2026, 9, 5));
     expect(week.end).toEqual(new Date(2026, 9, 12));
     expect(month.start).toEqual(new Date(2026, 9, 1));
