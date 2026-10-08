@@ -44,6 +44,23 @@ export type ReportComparison = {
   balanceChange: number;
 };
 
+export type ReportBudget = {
+  budgetId: number;
+  categoryId: number;
+  categoryName: string;
+  limit: number;
+  spent: number;
+  remaining: number;
+  percentageUsed: number;
+  isOverBudget: boolean;
+};
+
+export type ReportInsight = {
+  type: "positive" | "warning" | "info";
+  title: string;
+  description: string;
+};
+
 export type ReportSnapshot = {
   periodStart: string;
   periodEnd: string;
@@ -53,4 +70,6 @@ export type ReportSnapshot = {
   categories: ReportCategory[];
   wallets: ReportWallet[];
   cashFlow: ReportCashFlowPoint[];
+  budgets: ReportBudget[];
+  insights: ReportInsight[];
 };

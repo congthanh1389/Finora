@@ -17,6 +17,7 @@ export type ReportRepositoryData = {
   categories: Array<{ categoryId: number | null; name: string; amount: number }>;
   wallets: Array<{ walletId: number; name: string; amount: number }>;
   cashFlow: Array<{ date: string; income: number; expense: number }>;
+  budgets: Array<{ budgetId: number; categoryId: number; categoryName: string; limit: number; spent: number }>;
 };
 
 type SummaryRow = {
@@ -28,19 +29,12 @@ type SummaryRow = {
 };
 
 function assertUserId(userId: number): void {
-  if (!Number.isSafeInteger(userId) || userId <= 0) {
-    throw new Error("Invalid user id");
-  }
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id");
 }
 
 function assertDateRange(start: Date, end: Date, name: string): void {
-  if (
-    !(start instanceof Date) ||
-    Number.isNaN(start.getTime()) ||
-    !(end instanceof Date) ||
-    Number.isNaN(end.getTime()) ||
-    start >= end
-  ) {
+  if (!(start instanceof Date) || Number.isNaN(start.getTime()) ||
+      !(end instanceof Date) || Number.isNaN(end.getTime()) || start >= end) {
     throw new Error(`Invalid ${name} report period.`);
   }
 }
@@ -53,103 +47,78 @@ export class DeviceReportRepository {
 
     await initializeDeviceStorage();
     const db = await getDeviceDatabase();
-
     const startIso = range.start.toISOString();
     const endIso = range.end.toISOString();
     const previousStartIso = range.previousStart.toISOString();
     const previousEndIso = range.previousEnd.toISOString();
 
     const summary = await db.getFirstAsync<SummaryRow>(
-      `SELECT
-         COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
+      `SELECT COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
          COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense,
          COALESCE(SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END), 0) AS transfer,
          COALESCE(SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END), 0) AS income_count,
          COALESCE(SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END), 0) AS expense_count
-       FROM transactions
-       WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?`,
-      userId,
-      startIso,
-      endIso,
+       FROM transactions WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?`,
+      userId, startIso, endIso,
     );
 
     const previous = await db.getFirstAsync<SummaryRow>(
-      `SELECT
-         COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
+      `SELECT COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
          COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense,
          COALESCE(SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END), 0) AS transfer,
          COALESCE(SUM(CASE WHEN type = 'income' THEN 1 ELSE 0 END), 0) AS income_count,
          COALESCE(SUM(CASE WHEN type = 'expense' THEN 1 ELSE 0 END), 0) AS expense_count
-       FROM transactions
-       WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?`,
-      userId,
-      previousStartIso,
-      previousEndIso,
+       FROM transactions WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?`,
+      userId, previousStartIso, previousEndIso,
     );
 
-    const categories = await db.getAllAsync<{
-      category_id: number | null;
-      name: string | null;
-      amount: number | null;
-    }>(
-      `SELECT
-         t.category_id,
-         COALESCE(c.name, 'Khác') AS name,
-         COALESCE(SUM(t.amount), 0) AS amount
+    const categories = await db.getAllAsync<{ category_id: number | null; name: string | null; amount: number | null }>(
+      `SELECT t.category_id, COALESCE(c.name, 'Khác') AS name, COALESCE(SUM(t.amount), 0) AS amount
        FROM transactions t
        LEFT JOIN categories c ON c.id = t.category_id AND c.user_id = t.user_id
-       WHERE t.user_id = ?
-         AND t.type = 'expense'
-         AND t.occurred_at >= ?
-         AND t.occurred_at < ?
-       GROUP BY t.category_id, c.name
-       ORDER BY amount DESC`,
-      userId,
-      startIso,
-      endIso,
+       WHERE t.user_id = ? AND t.type = 'expense' AND t.occurred_at >= ? AND t.occurred_at < ?
+       GROUP BY t.category_id, c.name ORDER BY amount DESC`,
+      userId, startIso, endIso,
     );
 
-    const wallets = await db.getAllAsync<{
-      wallet_id: number;
-      name: string | null;
-      amount: number | null;
-    }>(
-      `SELECT
-         t.wallet_id,
-         COALESCE(w.name, 'Ví không xác định') AS name,
-         COALESCE(SUM(t.amount), 0) AS amount
+    const wallets = await db.getAllAsync<{ wallet_id: number; name: string | null; amount: number | null }>(
+      `SELECT t.wallet_id, COALESCE(w.name, 'Ví không xác định') AS name, COALESCE(SUM(t.amount), 0) AS amount
        FROM transactions t
        LEFT JOIN wallets w ON w.id = t.wallet_id AND w.user_id = t.user_id
-       WHERE t.user_id = ?
-         AND t.type = 'expense'
-         AND t.wallet_id IS NOT NULL
-         AND t.occurred_at >= ?
-         AND t.occurred_at < ?
-       GROUP BY t.wallet_id, w.name
-       ORDER BY amount DESC`,
-      userId,
-      startIso,
-      endIso,
+       WHERE t.user_id = ? AND t.type = 'expense' AND t.wallet_id IS NOT NULL
+         AND t.occurred_at >= ? AND t.occurred_at < ?
+       GROUP BY t.wallet_id, w.name ORDER BY amount DESC`,
+      userId, startIso, endIso,
     );
 
-    const cashFlow = await db.getAllAsync<{
-      date: string;
-      income: number | null;
-      expense: number | null;
-    }>(
-      `SELECT
-         substr(occurred_at, 1, 10) AS date,
+    const cashFlow = await db.getAllAsync<{ date: string; income: number | null; expense: number | null }>(
+      `SELECT substr(occurred_at, 1, 10) AS date,
          COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
          COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense
        FROM transactions
-       WHERE user_id = ?
-         AND occurred_at >= ?
-         AND occurred_at < ?
-       GROUP BY substr(occurred_at, 1, 10)
-       ORDER BY date ASC`,
-      userId,
-      startIso,
-      endIso,
+       WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?
+       GROUP BY substr(occurred_at, 1, 10) ORDER BY date ASC`,
+      userId, startIso, endIso,
+    );
+
+    const budgets = await db.getAllAsync<{
+      id: number;
+      category_id: number;
+      category_name: string | null;
+      amount: number;
+      spent: number | null;
+    }>(
+      `SELECT b.id, b.category_id, c.name AS category_name, b.amount,
+         COALESCE((SELECT SUM(t.amount) FROM transactions t
+           WHERE t.user_id = b.user_id AND t.type = 'expense'
+             AND t.category_id = b.category_id
+             AND t.occurred_at >= b.period_start AND t.occurred_at < b.period_end
+             AND (b.wallet_id IS NULL OR t.wallet_id = b.wallet_id)), 0) AS spent
+       FROM budgets b
+       LEFT JOIN categories c ON c.id = b.category_id AND c.user_id = b.user_id
+       WHERE b.user_id = ? AND b.period_start = ? AND b.period_end = ?
+       ORDER BY spent DESC, b.id ASC`,
+      userId, startIso, endIso,
     );
 
     return {
@@ -179,6 +148,13 @@ export class DeviceReportRepository {
         date: String(row.date),
         income: Number(row.income ?? 0),
         expense: Number(row.expense ?? 0),
+      })),
+      budgets: budgets.map((row) => ({
+        budgetId: Number(row.id),
+        categoryId: Number(row.category_id),
+        categoryName: String(row.category_name ?? "Không xác định"),
+        limit: Number(row.amount),
+        spent: Number(row.spent ?? 0),
       })),
     };
   }
