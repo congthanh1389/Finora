@@ -62,7 +62,7 @@ function budgetFromRow(row: any): BudgetSummary {
     walletName: row.wallet_name == null ? null : String(row.wallet_name),
     spent,
     remaining: amount - spent,
-    progress: amount > 0 ? Math.min(1, spent / amount) : 0,
+    progress: amount > 0 ? spent / amount : 0,
   };
 }
 
