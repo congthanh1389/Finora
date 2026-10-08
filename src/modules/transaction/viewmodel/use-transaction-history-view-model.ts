@@ -65,13 +65,17 @@ export function useTransactionHistoryViewModel() {
   const [isLoadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [typeFilter, setTypeFilter] = useState<TransactionFilter>("all");
+  const [typeFilter, setTypeFilterState] = useState<TransactionFilter>("all");
   const [periodKey, setPeriodKey] = useState<PeriodKey>("month");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
   const [summary, setSummary] = useState<TransactionSummaryResult | null>(null);
   const [walletFilterId, setWalletFilterId] = useState<number | undefined>();
   const [categoryFilterId, setCategoryFilterId] = useState<number | undefined>();
+  const setTypeFilter = useCallback((nextType: TransactionFilter) => {
+    setCategoryFilterId(undefined);
+    setTypeFilterState(nextType);
+  }, []);
   const [minAmount, setMinAmount] = useState<number | undefined>();
   const [maxAmount, setMaxAmount] = useState<number | undefined>();
   const [minAmountInput, setMinAmountInput] = useState("");
@@ -197,7 +201,10 @@ export function useTransactionHistoryViewModel() {
     categoryFilterId !== undefined ||
     minAmount !== undefined ||
     maxAmount !== undefined ||
-    false;
+    walletFilterId !== undefined ||
+    categoryFilterId !== undefined ||
+    minAmount !== undefined ||
+    maxAmount !== undefined;
 
   const deleteTransaction = useCallback(async (transactionId: number) => {
     await dependencies.historyService.deleteTransaction(
