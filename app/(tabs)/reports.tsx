@@ -111,12 +111,14 @@ export default function ReportsScreen() {
                 <Pressable
                   key={key}
                   onPress={() => setPeriod(key)}
-                  className={`flex-shrink-0 rounded-2xl px-4 py-2.5 ${active ? "bg-[#22B8A8]" : "border border-[#E2E8F0] bg-white"}`}
+                  className={`rounded-2xl px-4 py-2.5 ${active ? "bg-[#22B8A8]" : "border border-[#E2E8F0] bg-white"}`}
+                  style={{ flexShrink: 0, minWidth: 72 }}
                 >
                   <Text
                     className={`text-center text-xs font-bold ${active ? "text-white" : "text-[#475569]"}`}
                     numberOfLines={1}
                     ellipsizeMode="clip"
+                    style={{ flexShrink: 0 }}
                   >
                     {periodLabels[key]}
                   </Text>
