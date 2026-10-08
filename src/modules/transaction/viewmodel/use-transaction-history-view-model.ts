@@ -84,6 +84,19 @@ export function useTransactionHistoryViewModel() {
     [periodKey, customStart, customEnd],
   );
 
+  const filters = useMemo<TransactionHistoryFilters | undefined>(() => {
+    if (walletFilterId === undefined && categoryFilterId === undefined && minAmount === undefined && maxAmount === undefined && !search) {
+      return undefined;
+    }
+    return {
+      walletId: walletFilterId,
+      categoryId: categoryFilterId,
+      minAmount,
+      maxAmount,
+      search: search || undefined,
+    };
+  }, [categoryFilterId, maxAmount, minAmount, search, walletFilterId]);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -112,6 +125,7 @@ export function useTransactionHistoryViewModel() {
           PAGE_SIZE,
           period.start,
           period.end,
+          filters,
         ),
         dependencies.historyService.loadReferences(user.id),
         dependencies.historyService.getSummary(user.id, period.start, period.end, typeFilter),
@@ -151,6 +165,7 @@ export function useTransactionHistoryViewModel() {
         PAGE_SIZE,
         period.start,
         period.end,
+        filters,
       );
       setTransactions((current) => [...current, ...page.transactions]);
       setHasMore(page.hasMore);
@@ -217,5 +232,21 @@ export function useTransactionHistoryViewModel() {
     setCustomEnd,
     loadMore,
     deleteTransaction,
+    walletFilterId,
+    categoryFilterId,
+    minAmount,
+    maxAmount,
+    search,
+    searchInput,
+    minAmountInput,
+    maxAmountInput,
+    setWalletFilterId,
+    setCategoryFilterId,
+    setSearchInput,
+    setMinAmountInput,
+    setMaxAmountInput,
+    applyAdvancedFilters,
+    clearAdvancedFilters,
+    hasAdvancedFilters,
   };
 }
