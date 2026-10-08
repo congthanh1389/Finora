@@ -83,32 +83,48 @@ export function ReportCalendar({
             </Pressable>
           </View>
 
-          <View className="mt-5 flex-row">
-            {WEEKDAYS.map((day) => (
-              <Text key={day} className="flex-1 text-center text-xs font-bold text-[#94A3B8]">
-                {day}
-              </Text>
+          <View className="mt-5 flex-row rounded-t-2xl border border-b-0 border-[#E2E8F0] bg-[#F1F5F9] py-2">
+            {WEEKDAYS.map((day, index) => (
+              <View
+                key={day}
+                className={`flex-1 items-center ${index < 6 ? "border-r border-[#E2E8F0]" : ""}`}
+              >
+                <Text className="text-xs font-bold text-[#64748B]">{day}</Text>
+              </View>
             ))}
           </View>
 
-          <View className="mt-2">
+          <View className="mt-3 overflow-hidden rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC]">
             {weeks.map((week, weekIndex) => (
-              <View key={`week-${weekIndex}`} className="flex-row">
+              <View
+                key={`week-${weekIndex}`}
+                className={`flex-row ${weekIndex < weeks.length - 1 ? "border-b border-[#E2E8F0]" : ""}`}
+              >
                 {week.map((day, dayIndex) => {
                   if (day === null) {
-                    return <View key={`blank-${weekIndex}-${dayIndex}`} className="flex-1 p-1" />;
+                    return (
+                      <View
+                        key={`blank-${weekIndex}-${dayIndex}`}
+                        className={`min-h-12 flex-1 p-1 ${dayIndex < 6 ? "border-r border-[#E2E8F0]" : ""}`}
+                      />
+                    );
                   }
 
                   const date = new Date(month.getFullYear(), month.getMonth(), day);
                   const isSelected = sameDate(date, selected);
 
                   return (
-                    <View key={day} className="flex-1 p-1">
+                    <View
+                      key={day}
+                      className={`min-h-12 flex-1 p-1 ${dayIndex < 6 ? "border-r border-[#E2E8F0]" : ""}`}
+                    >
                       <Pressable
                         onPress={() => setSelected(date)}
-                        className={`h-12 items-center justify-center rounded-full ${isSelected ? "bg-[#22B8A8]" : "bg-transparent"}`}
+                        className={`min-h-10 flex-1 items-center justify-center rounded-xl ${isSelected ? "bg-[#22B8A8]" : "bg-white"}`}
                       >
-                        <Text className={`text-base font-semibold ${isSelected ? "text-white" : "text-[#334155]"}`}>
+                        <Text
+                          className={`text-base font-bold ${isSelected ? "text-white" : "text-[#334155]"}`}
+                        >
                           {day}
                         </Text>
                       </Pressable>
