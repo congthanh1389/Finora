@@ -51,6 +51,10 @@ export class DeviceReportRepository {
     const endIso = range.end.toISOString();
     const previousStartIso = range.previousStart.toISOString();
     const previousEndIso = range.previousEnd.toISOString();
+    const timezoneOffsetMinutes = -range.start.getTimezoneOffset();
+    const timezoneHours = Math.trunc(timezoneOffsetMinutes / 60);
+    const timezoneMinutes = Math.abs(timezoneOffsetMinutes % 60);
+    const timezoneModifier = `${timezoneHours >= 0 ? "+" : "-"}${String(Math.abs(timezoneHours)).padStart(2, "0")} hours${timezoneMinutes === 0 ? "" : ` ${timezoneMinutes >= 0 ? "+" : "-"}${String(Math.abs(timezoneMinutes)).padStart(2, "0")} minutes`}`;
 
     const summary = await db.getFirstAsync<SummaryRow>(
       `SELECT COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
@@ -123,13 +127,13 @@ export class DeviceReportRepository {
     );
 
     const cashFlow = await db.getAllAsync<{ date: string; income: number | null; expense: number | null }>(
-      `SELECT substr(occurred_at, 1, 10) AS date,
+      `SELECT date(occurred_at, ?) AS date,
          COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
          COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense
        FROM transactions
        WHERE user_id = ? AND occurred_at >= ? AND occurred_at < ?
-       GROUP BY substr(occurred_at, 1, 10) ORDER BY date ASC`,
-      userId, startIso, endIso,
+       GROUP BY date(occurred_at, ?) ORDER BY date ASC`,
+      timezoneModifier, userId, startIso, endIso, timezoneModifier,
     );
 
     const budgets = await db.getAllAsync<{
