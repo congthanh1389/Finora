@@ -12,7 +12,13 @@ let databasePromise: Promise<SQLiteDatabase> | null = null;
 let migrationPromise: Promise<void> | null = null;
 
 export async function getDeviceDatabase(): Promise<SQLiteDatabase> {
-  if (!databasePromise) databasePromise = openDatabaseAsync(DATABASE_NAME);
+  if (!databasePromise) {
+    databasePromise = openDatabaseAsync(DATABASE_NAME).catch((error) => {
+      // Allow a later call to retry if opening the database failed transiently.
+      databasePromise = null;
+      throw error;
+    });
+  }
   return databasePromise;
 }
 
@@ -538,7 +544,7 @@ export async function deleteArchivedDeviceWallet(userId: number, walletId: numbe
 export async function listDeviceTransactions(userId: number): Promise<Transaction[]> {
   if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
-  const rows = await db.getAllAsync(`SELECT * FROM transactions WHERE user_id = ? ORDER BY occurred_at DESC`, userId); return rows.map(transactionFromRow);
+  const rows = await db.getAllAsync(`SELECT * FROM transactions WHERE user_id = ? ORDER BY occurred_at DESC, id DESC`, userId); return rows.map(transactionFromRow);
 }
 
 const BALANCE_EFFECT_SQL = `
