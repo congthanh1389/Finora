@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
@@ -48,6 +49,33 @@ export default function SettingsScreen() {
         <Text className="mt-1 text-base font-medium text-[#0F172A]">
           {user?.email ?? "Chưa có thông tin tài khoản"}
         </Text>
+
+        {user?.loginMethod === "local-password" ? (
+          <TouchableOpacity
+            onPress={() => router.push("/change-password" as never)}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Đổi mật khẩu đăng nhập"
+            style={{
+              marginTop: 16,
+              minHeight: 54,
+              flexDirection: "row",
+              alignItems: "center",
+              paddingHorizontal: 14,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: "#D1FAE5",
+              backgroundColor: "#F0FDF4",
+            }}
+          >
+            <Feather name="key" size={20} color="#138363" />
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={{ fontSize: 15, fontWeight: "700", color: "#172033" }}>Đổi mật khẩu đăng nhập</Text>
+              <Text style={{ marginTop: 3, fontSize: 12, color: "#64748B" }}>Cập nhật mật khẩu cho tài khoản này</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color="#94A3B8" />
+          </TouchableOpacity>
+        ) : null}
 
         <TouchableOpacity
           onPress={() => router.push("/category" as never)}
