@@ -299,3 +299,14 @@ export async function localChangePassword(
   await writeSecureAccounts(updatedAccounts);
   await syncAccountsToDeviceStore(updatedAccounts);
 }
+
+export async function localVerifyPassword(userId: number, password: string): Promise<boolean> {
+  const accounts = await readSecureAccounts();
+  const account = accounts.find((item) => item.id === userId);
+  if (!account) throw new Error("Không tìm thấy tài khoản.");
+  if (account.loginMethod !== "local-password") {
+    throw new Error("Tài khoản này không sử dụng mật khẩu đăng nhập trên thiết bị nên không thể xác minh bằng mật khẩu cục bộ.");
+  }
+  return account.password === password;
+}
+
