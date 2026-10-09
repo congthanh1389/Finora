@@ -1,10 +1,12 @@
 import { useRouter } from "expo-router";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
 import { clearDeviceFinancialData } from "@/src/core/storage/device-store";
+import * as Auth from "@/lib/_core/auth";
 
 type SettingRowProps = {
   icon: keyof typeof Feather.glyphMap;
@@ -61,6 +63,11 @@ export default function SettingsScreen() {
     router.replace("/login" as never);
   };
 
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deletePasswordError, setDeletePasswordError] = useState<string | null>(null);
+  const [deletingFinancialData, setDeletingFinancialData] = useState(false);
+
   const handleClearFinancialData = () => {
     if (!user?.id) {
       Alert.alert("Chưa có tài khoản", "Vui lòng đăng nhập trước khi xóa dữ liệu tài chính.");
@@ -69,24 +76,111 @@ export default function SettingsScreen() {
 
     Alert.alert(
       "Xóa dữ liệu tài chính?",
-      "Toàn bộ giao dịch, ví, danh mục và ngân sách sẽ bị xóa. Tài khoản đăng nhập vẫn được giữ lại.",
+      "Toàn bộ giao dịch, ví, danh mục và ngân sách sẽ bị xóa. Tài khoản đăng nhập vẫn được giữ lại. Bạn sẽ cần xác nhận mật khẩu đăng nhập trước khi xóa.",
       [
         { text: "Hủy", style: "cancel" },
         {
-          text: "Xóa dữ liệu",
+          text: "Tiếp tục",
           style: "destructive",
           onPress: () => {
-            void clearDeviceFinancialData(user.id)
-              .then(() => Alert.alert("Đã xóa", "Dữ liệu tài chính đã được xóa."))
-              .catch((error) => Alert.alert("Không thể xóa", error instanceof Error ? error.message : "Đã xảy ra lỗi."));
+            setDeletePassword("");
+            setDeletePasswordError(null);
+            setPasswordModalVisible(true);
           },
         },
       ],
     );
   };
 
+  const confirmClearFinancialData = async () => {
+    if (!user?.id) {
+      setDeletePasswordError("Không tìm thấy tài khoản đang đăng nhập.");
+      return;
+    }
+    if (!deletePassword) {
+      setDeletePasswordError("Vui lòng nhập mật khẩu đăng nhập.");
+      return;
+    }
+
+    try {
+      setDeletingFinancialData(true);
+      setDeletePasswordError(null);
+      const validPassword = await Auth.localVerifyPassword(user.id, deletePassword);
+      if (!validPassword) {
+        setDeletePasswordError("Mật khẩu đăng nhập không đúng.");
+        return;
+      }
+
+      await clearDeviceFinancialData(user.id);
+      setPasswordModalVisible(false);
+      setDeletePassword("");
+      Alert.alert("Đã xóa", "Dữ liệu tài chính đã được xóa.");
+    } catch (error) {
+      setDeletePasswordError(error instanceof Error ? error.message : "Không thể xác minh mật khẩu. Vui lòng thử lại.");
+    } finally {
+      setDeletingFinancialData(false);
+    }
+  };
+
   return (
     <ScreenContainer className="bg-[#F5F8F7]">
+        <Modal
+          visible={passwordModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => {
+            if (!deletingFinancialData) setPasswordModalVisible(false);
+          }}
+        >
+          <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 24, backgroundColor: "rgba(15, 23, 42, 0.55)" }}>
+            <View style={{ borderRadius: 24, padding: 22, backgroundColor: "#FFFFFF" }}>
+              <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: "#FFF1F2", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+                <Feather name="shield" size={23} color="#BE123C" />
+              </View>
+              <Text style={{ color: "#172033", fontSize: 20, fontWeight: "800" }}>Xác nhận mật khẩu</Text>
+              <Text style={{ color: "#64748B", fontSize: 13, lineHeight: 20, marginTop: 8 }}>
+                Nhập mật khẩu đăng nhập hiện tại để xác nhận xóa toàn bộ dữ liệu tài chính trên thiết bị.
+              </Text>
+              <TextInput
+                value={deletePassword}
+                onChangeText={(value) => {
+                  setDeletePassword(value);
+                  if (deletePasswordError) setDeletePasswordError(null);
+                }}
+                placeholder="Mật khẩu đăng nhập"
+                placeholderTextColor="#94A3B8"
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!deletingFinancialData}
+                returnKeyType="done"
+                onSubmitEditing={() => void confirmClearFinancialData()}
+                accessibilityLabel="Mật khẩu đăng nhập để xác nhận xóa dữ liệu"
+                style={{ minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: deletePasswordError ? "#FDA4AF" : "#DCE7E2", paddingHorizontal: 14, marginTop: 18, color: "#172033", backgroundColor: "#FFFFFF" }}
+              />
+              {deletePasswordError ? (
+                <Text style={{ color: "#BE123C", fontSize: 12, lineHeight: 18, marginTop: 9 }}>{deletePasswordError}</Text>
+              ) : null}
+              <View style={{ flexDirection: "row", gap: 10, marginTop: 20 }}>
+                <TouchableOpacity
+                  onPress={() => setPasswordModalVisible(false)}
+                  disabled={deletingFinancialData}
+                  style={{ flex: 1, minHeight: 48, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: "#F1F5F9" }}
+                >
+                  <Text style={{ color: "#475569", fontWeight: "700" }}>Hủy</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => void confirmClearFinancialData()}
+                  disabled={deletingFinancialData}
+                  style={{ flex: 1, minHeight: 48, borderRadius: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", backgroundColor: deletingFinancialData ? "#FDA4AF" : "#BE123C" }}
+                >
+                  {deletingFinancialData ? <ActivityIndicator color="#FFFFFF" /> : <Feather name="trash-2" size={16} color="#FFFFFF" />}
+                  <Text style={{ color: "#FFFFFF", fontWeight: "800", marginLeft: 7 }}>{deletingFinancialData ? "Đang xóa..." : "Xác nhận xóa"}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <View>
