@@ -310,3 +310,28 @@ export async function localVerifyPassword(userId: number, password: string): Pro
   return account.password === password;
 }
 
+/**
+ * Removes a locally saved account from the account picker without deleting its financial data.
+ */
+export async function localRemoveSavedAccount(userId: number): Promise<void> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) {
+    throw new Error("Tài khoản không hợp lệ.");
+  }
+
+  const secureAccounts = await readSecureAccounts();
+  const remaining = secureAccounts.filter((account) => account.id !== userId);
+  const deviceAccounts = await readDeviceAccounts();
+  const exists = deviceAccounts.some((account) => account.id === userId) ||
+    secureAccounts.some((account) => account.id === userId);
+  if (!exists) throw new Error("Không tìm thấy tài khoản đã lưu.");
+
+  await writeSecureAccounts(remaining);
+
+  const { deleteDeviceLocalAccount } = await import("@/src/core/storage/device-store");
+  await deleteDeviceLocalAccount(userId);
+
+  if ((await getSessionToken()) === `local-session-${userId}`) {
+    await removeSessionToken();
+    await clearUserInfo();
+  }
+}
