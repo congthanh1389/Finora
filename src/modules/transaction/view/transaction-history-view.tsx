@@ -44,9 +44,15 @@ function formatDate(value: Date) {
 
 
 function formatIsoDateForDisplay(value: string) {
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return "Chọn ngày";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "Chọn ngày";
   const [year, month, day] = value.split("-");
   return `${day}/${month}/${year}`;
+}
+
+function parseCalendarDate(dateValue: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) return new Date();
+  const [year, month, day] = dateValue.split("-").map(Number);
+  return new Date(year, month - 1, day);
 }
 
 function TransactionDatePicker({
@@ -62,19 +68,14 @@ function TransactionDatePicker({
   onSelect: (value: string) => void;
   onClose: () => void;
 }) {
-  const parseValue = (dateValue: string) => {
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateValue)) return new Date();
-    const [year, month, day] = dateValue.split("-").map(Number);
-    return new Date(year, month - 1, day);
-  };
   const [monthShown, setMonthShown] = useState(() => {
-    const selected = parseValue(value);
+    const selected = parseCalendarDate(value);
     return new Date(selected.getFullYear(), selected.getMonth(), 1);
   });
 
   useEffect(() => {
     if (visible) {
-      const selected = parseValue(value);
+      const selected = parseCalendarDate(value);
       setMonthShown(new Date(selected.getFullYear(), selected.getMonth(), 1));
     }
   }, [visible, value]);
@@ -84,7 +85,7 @@ function TransactionDatePicker({
   const cells = [...Array(firstWeekday).fill(0), ...Array.from({ length: daysInMonth }, (_, index) => index + 1)];
   while (cells.length % 7 !== 0) cells.push(0);
   const monthTitle = new Intl.DateTimeFormat("vi-VN", { month: "long", year: "numeric" }).format(monthShown);
-  const selectedDate = parseValue(value);
+  const selectedDate = parseCalendarDate(value);
   const selectedIsInMonth = selectedDate.getFullYear() === monthShown.getFullYear() && selectedDate.getMonth() === monthShown.getMonth();
 
   return (
