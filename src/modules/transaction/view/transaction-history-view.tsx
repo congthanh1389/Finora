@@ -175,7 +175,7 @@ const isTransfer = transaction.type === "transfer";
         ListHeaderComponent={
           <View className="gap-4 px-5 pt-4">
             <View className="flex-row items-center">
-              <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-white">
+              <Pressable onPress={() => { if (router.canGoBack()) router.back(); else router.replace("/(tabs)"); }} className="h-10 w-10 items-center justify-center rounded-full bg-white">
                 <Text className="text-2xl text-[#475569]">‹</Text>
               </Pressable>
               <View className="ml-3 flex-1">
