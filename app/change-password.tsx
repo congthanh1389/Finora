@@ -7,6 +7,35 @@ import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
 import * as Auth from "@/lib/_core/auth";
 
+function PasswordField({
+    label, value, onChangeText, visible, onToggle, placeholder,
+  }: {
+    label: string; value: string; onChangeText: (value: string) => void;
+    visible: boolean; onToggle: () => void; placeholder: string;
+  }) => (
+    <View style={{ marginTop: 16 }}>
+      <Text style={{ color: "#344A45", fontSize: 13, fontWeight: "700", marginBottom: 8 }}>{label}</Text>
+      <View style={{ minHeight: 54, flexDirection: "row", alignItems: "center", borderRadius: 15, borderWidth: 1, borderColor: "#DCE7E2", backgroundColor: "#FFFFFF" }}>
+        <TextInput
+          style={{ flex: 1, paddingHorizontal: 15, paddingVertical: 14, color: "#172033", fontSize: 15 }}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor="#94A3B8"
+          secureTextEntry={!visible}
+          autoCapitalize="none"
+          autoCorrect={false}
+          editable={!loading}
+          textContentType="none"
+        />
+        <TouchableOpacity onPress={onToggle} disabled={loading} accessibilityRole="button" accessibilityLabel={visible ? "Ẩn mật khẩu" : "Hiện mật khẩu"} style={{ padding: 14 }}>
+          <Feather name={visible ? "eye-off" : "eye"} size={19} color="#64748B" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 export default function ChangePasswordScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -46,33 +75,7 @@ export default function ChangePasswordScreen() {
     }
   };
 
-  const PasswordField = ({
-    label, value, onChangeText, visible, onToggle, placeholder,
-  }: {
-    label: string; value: string; onChangeText: (value: string) => void;
-    visible: boolean; onToggle: () => void; placeholder: string;
-  }) => (
-    <View style={{ marginTop: 16 }}>
-      <Text style={{ color: "#344A45", fontSize: 13, fontWeight: "700", marginBottom: 8 }}>{label}</Text>
-      <View style={{ minHeight: 54, flexDirection: "row", alignItems: "center", borderRadius: 15, borderWidth: 1, borderColor: "#DCE7E2", backgroundColor: "#FFFFFF" }}>
-        <TextInput
-          style={{ flex: 1, paddingHorizontal: 15, paddingVertical: 14, color: "#172033", fontSize: 15 }}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor="#94A3B8"
-          secureTextEntry={!visible}
-          autoCapitalize="none"
-          autoCorrect={false}
-          editable={!loading}
-          textContentType="none"
-        />
-        <TouchableOpacity onPress={onToggle} disabled={loading} accessibilityRole="button" accessibilityLabel={visible ? "Ẩn mật khẩu" : "Hiện mật khẩu"} style={{ padding: 14 }}>
-          <Feather name={visible ? "eye-off" : "eye"} size={19} color="#64748B" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+
 
   return (
     <ScreenContainer className="bg-[#F5F8F7]">
