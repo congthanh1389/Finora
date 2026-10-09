@@ -124,6 +124,10 @@ export default function SettingsScreen() {
           <SettingRow icon="user-round" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => Alert.alert("Thông tin tài khoản", user?.email ?? "Chưa có thông tin tài khoản")} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
           <SettingRow icon="shield" title="Danh sách tài khoản" subtitle="Quản lý tài khoản đã lưu trên thiết bị" onPress={() => router.push("/account-list" as never)} />
+          {user?.loginMethod === "local-password" ? <>
+            <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
+            <SettingRow icon="key" title="Đổi mật khẩu đăng nhập" subtitle="Cập nhật mật khẩu cho tài khoản này" onPress={() => router.push("/change-password" as never)} />
+          </> : null}
         </SettingsGroup>
 
         <SettingsGroup title="Quản lý tài chính">
