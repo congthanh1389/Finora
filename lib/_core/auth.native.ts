@@ -269,3 +269,33 @@ export async function localDeleteAccount(userId: number): Promise<void> {
   if (token === `local-session-${userId}`) await localLogout();
 }
 
+export async function localChangePassword(
+  userId: number,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  if (newPassword.length < 6) {
+    throw new Error("Mật khẩu mới phải có ít nhất 6 ký tự.");
+  }
+
+  const accounts = await readSecureAccounts();
+  const account = accounts.find((item) => item.id === userId);
+
+  if (!account) throw new Error("Không tìm thấy tài khoản.");
+  if (account.loginMethod !== "local-password") {
+    throw new Error("Tài khoản này không sử dụng mật khẩu đăng nhập trên thiết bị.");
+  }
+  if (account.password !== currentPassword) {
+    throw new Error("Mật khẩu hiện tại không đúng.");
+  }
+  if (currentPassword === newPassword) {
+    throw new Error("Mật khẩu mới phải khác mật khẩu hiện tại.");
+  }
+
+  const updatedAccounts = accounts.map((item) =>
+    item.id === userId ? { ...item, password: newPassword } : item,
+  );
+
+  await writeSecureAccounts(updatedAccounts);
+  await syncAccountsToDeviceStore(updatedAccounts);
+}
