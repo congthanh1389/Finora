@@ -109,26 +109,31 @@ function TransactionDatePicker({
               <View key={day} className="flex-1 items-center py-2"><Text className="text-xs font-semibold text-[#64748B]">{day}</Text></View>
             ))}
           </View>
-          <View className="flex-row flex-wrap">
-            {cells.map((day, index) => {
-              const isSelected = day !== 0 && selectedIsInMonth && selectedDate.getDate() === day;
-              return (
-                <View key={`${monthShown.getFullYear()}-${monthShown.getMonth()}-${index}`} className="w-[14.2857%] items-center py-1">
-                  {day === 0 ? <View className="h-10 w-10" /> : (
-                    <Pressable
-                      onPress={() => {
-                        const chosen = `${monthShown.getFullYear()}-${String(monthShown.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                        onSelect(chosen);
-                      }}
-                      className="h-10 w-10 items-center justify-center rounded-full"
-                      style={{ backgroundColor: isSelected ? "#0F766E" : "transparent" }}
-                    >
-                      <Text className={`text-sm font-semibold ${isSelected ? "text-white" : "text-[#334155]"}`}>{day}</Text>
-                    </Pressable>
-                  )}
-                </View>
-              );
-            })}
+          <View>
+            {Array.from({ length: cells.length / 7 }, (_, weekIndex) => (
+              <View key={`week-${monthShown.getFullYear()}-${monthShown.getMonth()}-${weekIndex}`} className="flex-row">
+                {cells.slice(weekIndex * 7, weekIndex * 7 + 7).map((day, dayIndex) => {
+                  const index = weekIndex * 7 + dayIndex;
+                  const isSelected = day !== 0 && selectedIsInMonth && selectedDate.getDate() === day;
+                  return (
+                    <View key={`${monthShown.getFullYear()}-${monthShown.getMonth()}-${index}`} className="flex-1 items-center py-1">
+                      {day === 0 ? <View className="h-10 w-10" /> : (
+                        <Pressable
+                          onPress={() => {
+                            const chosen = `${monthShown.getFullYear()}-${String(monthShown.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                            onSelect(chosen);
+                          }}
+                          className="h-10 w-10 items-center justify-center rounded-full"
+                          style={{ backgroundColor: isSelected ? "#0F766E" : "transparent" }}
+                        >
+                          <Text className={`text-sm font-semibold ${isSelected ? "text-white" : "text-[#334155]"}`}>{day}</Text>
+                        </Pressable>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
           </View>
           <Pressable onPress={onClose} className="mt-4 items-center rounded-xl bg-[#F1F5F9] py-3">
             <Text className="font-semibold text-[#475569]">Đóng lịch</Text>
