@@ -249,3 +249,33 @@ export async function localRemoveSavedAccount(userId: number): Promise<void> {
     await clearUserInfo();
   }
 }
+
+
+/**
+ * Changes the password for a locally registered account.
+ * Writes only after verifying the current password and validating the replacement.
+ */
+export async function localChangePassword(
+  userId: number,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) {
+    throw new Error("Tài khoản không hợp lệ.");
+  }
+  if (!currentPassword) throw new Error("Vui lòng nhập mật khẩu hiện tại.");
+  if (newPassword.length < 6) throw new Error("Mật khẩu mới phải có ít nhất 6 ký tự.");
+  if (currentPassword === newPassword) throw new Error("Mật khẩu mới phải khác mật khẩu hiện tại.");
+
+  const accounts = await readAccounts();
+  const accountIndex = accounts.findIndex((account) => account.id === userId);
+  if (accountIndex < 0) throw new Error("Không tìm thấy tài khoản trên thiết bị.");
+  if (accounts[accountIndex].password !== currentPassword) {
+    throw new Error("Mật khẩu hiện tại không đúng.");
+  }
+
+  const updated = accounts.map((account, index) =>
+    index === accountIndex ? { ...account, password: newPassword } : account,
+  );
+  await writeAccounts(updated);
+}
