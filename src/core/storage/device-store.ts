@@ -2,6 +2,7 @@ import { DeviceEventEmitter } from "react-native";
 import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 
 import type { Category, Wallet, Transaction } from "../../../drizzle/schema";
+import { auditReferentialIntegrity, type ReferentialIntegrityIssue } from "./referential-integrity";
 
 const DATABASE_NAME = "finora.db";
 const CURRENT_SCHEMA_VERSION = 11;
@@ -730,4 +731,11 @@ export async function createDeviceTransaction(input: Omit<Transaction, "id" | "c
     transaction = { ...input, id: result.lastInsertRowId, createdAt: now, updatedAt: now, occurredAt };
   });
   DeviceEventEmitter.emit(DEVICE_TRANSACTIONS_CHANGED_EVENT, transaction!); return transaction!;
+}
+
+/** Runs a read-only integrity audit against the current device database. */
+export async function auditDeviceReferentialIntegrity(): Promise<ReferentialIntegrityIssue[]> {
+  const db = await getDeviceDatabase();
+  await migrateDatabase(db);
+  return auditReferentialIntegrity(db);
 }
