@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
 import type { ReportPeriod } from "@/src/modules/report/model/report.types";
-import { ReportCalendar } from "@/src/modules/report/components/report-calendar";
+import { CalendarDatePicker, formatCalendarDate } from "@/components/ui/calendar-date-picker";
 import { useReportViewModel } from "@/src/modules/report/viewmodel/use-report-view-model";
 import { useSuggestionViewModel } from "@/src/modules/suggestion/viewmodel/use-suggestion-view-model";
 import { SuggestionCard } from "@/src/modules/suggestion/components/suggestion-card";
@@ -11,14 +11,10 @@ import { SuggestionCard } from "@/src/modules/suggestion/components/suggestion-c
 const money = (value: number) =>
   new Intl.NumberFormat("vi-VN").format(Math.round(value)) + " ₫";
 const percent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
-const formatDate = (date: Date | null) =>
+const dateToIso = (date: Date | null) =>
   date
-    ? new Intl.DateTimeFormat("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }).format(date)
-    : "Chọn ngày";
+    ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+    : "";
 
 const walletTypeLabels: Record<string, string> = {
   cash: "Tiền mặt",
@@ -95,15 +91,17 @@ export default function ReportsScreen() {
     setCalendarMode(mode);
   };
 
-  const confirmCalendar = (date: Date) => {
-    const normalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const selectCalendarDate = (value: string) => {
+    const [year, month, day] = value.split("-").map(Number);
+    const normalized = new Date(year, month - 1, day);
 
     if (calendarMode === "start") {
-      const end = customRange?.end && normalized > customRange.end ? null : customRange?.end ?? null;
-      setCustomRange({ start: normalized, end: end ?? normalized });
+      const end = customRange?.end && normalized > customRange.end ? normalized : customRange?.end ?? normalized;
+      setCustomRange({ start: normalized, end });
     } else if (calendarMode === "end") {
       const start = customRange?.start ?? normalized;
       if (normalized < start) {
+        Alert.alert("Khoảng ngày không hợp lệ", "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu.");
         return;
       }
       setCustomRange({ start, end: normalized });
@@ -180,7 +178,7 @@ export default function ReportsScreen() {
               >
                 <Text className="text-[11px] font-semibold text-[#94A3B8]">Từ ngày</Text>
                 <Text className="mt-1 text-sm font-bold text-[#334155]">
-                  {formatDate(customRange?.start ?? null)}
+                  {formatCalendarDate(dateToIso(customRange?.start ?? null))}
                 </Text>
               </Pressable>
               <Pressable
@@ -189,7 +187,7 @@ export default function ReportsScreen() {
               >
                 <Text className="text-[11px] font-semibold text-[#94A3B8]">Đến ngày</Text>
                 <Text className="mt-1 text-sm font-bold text-[#334155]">
-                  {formatDate(customRange?.end ?? null)}
+                  {formatCalendarDate(dateToIso(customRange?.end ?? null))}
                 </Text>
               </Pressable>
             </View>
@@ -417,16 +415,16 @@ export default function ReportsScreen() {
         )}
       </ScrollView>
 
-      <ReportCalendar
-        key={calendarMode ? `${calendarMode}-${draftDate?.getTime() ?? "none"}` : "closed"}
+      <CalendarDatePicker
+        key={calendarMode ? `${calendarMode}-${dateToIso(draftDate)}` : "closed"}
         visible={calendarMode !== null}
-        value={draftDate}
+        value={dateToIso(draftDate)}
         title={calendarMode === "start" ? "Chọn ngày bắt đầu" : "Chọn ngày kết thúc"}
-        onCancel={() => {
+        onSelect={selectCalendarDate}
+        onClose={() => {
           setCalendarMode(null);
           setDraftDate(null);
         }}
-        onConfirm={confirmCalendar}
       />
     </ScreenContainer>
   );
