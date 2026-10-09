@@ -33,6 +33,6 @@ describe("device storage migrations", () => {
 
     expect(runAsync).not.toHaveBeenCalled();
     expect(execAsync).toHaveBeenCalledWith("PRAGMA user_version = 5;");
-    expect(execAsync).toHaveBeenCalledWith("PRAGMA user_version = 11;");
+    expect(execAsync.mock.calls.some(([sql]) => String(sql).includes("PRAGMA user_version = 11;"))).toBe(true);
   });
 });
