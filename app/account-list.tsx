@@ -32,7 +32,7 @@ export default function AccountListScreen() {
       [
         { text: "Hủy", style: "cancel" },
         {
-          text: "Xóa",
+          text: "Gỡ khỏi danh sách",
           style: "destructive",
           onPress: async () => {
             try {
