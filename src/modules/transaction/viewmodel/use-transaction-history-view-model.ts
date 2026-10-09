@@ -5,8 +5,7 @@ import { createTransactionDependencies } from "../transaction.factory";
 import type { Transaction } from "../../../../drizzle/schema";
 import type { WalletSummary } from "../../wallet/types/wallet.types";
 import type { TransactionSummaryResult } from "../types/transaction-summary.types";
-import type { TransactionHistoryFilters } from "../types/transaction.types";
-import type { TransactionType } from "../types/transaction.types";
+import type { TransactionHistoryFilters, TransactionType } from "../types/transaction.types";
 import { TransactionSummaryService } from "../service/transaction-summary.service";
 
 type TransactionFilter = "all" | TransactionType;
