@@ -8,11 +8,17 @@ import { useAuth } from "@/hooks/use-auth";
 import * as Auth from "@/lib/_core/auth";
 
 function PasswordField({
-    label, value, onChangeText, visible, onToggle, placeholder,
-  }: {
-    label: string; value: string; onChangeText: (value: string) => void;
-    visible: boolean; onToggle: () => void; placeholder: string;
-  }) => (
+  label, value, onChangeText, visible, onToggle, placeholder, disabled,
+}: {
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  visible: boolean;
+  onToggle: () => void;
+  placeholder: string;
+  disabled: boolean;
+}) {
+  return (
     <View style={{ marginTop: 16 }}>
       <Text style={{ color: "#344A45", fontSize: 13, fontWeight: "700", marginBottom: 8 }}>{label}</Text>
       <View style={{ minHeight: 54, flexDirection: "row", alignItems: "center", borderRadius: 15, borderWidth: 1, borderColor: "#DCE7E2", backgroundColor: "#FFFFFF" }}>
@@ -25,10 +31,10 @@ function PasswordField({
           secureTextEntry={!visible}
           autoCapitalize="none"
           autoCorrect={false}
-          editable={!loading}
+          editable={!disabled}
           textContentType="none"
         />
-        <TouchableOpacity onPress={onToggle} disabled={loading} accessibilityRole="button" accessibilityLabel={visible ? "Ẩn mật khẩu" : "Hiện mật khẩu"} style={{ padding: 14 }}>
+        <TouchableOpacity onPress={onToggle} disabled={disabled} accessibilityRole="button" accessibilityLabel={visible ? "Ẩn mật khẩu" : "Hiện mật khẩu"} style={{ padding: 14 }}>
           <Feather name={visible ? "eye-off" : "eye"} size={19} color="#64748B" />
         </TouchableOpacity>
       </View>
@@ -93,9 +99,9 @@ export default function ChangePasswordScreen() {
           Nhập mật khẩu hiện tại, sau đó tạo mật khẩu mới có ít nhất 6 ký tự.
         </Text>
 
-        <PasswordField label="Mật khẩu hiện tại" value={currentPassword} onChangeText={setCurrentPassword} visible={showCurrent} onToggle={() => setShowCurrent((v) => !v)} placeholder="Nhập mật khẩu hiện tại" />
-        <PasswordField label="Mật khẩu mới" value={newPassword} onChangeText={setNewPassword} visible={showNew} onToggle={() => setShowNew((v) => !v)} placeholder="Ít nhất 6 ký tự" />
-        <PasswordField label="Xác nhận mật khẩu mới" value={confirmPassword} onChangeText={setConfirmPassword} visible={showConfirm} onToggle={() => setShowConfirm((v) => !v)} placeholder="Nhập lại mật khẩu mới" />
+        <PasswordField label="Mật khẩu hiện tại" value={currentPassword} onChangeText={setCurrentPassword} visible={showCurrent} onToggle={() => setShowCurrent((v) => !v)} placeholder="Nhập mật khẩu hiện tại" disabled={loading} />
+        <PasswordField label="Mật khẩu mới" value={newPassword} onChangeText={setNewPassword} visible={showNew} onToggle={() => setShowNew((v) => !v)} placeholder="Ít nhất 6 ký tự" disabled={loading} />
+        <PasswordField label="Xác nhận mật khẩu mới" value={confirmPassword} onChangeText={setConfirmPassword} visible={showConfirm} onToggle={() => setShowConfirm((v) => !v)} placeholder="Nhập lại mật khẩu mới" disabled={loading} />
 
         {error ? <View style={{ marginTop: 16, borderRadius: 12, backgroundColor: "#FFF1F2", padding: 12 }}>
           <Text style={{ color: "#BE123C", fontSize: 13, lineHeight: 19 }}>{error}</Text>
