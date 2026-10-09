@@ -1,5 +1,5 @@
 import { ActivityIndicator, Alert, FlatList, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
@@ -73,12 +73,6 @@ function TransactionDatePicker({
     return new Date(selected.getFullYear(), selected.getMonth(), 1);
   });
 
-  useEffect(() => {
-    if (visible) {
-      const selected = parseCalendarDate(value);
-      setMonthShown(new Date(selected.getFullYear(), selected.getMonth(), 1));
-    }
-  }, [visible, value]);
 
   const firstWeekday = (new Date(monthShown.getFullYear(), monthShown.getMonth(), 1).getDay() + 6) % 7;
   const daysInMonth = new Date(monthShown.getFullYear(), monthShown.getMonth() + 1, 0).getDate();
@@ -475,6 +469,7 @@ const isTransfer = transaction.type === "transfer";
         extraData={{ typeFilter, periodKey, isLoadingMore, walletFilterId, categoryFilterId, minAmount, maxAmount }}
       />
       <TransactionDatePicker
+        key={`${datePickerTarget}-${datePickerTarget === "end" ? customEnd : customStart}`}
         visible={datePickerTarget !== null}
         value={datePickerTarget === "end" ? customEnd : customStart}
         title={datePickerTarget === "end" ? "Chọn ngày kết thúc" : "Chọn ngày bắt đầu"}
