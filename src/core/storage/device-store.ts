@@ -95,13 +95,9 @@ async function migrateDatabase(db: SQLiteDatabase) {
       `);
     }
     if (version < 5) {
-      await db.runAsync(
-        `UPDATE categories SET is_archived = 1, updated_at = ?
-         WHERE is_archived = 0
-           AND ((type = 'expense' AND name IN ('Ăn uống', 'Mua sắm', 'Khác'))
-             OR (type = 'income' AND name IN ('Lương', 'Thưởng', 'Kinh doanh', 'Đầu tư', 'Khác')))` ,
-        new Date().toISOString(),
-      );
+      // Do not archive categories based only on their names.
+      // Users can create custom categories with the same names as built-in categories.
+      // Name-based migration would silently hide user data during an upgrade.
       await db.execAsync("PRAGMA user_version = 5;");
     }
     if (version < 6) {
