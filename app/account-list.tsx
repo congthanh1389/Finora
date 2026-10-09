@@ -44,7 +44,7 @@ export default function AccountListScreen() {
               }
               await loadAccounts();
             } catch (error) {
-              Alert.alert("Không thể xóa", error instanceof Error ? error.message : "Đã xảy ra lỗi khi xóa tài khoản.");
+              Alert.alert("Không thể gỡ tài khoản", error instanceof Error ? error.message : "Đã xảy ra lỗi khi gỡ tài khoản.");
             }
           },
         },
@@ -87,7 +87,7 @@ export default function AccountListScreen() {
                 onPress={() => handleDelete(item)}
                 activeOpacity={0.8}
                 accessibilityRole="button"
-                accessibilityLabel={`Xóa tài khoản ${item.email}`}
+                accessibilityLabel={`Gỡ tài khoản ${item.email} khỏi danh sách đã lưu`}
                 style={{ marginLeft: 12, height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: "#FEE2E2" }}
               >
                 <Text style={{ fontSize: 20 }}>🗑️</Text>
