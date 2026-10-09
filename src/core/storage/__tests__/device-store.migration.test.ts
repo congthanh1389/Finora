@@ -33,6 +33,23 @@ describe("device storage migrations", () => {
 
     expect(runAsync).not.toHaveBeenCalled();
     expect(execAsync).toHaveBeenCalledWith("PRAGMA user_version = 5;");
-    expect(execAsync.mock.calls.some(([sql]) => String(sql).includes("PRAGMA user_version = 11;"))).toBe(true);
+
+    const migrationStatements = execAsync.mock.calls
+      .map(([sql]) => String(sql))
+      .join("\n");
+
+    expect(migrationStatements).not.toMatch(
+      /UPDATE\s+categories\s+SET\s+is_archived/i,
+    );
+
+    expect(
+      execAsync.mock.calls.some(([sql]) =>
+        String(sql).includes("PRAGMA user_version = 11;"),
+      ),
+    ).toBe(true);
+
+    expect(migrationStatements).toMatch(
+      /PRAGMA\s+user_version\s*=\s*11\s*;/i,
+    );
   });
 });
