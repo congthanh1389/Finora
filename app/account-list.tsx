@@ -27,8 +27,8 @@ export default function AccountListScreen() {
 
   const handleDelete = (account: Auth.LocalAccount) => {
     Alert.alert(
-      "Xóa tài khoản",
-      `Xóa tài khoản ${account.email}? Toàn bộ dữ liệu của tài khoản này gồm ví, giao dịch, danh mục và thông tin đăng nhập sẽ bị xóa vĩnh viễn.`,
+      "Gỡ tài khoản đã lưu",
+      `Gỡ tài khoản ${account.email} khỏi danh sách đăng nhập đã lưu trên thiết bị? Ví, giao dịch, danh mục và ngân sách sẽ được giữ nguyên. Bạn sẽ cần đăng nhập lại để thêm tài khoản này vào danh sách.`,
       [
         { text: "Hủy", style: "cancel" },
         {
@@ -37,7 +37,7 @@ export default function AccountListScreen() {
           onPress: async () => {
             try {
               const isCurrent = (await Auth.getSessionToken()) === `local-session-${account.id}`;
-              await Auth.localDeleteAccount(account.id);
+              await Auth.localRemoveSavedAccount(account.id);
               if (isCurrent) {
                 router.replace("/login" as never);
                 return;
