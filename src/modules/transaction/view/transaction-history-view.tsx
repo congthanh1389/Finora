@@ -1,5 +1,5 @@
-import { ActivityIndicator, Alert, FlatList, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Alert, FlatList, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
@@ -40,6 +40,108 @@ function formatDate(value: Date) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(value);
+}
+
+
+function formatIsoDateForDisplay(value: string) {
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return "Chọn ngày";
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function TransactionDatePicker({
+  visible,
+  value,
+  title,
+  onSelect,
+  onClose,
+}: {
+  visible: boolean;
+  value: string;
+  title: string;
+  onSelect: (value: string) => void;
+  onClose: () => void;
+}) {
+  const parseValue = (dateValue: string) => {
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateValue)) return new Date();
+    const [year, month, day] = dateValue.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  };
+  const [monthShown, setMonthShown] = useState(() => {
+    const selected = parseValue(value);
+    return new Date(selected.getFullYear(), selected.getMonth(), 1);
+  });
+
+  useEffect(() => {
+    if (visible) {
+      const selected = parseValue(value);
+      setMonthShown(new Date(selected.getFullYear(), selected.getMonth(), 1));
+    }
+  }, [visible, value]);
+
+  const firstWeekday = (new Date(monthShown.getFullYear(), monthShown.getMonth(), 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(monthShown.getFullYear(), monthShown.getMonth() + 1, 0).getDate();
+  const cells = [...Array(firstWeekday).fill(0), ...Array.from({ length: daysInMonth }, (_, index) => index + 1)];
+  while (cells.length % 7 !== 0) cells.push(0);
+  const monthTitle = new Intl.DateTimeFormat("vi-VN", { month: "long", year: "numeric" }).format(monthShown);
+  const selectedDate = parseValue(value);
+  const selectedIsInMonth = selectedDate.getFullYear() === monthShown.getFullYear() && selectedDate.getMonth() === monthShown.getMonth();
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View className="flex-1 items-center justify-center bg-black/40 px-5">
+        <View className="w-full rounded-3xl bg-white p-5">
+          <Text className="text-lg font-bold text-[#0F2A5F]">{title}</Text>
+          <View className="mt-4 flex-row items-center justify-between">
+            <Pressable
+              accessibilityLabel="Tháng trước"
+              onPress={() => setMonthShown((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))}
+              className="h-10 w-10 items-center justify-center rounded-full bg-[#F1F5F9]"
+            >
+              <Text className="text-xl text-[#334155]">‹</Text>
+            </Pressable>
+            <Text className="text-base font-bold capitalize text-[#0F2A5F]">{monthTitle}</Text>
+            <Pressable
+              accessibilityLabel="Tháng sau"
+              onPress={() => setMonthShown((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))}
+              className="h-10 w-10 items-center justify-center rounded-full bg-[#F1F5F9]"
+            >
+              <Text className="text-xl text-[#334155]">›</Text>
+            </Pressable>
+          </View>
+          <View className="mt-4 flex-row">
+            {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((day) => (
+              <View key={day} className="flex-1 items-center py-2"><Text className="text-xs font-semibold text-[#64748B]">{day}</Text></View>
+            ))}
+          </View>
+          <View className="flex-row flex-wrap">
+            {cells.map((day, index) => {
+              const isSelected = day !== 0 && selectedIsInMonth && selectedDate.getDate() === day;
+              return (
+                <View key={`${monthShown.getFullYear()}-${monthShown.getMonth()}-${index}`} className="w-[14.2857%] items-center py-1">
+                  {day === 0 ? <View className="h-10 w-10" /> : (
+                    <Pressable
+                      onPress={() => {
+                        const chosen = `${monthShown.getFullYear()}-${String(monthShown.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                        onSelect(chosen);
+                      }}
+                      className="h-10 w-10 items-center justify-center rounded-full"
+                      style={{ backgroundColor: isSelected ? "#0F766E" : "transparent" }}
+                    >
+                      <Text className={`text-sm font-semibold ${isSelected ? "text-white" : "text-[#334155]"}`}>{day}</Text>
+                    </Pressable>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+          <Pressable onPress={onClose} className="mt-4 items-center rounded-xl bg-[#F1F5F9] py-3">
+            <Text className="font-semibold text-[#475569]">Đóng lịch</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
 }
 
 
@@ -89,6 +191,7 @@ export function TransactionHistoryView() {
   const listRef = useRef<FlatList<Transaction>>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [datePickerTarget, setDatePickerTarget] = useState<"start" | "end" | null>(null);
 
   const scrollToTop = useCallback(() => {
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
@@ -232,9 +335,24 @@ const isTransfer = transaction.type === "transfer";
                 </Pressable>
               </View>
               {periodKey === "custom" ? (
-                <View className="mt-3 flex-row gap-2">
-                  <TextInput value={customStart} onChangeText={setCustomStart} placeholder="YYYY-MM-DD" className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2 text-sm" />
-                  <TextInput value={customEnd} onChangeText={setCustomEnd} placeholder="YYYY-MM-DD" className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2 text-sm" />
+                <View className="mt-3 gap-3">
+                  <View className="flex-row gap-2">
+                    <Pressable
+                      onPress={() => setDatePickerTarget("start")}
+                      className="flex-1 rounded-xl border border-[#CBD5E1] bg-white px-3 py-3"
+                    >
+                      <Text className="text-[11px] font-semibold text-[#64748B]">Từ ngày</Text>
+                      <Text className="mt-1 text-sm font-semibold text-[#0F2A5F]">{formatIsoDateForDisplay(customStart)}</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => setDatePickerTarget("end")}
+                      className="flex-1 rounded-xl border border-[#CBD5E1] bg-white px-3 py-3"
+                    >
+                      <Text className="text-[11px] font-semibold text-[#64748B]">Đến ngày</Text>
+                      <Text className="mt-1 text-sm font-semibold text-[#0F2A5F]">{formatIsoDateForDisplay(customEnd)}</Text>
+                    </Pressable>
+                  </View>
+                  <Text className="text-xs text-[#64748B]">Chạm vào ô ngày để mở lịch và chọn ngày.</Text>
                 </View>
               ) : null}
             </View>
@@ -355,7 +473,7 @@ const isTransfer = transaction.type === "transfer";
         contentContainerStyle={{ paddingBottom: 32 }}
         extraData={{ typeFilter, periodKey, isLoadingMore, walletFilterId, categoryFilterId, minAmount, maxAmount }}
       />
-      {showScrollTop ? (
+      <TransactionDatePicker\n        visible={datePickerTarget !== null}\n        value={datePickerTarget === "end" ? customEnd : customStart}\n        title={datePickerTarget === "end" ? "Chọn ngày kết thúc" : "Chọn ngày bắt đầu"}\n        onSelect={(date) => {\n          if (datePickerTarget === "end") setCustomEnd(date);\n          else setCustomStart(date);\n          setDatePickerTarget(null);\n        }}\n        onClose={() => setDatePickerTarget(null)}\n      />\n      {showScrollTop ? (
         <Pressable onPress={scrollToTop} className="absolute bottom-5 right-5 h-12 w-12 items-center justify-center rounded-full bg-[#0F2A5F] shadow-lg">
           <Text className="text-xl font-bold text-white">↑</Text>
         </Pressable>
