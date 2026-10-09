@@ -57,7 +57,7 @@ export const transactions = mysqlTable("transactions", {
   walletId: int("walletId").references(() => wallets.id, { onDelete: "restrict" }),
   sourceWalletId: int("sourceWalletId").references(() => wallets.id, { onDelete: "restrict" }),
   destinationWalletId: int("destinationWalletId").references(() => wallets.id, { onDelete: "restrict" }),
-  categoryId: int("categoryId").references(() => categories.id, { onDelete: "restrict" }),
+  categoryId: int("categoryId").notNull().references(() => categories.id, { onDelete: "restrict" }),
   note: text("note"),
   occurredAt: timestamp("occurredAt").defaultNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
