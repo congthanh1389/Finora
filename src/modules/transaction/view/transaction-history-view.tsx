@@ -209,7 +209,7 @@ const isTransfer = transaction.type === "transfer";
               </Text>
               {summary ? (
                 <>
-                  <Text className="mt-1 text-[28px] font-extrabold" style={{ color: "#0F766E" }}>{formatVnd(summary.totals.totalAmount)}</Text>
+                  <Text className="mt-1 text-[28px] font-black" style={{ color: "#0F766E" }}>{formatVnd(summary.totals.totalAmount)}</Text>
                   <Text className="mt-1 text-xs text-[#64748B]">{summary.totals.transactionCount} giao dịch trong kỳ đã chọn</Text>
                 </>
               ) : periodKey === "custom" && customStart && customEnd ? (
