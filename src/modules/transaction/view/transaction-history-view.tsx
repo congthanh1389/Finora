@@ -474,7 +474,18 @@ const isTransfer = transaction.type === "transfer";
         contentContainerStyle={{ paddingBottom: 32 }}
         extraData={{ typeFilter, periodKey, isLoadingMore, walletFilterId, categoryFilterId, minAmount, maxAmount }}
       />
-      <TransactionDatePicker\n        visible={datePickerTarget !== null}\n        value={datePickerTarget === "end" ? customEnd : customStart}\n        title={datePickerTarget === "end" ? "Chọn ngày kết thúc" : "Chọn ngày bắt đầu"}\n        onSelect={(date) => {\n          if (datePickerTarget === "end") setCustomEnd(date);\n          else setCustomStart(date);\n          setDatePickerTarget(null);\n        }}\n        onClose={() => setDatePickerTarget(null)}\n      />\n      {showScrollTop ? (
+      <TransactionDatePicker
+        visible={datePickerTarget !== null}
+        value={datePickerTarget === "end" ? customEnd : customStart}
+        title={datePickerTarget === "end" ? "Chọn ngày kết thúc" : "Chọn ngày bắt đầu"}
+        onSelect={(date) => {
+          if (datePickerTarget === "end") setCustomEnd(date);
+          else setCustomStart(date);
+          setDatePickerTarget(null);
+        }}
+        onClose={() => setDatePickerTarget(null)}
+      />
+      {showScrollTop ? (
         <Pressable onPress={scrollToTop} className="absolute bottom-5 right-5 h-12 w-12 items-center justify-center rounded-full bg-[#0F2A5F] shadow-lg">
           <Text className="text-xl font-bold text-white">↑</Text>
         </Pressable>
