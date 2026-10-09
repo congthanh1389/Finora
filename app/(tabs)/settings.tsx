@@ -1,9 +1,55 @@
 import { useRouter } from "expo-router";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
 import { clearDeviceFinancialData } from "@/src/core/storage/device-store";
+
+type SettingRowProps = {
+  icon: string;
+  title: string;
+  subtitle?: string;
+  onPress: () => void;
+  danger?: boolean;
+  trailing?: string;
+};
+
+function SettingRow({ icon, title, subtitle, onPress, danger = false, trailing = "›" }: SettingRowProps) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.75}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      style={{ flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 14 }}
+    >
+      <View style={{
+        width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center",
+        backgroundColor: danger ? "#FFF1F2" : "#ECFDF5", marginRight: 12,
+      }}>
+        <Text style={{ fontSize: 20 }}>{icon}</Text>
+      </View>
+      <View style={{ flex: 1, paddingRight: 8 }}>
+        <Text style={{ color: danger ? "#BE123C" : "#172033", fontSize: 15, fontWeight: "700" }}>{title}</Text>
+        {subtitle ? <Text style={{ color: "#7B8798", fontSize: 12, marginTop: 4, lineHeight: 17 }}>{subtitle}</Text> : null}
+      </View>
+      <Text style={{ color: danger ? "#E11D48" : "#94A3B8", fontSize: 25, fontWeight: "300" }}>{trailing}</Text>
+    </TouchableOpacity>
+  );
+}
+
+function SettingsGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <View style={{ marginTop: 22 }}>
+      <Text style={{ marginBottom: 9, marginLeft: 4, color: "#64748B", fontSize: 12, fontWeight: "800", letterSpacing: 1 }}>
+        {title.toLocaleUpperCase("vi-VN")}
+      </Text>
+      <View style={{ overflow: "hidden", borderRadius: 22, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E8EEF3" }}>
+        {children}
+      </View>
+    </View>
+  );
+}
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -39,94 +85,76 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScreenContainer className="bg-[#F8FAFC] px-5 pt-6">
-      <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5">
-        <Text className="text-2xl font-bold text-[#0F2A5F]">Cài đặt</Text>
-        <Text className="mt-2 text-sm text-[#64748B]">Quản lý tài khoản và các thiết lập của Finora.</Text>
+    <ScreenContainer className="bg-[#F5F8F7]">
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+          <View>
+            <Text style={{ color: "#122D2A", fontSize: 29, fontWeight: "800", letterSpacing: -0.8 }}>Cài đặt</Text>
+            <Text style={{ color: "#72817F", fontSize: 14, marginTop: 5 }}>Cá nhân hóa trải nghiệm Finora</Text>
+          </View>
+          <View style={{ width: 48, height: 48, borderRadius: 17, backgroundColor: "#DDF7EB", alignItems: "center", justifyContent: "center" }}>
+            <Text style={{ fontSize: 24 }}>⚙️</Text>
+          </View>
+        </View>
 
-        <Text className="mt-6 text-sm font-semibold text-[#475569]">Tài khoản hiện tại</Text>
-        <Text className="mt-1 text-base font-medium text-[#0F172A]">
-          {user?.email ?? "Chưa có thông tin tài khoản"}
-        </Text>
+        <View style={{ borderRadius: 26, padding: 19, backgroundColor: "#123E36", overflow: "hidden" }}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ width: 54, height: 54, borderRadius: 19, backgroundColor: "#D4F6E6", alignItems: "center", justifyContent: "center", marginRight: 13 }}>
+              <Text style={{ color: "#12664D", fontSize: 24, fontWeight: "800" }}>
+                {(user?.name || user?.email || "F").trim().charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: "#BDEBD8", fontSize: 12, fontWeight: "700" }}>TÀI KHOẢN CỦA BẠN</Text>
+              <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800", marginTop: 5 }}>
+                {user?.name || "Người dùng Finora"}
+              </Text>
+              <Text numberOfLines={1} style={{ color: "#D1E6DE", fontSize: 12, marginTop: 3 }}>
+                {user?.email ?? "Chưa có thông tin tài khoản"}
+              </Text>
+            </View>
+          </View>
+          <View style={{ marginTop: 17, paddingTop: 14, borderTopWidth: 1, borderTopColor: "#326257" }}>
+            <Text style={{ color: "#D1E6DE", fontSize: 12, lineHeight: 18 }}>Quản lý thông tin đăng nhập và các thiết lập tài chính của bạn tại đây.</Text>
+          </View>
+        </View>
 
-        <TouchableOpacity
-          onPress={() => router.push("/category" as never)}
-          activeOpacity={0.8}
-          style={{
-            marginTop: 24,
-            height: 48,
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 16,
-            borderWidth: 1,
-            borderColor: "#CBD5E1",
-            backgroundColor: "#FFFFFF",
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Quản lý danh mục"
-        >
-          <Text style={{ fontSize: 16, fontWeight: "700", color: "#0F2A5F" }}>
-            Danh mục chi tiêu & nguồn thu
-          </Text>
-        </TouchableOpacity>
+        <SettingsGroup title="Tài khoản">
+          <SettingRow icon="👤" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => Alert.alert("Thông tin tài khoản", user?.email ?? "Chưa có thông tin tài khoản")} />
+          <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
+          <SettingRow icon="🔐" title="Danh sách tài khoản" subtitle="Quản lý tài khoản đã lưu trên thiết bị" onPress={() => router.push("/account-list" as never)} />
+        </SettingsGroup>
 
-        <TouchableOpacity
-          onPress={() => router.push("/account-list" as never)}
-          activeOpacity={0.8}
-          style={{
-            marginTop: 24,
-            height: 48,
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 16,
-            borderWidth: 1,
-            borderColor: "#CBD5E1",
-            backgroundColor: "#FFFFFF",
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Danh sách tài khoản"
-        >
-          <Text style={{ fontSize: 16, fontWeight: "700", color: "#0F2A5F" }}>
-            Danh sách tài khoản
-          </Text>
-        </TouchableOpacity>
+        <SettingsGroup title="Quản lý tài chính">
+          <SettingRow icon="🏷️" title="Danh mục thu chi" subtitle="Tùy chỉnh nhóm thu nhập và chi tiêu" onPress={() => router.push("/category" as never)} />
+          <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
+          <SettingRow icon="💰" title="Thiết lập tài chính" subtitle="Ví, ngân sách và các thiết lập liên quan" onPress={() => Alert.alert("Thiết lập tài chính", "Các tùy chọn nâng cao sẽ được bổ sung ở bước tiếp theo.")} />
+        </SettingsGroup>
 
-        <TouchableOpacity
-          onPress={handleClearFinancialData}
-          activeOpacity={0.8}
-          style={{
-            marginTop: 24,
-            height: 48,
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 16,
-            borderWidth: 1,
-            borderColor: "#FCA5A5",
-            backgroundColor: "#FFF1F2",
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Xóa dữ liệu tài chính"
-        >
-          <Text style={{ fontSize: 16, fontWeight: "700", color: "#B91C1C" }}>
-            Xóa dữ liệu tài chính
-          </Text>
-        </TouchableOpacity>
+        <SettingsGroup title="Ứng dụng">
+          <SettingRow icon="🎨" title="Giao diện" subtitle="Màu sắc và chế độ hiển thị" onPress={() => Alert.alert("Giao diện", "Tùy chỉnh giao diện sẽ được bổ sung ở bước tiếp theo.")} />
+          <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
+          <SettingRow icon="🛟" title="Trợ giúp & hỗ trợ" subtitle="Hướng dẫn sử dụng Finora" onPress={() => Alert.alert("Trợ giúp & hỗ trợ", "Trung tâm trợ giúp sẽ được bổ sung ở bước tiếp theo.")} />
+          <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
+          <SettingRow icon="ℹ️" title="Về Finora" subtitle="Thông tin ứng dụng" onPress={() => Alert.alert("Finora", "Ứng dụng quản lý tài chính cá nhân.")} trailing="v1.0" />
+        </SettingsGroup>
+
+        <SettingsGroup title="Khu vực nguy hiểm">
+          <SettingRow icon="🗑️" title="Xóa dữ liệu tài chính" subtitle="Xóa ví, giao dịch, danh mục và ngân sách trên thiết bị" onPress={handleClearFinancialData} danger />
+        </SettingsGroup>
 
         <TouchableOpacity
           onPress={handleLogout}
           activeOpacity={0.8}
-          style={{
-            marginTop: 12,
-            height: 48,
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 16,
-            backgroundColor: "#DC2626",
-          }}
+          accessibilityRole="button"
+          accessibilityLabel="Đăng xuất"
+          style={{ marginTop: 22, minHeight: 54, borderRadius: 18, borderWidth: 1, borderColor: "#F3C8CC", backgroundColor: "#FFF7F7", flexDirection: "row", alignItems: "center", justifyContent: "center" }}
         >
-          <Text style={{ fontSize: 16, fontWeight: "700", color: "#FFFFFF" }}>Đăng xuất</Text>
+          <Text style={{ fontSize: 16, marginRight: 9 }}>↪</Text>
+          <Text style={{ color: "#BE123C", fontSize: 15, fontWeight: "800" }}>Đăng xuất</Text>
         </TouchableOpacity>
-      </View>
+        <Text style={{ textAlign: "center", color: "#9AA6A3", fontSize: 11, marginTop: 20 }}>FINORA · Tài chính rõ ràng, cuộc sống an tâm</Text>
+      </ScrollView>
     </ScreenContainer>
   );
 }
