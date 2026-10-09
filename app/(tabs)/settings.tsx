@@ -1,12 +1,13 @@
 import { useRouter } from "expo-router";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
 import { clearDeviceFinancialData } from "@/src/core/storage/device-store";
 
 type SettingRowProps = {
-  icon: string;
+  icon: keyof typeof Feather.glyphMap;
   title: string;
   subtitle?: string;
   onPress: () => void;
@@ -27,13 +28,13 @@ function SettingRow({ icon, title, subtitle, onPress, danger = false, trailing =
         width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center",
         backgroundColor: danger ? "#FFF1F2" : "#ECFDF5", marginRight: 12,
       }}>
-        <Text style={{ fontSize: 20 }}>{icon}</Text>
+        <Feather name={icon} size={20} color={danger ? "#BE123C" : "#138363"} strokeWidth={2} />
       </View>
       <View style={{ flex: 1, paddingRight: 8 }}>
         <Text style={{ color: danger ? "#BE123C" : "#172033", fontSize: 15, fontWeight: "700" }}>{title}</Text>
         {subtitle ? <Text style={{ color: "#7B8798", fontSize: 12, marginTop: 4, lineHeight: 17 }}>{subtitle}</Text> : null}
       </View>
-      <Text style={{ color: danger ? "#E11D48" : "#94A3B8", fontSize: 25, fontWeight: "300" }}>{trailing}</Text>
+      {trailing === "v1.0" ? <Text style={{ color: "#94A3B8", fontSize: 11, fontWeight: "700" }}>{trailing}</Text> : <Feather name="chevron-right" size={20} color={danger ? "#E11D48" : "#94A3B8"} /> }
     </TouchableOpacity>
   );
 }
@@ -93,7 +94,7 @@ export default function SettingsScreen() {
             <Text style={{ color: "#72817F", fontSize: 14, marginTop: 5 }}>Cá nhân hóa trải nghiệm Finora</Text>
           </View>
           <View style={{ width: 48, height: 48, borderRadius: 17, backgroundColor: "#DDF7EB", alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ fontSize: 24 }}>⚙️</Text>
+            <Feather name="settings" size={23} color="#12664D" />
           </View>
         </View>
 
@@ -120,27 +121,27 @@ export default function SettingsScreen() {
         </View>
 
         <SettingsGroup title="Tài khoản">
-          <SettingRow icon="👤" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => Alert.alert("Thông tin tài khoản", user?.email ?? "Chưa có thông tin tài khoản")} />
+          <SettingRow icon="user-round" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => Alert.alert("Thông tin tài khoản", user?.email ?? "Chưa có thông tin tài khoản")} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
-          <SettingRow icon="🔐" title="Danh sách tài khoản" subtitle="Quản lý tài khoản đã lưu trên thiết bị" onPress={() => router.push("/account-list" as never)} />
+          <SettingRow icon="shield" title="Danh sách tài khoản" subtitle="Quản lý tài khoản đã lưu trên thiết bị" onPress={() => router.push("/account-list" as never)} />
         </SettingsGroup>
 
         <SettingsGroup title="Quản lý tài chính">
-          <SettingRow icon="🏷️" title="Danh mục thu chi" subtitle="Tùy chỉnh nhóm thu nhập và chi tiêu" onPress={() => router.push("/category" as never)} />
+          <SettingRow icon="tag" title="Danh mục thu chi" subtitle="Tùy chỉnh nhóm thu nhập và chi tiêu" onPress={() => router.push("/category" as never)} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
-          <SettingRow icon="💰" title="Thiết lập tài chính" subtitle="Ví, ngân sách và các thiết lập liên quan" onPress={() => Alert.alert("Thiết lập tài chính", "Các tùy chọn nâng cao sẽ được bổ sung ở bước tiếp theo.")} />
+          <SettingRow icon="sliders" title="Thiết lập tài chính" subtitle="Ví, ngân sách và các thiết lập liên quan" onPress={() => Alert.alert("Thiết lập tài chính", "Các tùy chọn nâng cao sẽ được bổ sung ở bước tiếp theo.")} />
         </SettingsGroup>
 
         <SettingsGroup title="Ứng dụng">
-          <SettingRow icon="🎨" title="Giao diện" subtitle="Màu sắc và chế độ hiển thị" onPress={() => Alert.alert("Giao diện", "Tùy chỉnh giao diện sẽ được bổ sung ở bước tiếp theo.")} />
+          <SettingRow icon="droplet" title="Giao diện" subtitle="Màu sắc và chế độ hiển thị" onPress={() => Alert.alert("Giao diện", "Tùy chỉnh giao diện sẽ được bổ sung ở bước tiếp theo.")} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
-          <SettingRow icon="🛟" title="Trợ giúp & hỗ trợ" subtitle="Hướng dẫn sử dụng Finora" onPress={() => Alert.alert("Trợ giúp & hỗ trợ", "Trung tâm trợ giúp sẽ được bổ sung ở bước tiếp theo.")} />
+          <SettingRow icon="life-buoy" title="Trợ giúp & hỗ trợ" subtitle="Hướng dẫn sử dụng Finora" onPress={() => Alert.alert("Trợ giúp & hỗ trợ", "Trung tâm trợ giúp sẽ được bổ sung ở bước tiếp theo.")} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
-          <SettingRow icon="ℹ️" title="Về Finora" subtitle="Thông tin ứng dụng" onPress={() => Alert.alert("Finora", "Ứng dụng quản lý tài chính cá nhân.")} trailing="v1.0" />
+          <SettingRow icon="info" title="Về Finora" subtitle="Thông tin ứng dụng" onPress={() => Alert.alert("Finora", "Ứng dụng quản lý tài chính cá nhân.")} trailing="v1.0" />
         </SettingsGroup>
 
         <SettingsGroup title="Khu vực nguy hiểm">
-          <SettingRow icon="🗑️" title="Xóa dữ liệu tài chính" subtitle="Xóa ví, giao dịch, danh mục và ngân sách trên thiết bị" onPress={handleClearFinancialData} danger />
+          <SettingRow icon="trash-2" title="Xóa dữ liệu tài chính" subtitle="Xóa ví, giao dịch, danh mục và ngân sách trên thiết bị" onPress={handleClearFinancialData} danger />
         </SettingsGroup>
 
         <TouchableOpacity
@@ -150,7 +151,7 @@ export default function SettingsScreen() {
           accessibilityLabel="Đăng xuất"
           style={{ marginTop: 22, minHeight: 54, borderRadius: 18, borderWidth: 1, borderColor: "#F3C8CC", backgroundColor: "#FFF7F7", flexDirection: "row", alignItems: "center", justifyContent: "center" }}
         >
-          <Text style={{ fontSize: 16, marginRight: 9 }}>↪</Text>
+          <Feather name="log-out" size={17} color="#BE123C" style={{ marginRight: 9 }} />
           <Text style={{ color: "#BE123C", fontSize: 15, fontWeight: "800" }}>Đăng xuất</Text>
         </TouchableOpacity>
         <Text style={{ textAlign: "center", color: "#9AA6A3", fontSize: 11, marginTop: 20 }}>FINORA · Tài chính rõ ràng, cuộc sống an tâm</Text>
