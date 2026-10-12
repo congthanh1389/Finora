@@ -17,7 +17,8 @@ const server = spawn(command, ["dev:server"], {
 let port;
 for (let i = 0; i < 100; i++) {
   if (existsSync(portFile)) {
-    port = Number((await import("node:fs/promises")).readFile(portFile, "utf8"));
+    const { readFile } = await import("node:fs/promises");
+    port = Number(await readFile(portFile, "utf8"));
     break;
   }
   await delay(100);
