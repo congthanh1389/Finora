@@ -61,9 +61,15 @@ export default function LoginScreen() {
 
       let user: Auth.User;
       if (registerMode) {
+        if (!email.trim() || !email.includes("@")) throw new Error("Email không hợp lệ.");
+        if (!name.trim()) throw new Error("Vui lòng nhập họ và tên.");
+        if (password.length < 6) throw new Error("Mật khẩu phải có ít nhất 6 ký tự.");
         if (!otpSent) throw new Error("Vui lòng gửi mã OTP qua email trước.");
-        const existingAccount = await Auth.localGetAccount(email);
-        if (existingAccount) throw new Error("Email này đã được đăng ký trên thiết bị.");
+
+        const existingAccounts = await Auth.localGetAccounts();
+        if (existingAccounts.some((account) => account.email?.trim().toLowerCase() === email.trim().toLowerCase())) {
+          throw new Error("Email này đã được đăng ký trên thiết bị.");
+        }
 
         await apiCall<{ verified: true }>("/api/auth/email-otp/verify", {
           method: "POST",
