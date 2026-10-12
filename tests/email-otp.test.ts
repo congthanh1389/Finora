@@ -91,6 +91,19 @@ describe("email OTP routes", () => {
     expect(reused.status).toBe(400);
   });
 
+  it("expires an OTP after 180 seconds", async () => {
+    const email = `expiry-${randomUUID()}@example.com`;
+    const sent = await postJson("/api/auth/email-otp/send", { email });
+    expect(sent.status).toBe(200);
+    expect(sent.body.expiresInSeconds).toBe(180);
+
+    const now = Date.now();
+    vi.spyOn(Date, "now").mockReturnValue(now + 180_000);
+    const expired = await postJson("/api/auth/email-otp/verify", { email, code: sentCode });
+    expect(expired.status).toBe(400);
+    expect(expired.body.error).toContain("hết hạn");
+  });
+
   it("blocks verification after five incorrect attempts", async () => {
     const email = `attempts-${randomUUID()}@example.com`;
     await postJson("/api/auth/email-otp/send", { email });
