@@ -11,6 +11,7 @@ const command = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const server = spawn(command, ["dev:server"], {
   cwd: root,
   stdio: "inherit",
+  shell: process.platform === "win32",
   env: { ...process.env, NODE_ENV: "development", PORT: "0" },
 });
 
@@ -34,6 +35,7 @@ console.log(`[finora] API port: ${port}`);
 const metro = spawn(command, ["dev:metro"], {
   cwd: root,
   stdio: "inherit",
+  shell: process.platform === "win32",
   env: {
     ...process.env,
     EXPO_PUBLIC_API_BASE_URL: `http://127.0.0.1:${port}`,
