@@ -8,7 +8,7 @@ type Challenge = {
   createdAt: number;
 };
 
-const OTP_TTL_MS = 5 * 60 * 1000;
+const OTP_TTL_MS = 180 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
 const MAX_SENDS_PER_HOUR = 5;
 const MAX_VERIFY_ATTEMPTS = 5;
@@ -88,7 +88,7 @@ export function registerEmailOtpRoutes(app: Express): void {
         from,
         to: [email],
         subject: "Mã xác minh email Finora",
-        text: `Mã xác minh email Finora của bạn là: ${code}\n\nMã có hiệu lực trong 5 phút. Không chia sẻ mã này với bất kỳ ai.`,
+        text: `Mã xác minh email Finora của bạn là: ${code}\n\nMã có hiệu lực trong 180 giây. Không chia sẻ mã này với bất kỳ ai.`,
       }),
     }).catch(() => null);
 
