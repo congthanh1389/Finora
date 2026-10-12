@@ -73,10 +73,7 @@ export function registerEmailOtpRoutes(app: Express): void {
       return sendError(res, 429, "Quá nhiều yêu cầu gửi mã. Vui lòng thử lại sau.");
     }
 
-    // Count attempts before contacting Resend so provider failures cannot bypass throttling.
-    lastSentAt.set(email, now);
-    emailTimes.push(now);
-    sendTimes.set(email, emailTimes);
+    // Count IP attempts before contacting Resend to limit provider abuse.
     ipTimes.push(now);
     ipSendTimes.set(ip, ipTimes);
 
@@ -105,6 +102,10 @@ export function registerEmailOtpRoutes(app: Express): void {
       attempts: 0,
       createdAt: now,
     });
+    lastSentAt.set(email, now);
+    emailTimes.push(now);
+    sendTimes.set(email, emailTimes);
+
     return res.status(200).json({
       success: true,
       message: "Đã tiếp nhận yêu cầu gửi mã xác minh. Vui lòng kiểm tra email.",
