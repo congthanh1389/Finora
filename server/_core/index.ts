@@ -41,14 +41,16 @@ async function startServer() {
   );
 
   const requestedPort = Number(process.env.PORT ?? 0);
-  server.listen(requestedPort, "127.0.0.1", async () => {
+  // Android Emulator reaches the host through 10.0.2.2, so the development
+  // API must not bind only to the host loopback interface.
+  server.listen(requestedPort, "0.0.0.0", async () => {
     const address = server.address();
     if (!address || typeof address === "string") {
       throw new Error("[api] unable to determine listening port");
     }
 
     await writeFile(PORT_FILE, String(address.port), "utf8");
-    console.log(`[api] server listening on http://127.0.0.1:${address.port}`);
+    console.log(`[api] server listening on http://0.0.0.0:${address.port}`);
   });
 
   const cleanup = async () => {
