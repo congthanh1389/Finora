@@ -1,6 +1,7 @@
 import { once } from "node:events";
 import { request } from "node:http";
 import type { AddressInfo } from "node:net";
+import type { Server } from "node:http";
 import { randomUUID } from "node:crypto";
 import express from "express";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -8,7 +9,7 @@ import { registerEmailOtpRoutes } from "../server/modules/email-otp";
 
 type JsonResponse = { status: number; body: Record<string, unknown> };
 
-let server: ReturnType<ReturnType<typeof express>["listen"]>;
+let server: Server;
 let port: number;
 let sentCode = "";
 
