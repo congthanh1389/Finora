@@ -7,6 +7,7 @@ import { useRouter } from "expo-router";
 import {
   ActivityIndicator,
   Alert,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -105,7 +106,12 @@ export default function LoginScreen() {
   return (
     <SafeAreaView className="flex-1">
       <ThemedView className="flex-1 px-6">
-        <View className="flex-1 items-center justify-center">
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingVertical: 24 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="w-full items-center">
           <View
             style={{
               width: 180,
@@ -280,7 +286,8 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-        </View>
+          </View>
+        </ScrollView>
       </ThemedView>
     </SafeAreaView>
   );
