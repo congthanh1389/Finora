@@ -35,10 +35,13 @@ jobs:
         run: pnpm check
 
       - name: Lint
+        if: always()
         run: pnpm lint
 
       - name: Unit and integration tests
+        if: always()
         run: pnpm test
 
       - name: Build API
+        if: always()
         run: pnpm build
