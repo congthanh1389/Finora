@@ -1,5 +1,5 @@
 import * as Auth from "@/lib/_core/auth";
-import { apiCall } from "@/lib/_core/api";
+import { sendEmailOtp, verifyEmailOtp } from "@/lib/_core/email-otp";
 import { ThemedView } from "@/components/themed-view";
 import { notifyAuthState } from "@/hooks/use-auth";
 import { Ionicons } from "@expo/vector-icons";
@@ -41,10 +41,7 @@ export default function LoginScreen() {
     try {
       setSendingOtp(true);
       setError(null);
-      await apiCall<{ success: true }>("/api/auth/email-otp/send", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      });
+      await sendEmailOtp(email);
       setOtpSent(true);
       setOtp("");
       setResendCountdown(60);
@@ -72,10 +69,7 @@ export default function LoginScreen() {
           throw new Error("Email này đã được đăng ký trên thiết bị.");
         }
 
-        await apiCall<{ verified: true }>("/api/auth/email-otp/verify", {
-          method: "POST",
-          body: JSON.stringify({ email, code: otp }),
-        });
+        await verifyEmailOtp(email, otp);
         user = await Auth.localRegister({ email, name, password });
       } else {
         user = await Auth.localLogin(email, password);

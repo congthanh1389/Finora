@@ -29,6 +29,16 @@ pnpm dev
 - Metro/Web: `8081`
 - API: `3000`
 
+### Email OTP
+
+Đăng ký tài khoản mới cần kết nối Internet để gửi và xác minh OTP. Sau khi đăng ký, đăng nhập và dữ liệu tài chính vẫn chạy local-first trên thiết bị.
+
+- OTP có hiệu lực `180` giây và tối đa `5` lần nhập sai.
+- Development Android Emulator tự đổi `127.0.0.1` thành `10.0.2.2`.
+- Bản Android production phải build với `EXPO_PUBLIC_API_BASE_URL` là endpoint HTTPS công khai của API OTP.
+- Không dùng `127.0.0.1`, `localhost` hoặc IP LAN của máy tính trong APK production.
+- Server cần `RESEND_API_KEY` và `RESEND_FROM_EMAIL` để gửi email.
+
 ## Kiểm tra
 
 ```bash
