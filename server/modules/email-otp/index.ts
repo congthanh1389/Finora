@@ -136,7 +136,10 @@ export function registerEmailOtpRoutes(app: Express): void {
     const expected = Buffer.from(challenge.codeHash, "hex");
     const actual = Buffer.from(hashCode(email, code), "hex");
     if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
-      if (challenge.attempts >= MAX_VERIFY_ATTEMPTS) challenges.delete(email);
+      if (challenge.attempts >= MAX_VERIFY_ATTEMPTS) {
+        challenges.delete(email);
+        return sendError(res, 429, "Bạn đã nhập sai quá số lần cho phép. Vui lòng gửi mã mới.");
+      }
       return sendError(res, 400, "Mã OTP không đúng.");
     }
 
