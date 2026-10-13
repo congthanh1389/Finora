@@ -254,6 +254,29 @@ export async function localLogout(): Promise<void> {
   await clearUserInfo();
 }
 
+/**
+ * Removes only saved login credentials. Financial records remain intact.
+ */
+export async function localRemoveSavedAccount(userId: number): Promise<void> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) {
+    throw new Error("Tài khoản không hợp lệ.");
+  }
+
+  const accounts = await readSecureAccounts();
+  const remaining = accounts.filter((account) => account.id !== userId);
+  if (remaining.length === accounts.length) {
+    throw new Error("Không tìm thấy tài khoản.");
+  }
+
+  await writeSecureAccounts(remaining);
+  const { deleteDeviceLocalAccount } = await import("@/src/core/storage/device-store");
+  await deleteDeviceLocalAccount(userId);
+
+  if ((await getSessionToken()) === `local-session-${userId}`) {
+    await localLogout();
+  }
+}
+
 export async function localDeleteAccount(userId: number): Promise<void> {
   const accounts = await readDeviceAccounts();
   const exists = accounts.some((account) => account.id === userId);
@@ -268,4 +291,3 @@ export async function localDeleteAccount(userId: number): Promise<void> {
   const token = await getSessionToken();
   if (token === `local-session-${userId}`) await localLogout();
 }
-
