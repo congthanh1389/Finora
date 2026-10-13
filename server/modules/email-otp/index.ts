@@ -9,7 +9,7 @@ type Challenge = {
 };
 
 const OTP_TTL_MS = 180 * 1000;
-const RESEND_COOLDOWN_MS = 60 * 1000;
+const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const MAX_SENDS_PER_HOUR = 5;
 const MAX_VERIFY_ATTEMPTS = 5;
 
@@ -50,15 +50,15 @@ export function registerEmailOtpRoutes(app: Express): void {
     const email = normalizeEmail(req.body?.email);
     if (!email) return sendError(res, 400, "Vui lòng nhập địa chỉ email hợp lệ.");
 
-    const apiKey = process.env.RESEND_API_KEY;
-    const from = process.env.RESEND_FROM_EMAIL;
+    const apiKey = process.env.BREVO_API_KEY;
+    const from = process.env.BREVO_FROM_EMAIL;
     if (!apiKey || !from) {
       return sendError(res, 503, "Dịch vụ gửi email chưa được cấu hình trên máy chủ.");
     }
 
     const now = Date.now();
     const lastSent = lastSentAt.get(email) ?? 0;
-    if (now - lastSent < RESEND_COOLDOWN_MS) {
+    if (now - lastSent < OTP_RESEND_COOLDOWN_MS) {
       return sendError(res, 429, "Vui lòng đợi 60 giây trước khi gửi mã mới.");
     }
 
@@ -73,7 +73,7 @@ export function registerEmailOtpRoutes(app: Express): void {
       return sendError(res, 429, "Quá nhiều yêu cầu gửi mã. Vui lòng thử lại sau.");
     }
 
-    // Count IP attempts before contacting Resend to limit provider abuse.
+    // Count IP attempts before contacting Brevo to limit provider abuse.
     ipTimes.push(now);
     ipSendTimes.set(ip, ipTimes);
 
@@ -81,17 +81,18 @@ export function registerEmailOtpRoutes(app: Express): void {
     let response: globalThis.Response | null = null;
     let transportError: unknown = null;
     try {
-      response = await fetch("https://api.resend.com/emails", {
+      response = await fetch("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          accept: "application/json",
+          "api-key": apiKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from,
-          to: [email],
+          sender: { name: "Finora", email: from },
+          to: [{ email }],
           subject: "Mã xác minh email Finora",
-          text: `Mã xác minh email Finora của bạn là: ${code}\n\nMã có hiệu lực trong 180 giây. Không chia sẻ mã này với bất kỳ ai.`,
+          textContent: `Mã xác minh email Finora của bạn là: ${code}\n\nMã có hiệu lực trong 180 giây. Không chia sẻ mã này với bất kỳ ai.`,
         }),
       });
     } catch (error) {
@@ -109,7 +110,7 @@ export function registerEmailOtpRoutes(app: Express): void {
           providerMessage = providerBody;
         }
       }
-      console.error("[email-otp] Resend rejected email", {
+      console.error("[email-otp] Brevo rejected email", {
         status: response?.status ?? "network-error",
         message: providerMessage || (transportError instanceof Error ? transportError.message : "unknown error"),
       });
@@ -118,15 +119,15 @@ export function registerEmailOtpRoutes(app: Express): void {
         return sendError(res, 502, "Không thể kết nối dịch vụ email. Vui lòng thử lại sau.");
       }
       if (response.status === 401 || response.status === 403) {
-        return sendError(res, 502, "RESEND_API_KEY không hợp lệ hoặc đã bị thu hồi.");
+        return sendError(res, 502, "BREVO_API_KEY không hợp lệ hoặc đã bị thu hồi.");
       }
       if (response.status === 422) {
-        return sendError(res, 502, "RESEND_FROM_EMAIL chưa được xác minh hoặc không hợp lệ.");
+        return sendError(res, 502, "BREVO_FROM_EMAIL chưa được xác minh hoặc không hợp lệ.");
       }
       if (response.status === 429) {
         return sendError(res, 502, "Dịch vụ email đang giới hạn yêu cầu. Vui lòng thử lại sau.");
       }
-      return sendError(res, 502, "Resend từ chối gửi email. Kiểm tra cấu hình người gửi và domain.");
+      return sendError(res, 502, "Brevo từ chối gửi email. Kiểm tra sender và giới hạn tài khoản.");
     }
 
     challenges.set(email, {
@@ -143,7 +144,7 @@ export function registerEmailOtpRoutes(app: Express): void {
       success: true,
       message: "Đã tiếp nhận yêu cầu gửi mã xác minh. Vui lòng kiểm tra email.",
       expiresInSeconds: OTP_TTL_MS / 1000,
-      resendAfterSeconds: RESEND_COOLDOWN_MS / 1000,
+      resendAfterSeconds: OTP_RESEND_COOLDOWN_MS / 1000,
     });
   });
 

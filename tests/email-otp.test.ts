@@ -46,13 +46,13 @@ function postJson(path: string, body: unknown): Promise<JsonResponse> {
 describe("email OTP routes", () => {
   beforeEach(async () => {
     sentCode = "";
-    vi.stubEnv("RESEND_API_KEY", "test-resend-key");
-    vi.stubEnv("RESEND_FROM_EMAIL", "Finora Test <otp@example.com>");
+    vi.stubEnv("BREVO_API_KEY", "test-brevo-key");
+    vi.stubEnv("BREVO_FROM_EMAIL", "otp@example.com");
     vi.stubGlobal(
       "fetch",
       vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
-        const payload = JSON.parse(String(init?.body)) as { text: string };
-        sentCode = payload.text.match(/là: (\d{6})/)?.[1] ?? "";
+        const payload = JSON.parse(String(init?.body)) as { textContent: string };
+        sentCode = payload.textContent.match(/là: (\d{6})/)?.[1] ?? "";
         return new Response(JSON.stringify({ id: "test-email-id" }), {
           status: 200,
           headers: { "Content-Type": "application/json" },

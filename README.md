@@ -37,7 +37,8 @@ pnpm dev
 - Development Android Emulator tự đổi `127.0.0.1` thành `10.0.2.2`.
 - Bản Android production phải build với `EXPO_PUBLIC_API_BASE_URL` là endpoint HTTPS công khai của API OTP.
 - Không dùng `127.0.0.1`, `localhost` hoặc IP LAN của máy tính trong APK production.
-- Server cần `RESEND_API_KEY` và `RESEND_FROM_EMAIL` để gửi email.
+- Server cần `BREVO_API_KEY` và `BREVO_FROM_EMAIL` để gửi email.
+- `BREVO_FROM_EMAIL` phải là sender đã xác minh trong Brevo; email người nhận vẫn lấy động từ màn hình đăng ký.
 
 ## Kiểm tra
 
