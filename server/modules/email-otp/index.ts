@@ -1,5 +1,5 @@
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response as ExpressResponse } from "express";
 
 type Challenge = {
   codeHash: string;
@@ -41,12 +41,12 @@ function clientIp(req: Request): string {
   return req.ip || req.socket.remoteAddress || "unknown";
 }
 
-function sendError(res: Response, status: number, error: string) {
+function sendError(res: ExpressResponse, status: number, error: string) {
   return res.status(status).json({ error });
 }
 
 export function registerEmailOtpRoutes(app: Express): void {
-  app.post("/api/auth/email-otp/send", async (req: Request, res: Response) => {
+  app.post("/api/auth/email-otp/send", async (req: Request, res: ExpressResponse) => {
     const email = normalizeEmail(req.body?.email);
     if (!email) return sendError(res, 400, "Vui lòng nhập địa chỉ email hợp lệ.");
 
@@ -78,22 +78,55 @@ export function registerEmailOtpRoutes(app: Express): void {
     ipSendTimes.set(ip, ipTimes);
 
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from,
-        to: [email],
-        subject: "Mã xác minh email Finora",
-        text: `Mã xác minh email Finora của bạn là: ${code}\n\nMã có hiệu lực trong 180 giây. Không chia sẻ mã này với bất kỳ ai.`,
-      }),
-    }).catch(() => null);
+    let response: globalThis.Response | null = null;
+    let transportError: unknown = null;
+    try {
+      response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from,
+          to: [email],
+          subject: "Mã xác minh email Finora",
+          text: `Mã xác minh email Finora của bạn là: ${code}\n\nMã có hiệu lực trong 180 giây. Không chia sẻ mã này với bất kỳ ai.`,
+        }),
+      });
+    } catch (error) {
+      transportError = error;
+    }
 
     if (!response?.ok) {
-      return sendError(res, 502, "Không gửi được email xác minh. Vui lòng thử lại sau.");
+      let providerMessage = "";
+      if (response) {
+        const providerBody = await response.text().catch(() => "");
+        try {
+          const parsed = JSON.parse(providerBody) as { message?: string; name?: string };
+          providerMessage = parsed.message || parsed.name || providerBody;
+        } catch {
+          providerMessage = providerBody;
+        }
+      }
+      console.error("[email-otp] Resend rejected email", {
+        status: response?.status ?? "network-error",
+        message: providerMessage || (transportError instanceof Error ? transportError.message : "unknown error"),
+      });
+
+      if (!response) {
+        return sendError(res, 502, "Không thể kết nối dịch vụ email. Vui lòng thử lại sau.");
+      }
+      if (response.status === 401 || response.status === 403) {
+        return sendError(res, 502, "RESEND_API_KEY không hợp lệ hoặc đã bị thu hồi.");
+      }
+      if (response.status === 422) {
+        return sendError(res, 502, "RESEND_FROM_EMAIL chưa được xác minh hoặc không hợp lệ.");
+      }
+      if (response.status === 429) {
+        return sendError(res, 502, "Dịch vụ email đang giới hạn yêu cầu. Vui lòng thử lại sau.");
+      }
+      return sendError(res, 502, "Resend từ chối gửi email. Kiểm tra cấu hình người gửi và domain.");
     }
 
     challenges.set(email, {
@@ -114,7 +147,7 @@ export function registerEmailOtpRoutes(app: Express): void {
     });
   });
 
-  app.post("/api/auth/email-otp/verify", (req: Request, res: Response) => {
+  app.post("/api/auth/email-otp/verify", (req: Request, res: ExpressResponse) => {
     const email = normalizeEmail(req.body?.email);
     const code = typeof req.body?.code === "string" ? req.body.code.trim() : "";
     if (!email || !/^\d{6}$/.test(code)) {
