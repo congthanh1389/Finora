@@ -118,18 +118,17 @@ export async function startOAuthLogin(): Promise<string | null> {
     return null;
   }
 
-  const supported = await Linking.canOpenURL(loginUrl);
-  if (!supported) {
-    console.warn("[OAuth] Cannot open login URL: URL scheme not supported");
-    // 可考虑抛出错误或返回错误状态，让调用方处理
-    return null;
-  }
-
+  // Avoid canOpenURL preflight: Android may report HTTPS handlers unavailable
+  // even when the system browser can open the URL.
   try {
     await Linking.openURL(loginUrl);
-  } catch {
+  } catch (error) {
     console.error("[OAuth] Failed to open login URL");
-    // 可考虑抛出错误让调用方处理
+    throw new Error(
+      error instanceof Error
+        ? `Không mở được cổng đăng nhập: ${error.message}`
+        : "Không mở được cổng đăng nhập. Vui lòng thử lại.",
+    );
   }
 
   // The OAuth callback will reopen the app via deep link.
