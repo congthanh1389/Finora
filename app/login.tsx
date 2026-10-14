@@ -67,7 +67,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           <View className="mt-5 flex-row items-start">
-            <Feather name="shield-check" size={17} color="#16815F" />
+            <Feather name="shield" size={17} color="#16815F" />
             <Text className="ml-2 flex-1 text-xs leading-5 text-[#6C8179]">
               Phiên đăng nhập được xác thực qua cổng đăng nhập bảo mật của Finora.
             </Text>
