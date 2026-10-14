@@ -56,7 +56,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={{ marginTop: 22, padding: 16, borderRadius: 18, backgroundColor: "#EAF7F0", flexDirection: "row", alignItems: "flex-start" }}>
-          <Feather name="shield-check" size={18} color="#138363" style={{ marginRight: 10, marginTop: 1 }} />
+          <Feather name="shield" size={18} color="#138363" style={{ marginRight: 10, marginTop: 1 }} />
           <Text style={{ flex: 1, color: "#35695A", fontSize: 12, lineHeight: 18 }}>Các thao tác bảo mật và dữ liệu sẽ được tích hợp theo từng bước để bảo vệ tài khoản và dữ liệu tài chính của bạn.</Text>
         </View>
         <Text style={{ textAlign: "center", color: "#9AA6A3", fontSize: 11, marginTop: 24 }}>FINORA · Tài chính rõ ràng, cuộc sống an tâm</Text>
