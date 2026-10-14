@@ -89,4 +89,13 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function updateUserDisplayName(userId: number, name: string): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database is unavailable");
+  }
+
+  await db.update(users).set({ name }).where(eq(users.id, userId));
+}
+
 // TODO: add feature queries here as your schema grows.
