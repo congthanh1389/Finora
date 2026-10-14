@@ -52,7 +52,7 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 
 export default function AccountInformationScreen() {
   const router = useRouter();
-  const { user, refresh } = useAuth();
+  const { user, refresh, logout } = useAuth();
   const [isNameEditorVisible, setIsNameEditorVisible] = useState(false);
   const [nameDraft, setNameDraft] = useState(user?.name ?? "");
   const updateDisplayName = trpc.auth.updateDisplayName.useMutation();
@@ -125,7 +125,31 @@ export default function AccountInformationScreen() {
         <Group title="Phiên đăng nhập">
           <AccountRow icon="smartphone" title="Phiên hiện tại" subtitle={user?.loginMethod ? `Đăng nhập bằng ${user.loginMethod}` : "Tài khoản đang sử dụng trên thiết bị này"} onPress={() => Alert.alert("Phiên đăng nhập", `Tài khoản: ${displayName}\nPhương thức: ${user?.loginMethod || "Không xác định"}\nĐăng nhập gần nhất: ${user?.lastSignedIn ? new Date(user.lastSignedIn).toLocaleString("vi-VN") : "Không có dữ liệu"}`)} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 66 }} />
-          <AccountRow icon="log-out" title="Đăng xuất" subtitle="Kết thúc phiên đăng nhập hiện tại" onPress={() => Alert.alert("Đăng xuất", "Bạn có thể đăng xuất từ màn hình Cài đặt.")} />
+          <AccountRow
+            icon="log-out"
+            title="Đăng xuất"
+            subtitle="Xóa phiên đăng nhập khỏi thiết bị này"
+            onPress={() =>
+              Alert.alert(
+                "Đăng xuất khỏi Finora?",
+                "Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng tài khoản.",
+                [
+                  { text: "Hủy", style: "cancel" },
+                  {
+                    text: "Đăng xuất",
+                    style: "destructive",
+                    onPress: () => {
+                      void (async () => {
+                        await logout();
+                        router.replace("/(tabs)" as never);
+                        Alert.alert("Đã đăng xuất", "Phiên đăng nhập trên thiết bị này đã được xóa.");
+                      })();
+                    },
+                  },
+                ],
+              )
+            }
+          />
         </Group>
 
         <Group title="Quản lý dữ liệu">
