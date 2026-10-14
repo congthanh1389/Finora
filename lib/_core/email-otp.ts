@@ -12,11 +12,10 @@ export type EmailOtpVerifyResult = {
 };
 
 async function otpRequest<T>(endpoint: string, body: Record<string, string>): Promise<T> {
-  const baseUrl = getApiBaseUrl().replace(/\/$/, "");
-  if (Platform.OS !== "web" && !baseUrl) {
-    throw new Error("Chưa cấu hình địa chỉ máy chủ để xác minh email. Hãy kiểm tra EXPO_PUBLIC_API_BASE_URL trong môi trường chạy ứng dụng.");
-  }
-
+  const configuredBaseUrl = getApiBaseUrl().replace(/\/$/, "");
+  // Android Studio's standard emulator reaches the Windows host through 10.0.2.2.
+  // A configured API URL takes precedence for physical devices or remote backends.
+  const baseUrl = configuredBaseUrl || (Platform.OS === "android" ? "http://10.0.2.2:3000" : "");
   const url = baseUrl ? `${baseUrl}${endpoint}` : endpoint;
   const response = await fetch(url, {
     method: "POST",
