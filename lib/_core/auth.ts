@@ -123,3 +123,122 @@ export async function clearUserInfo(): Promise<void> {
     console.error("[Auth] Failed to clear user info");
   }
 }
+
+
+const LOCAL_ACCOUNT_KEY = "finora.local.account.v2";
+const LOCAL_ACCOUNTS_KEY = "finora.local.accounts.v3";
+
+export type LocalAccount = User & { password: string };
+
+async function readAccounts(): Promise<LocalAccount[]> {
+  try {
+    const raw = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed as LocalAccount[];
+    }
+    const legacyRaw = await SecureStore.getItemAsync(LOCAL_ACCOUNT_KEY);
+    if (!legacyRaw) return [];
+    const legacy = JSON.parse(legacyRaw) as LocalAccount;
+    const accounts = [legacy];
+    await SecureStore.setItemAsync(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
+    return accounts;
+  } catch {
+    return [];
+  }
+}
+
+async function writeAccounts(accounts: LocalAccount[]): Promise<void> {
+  await SecureStore.setItemAsync(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
+  await SecureStore.deleteItemAsync(LOCAL_ACCOUNT_KEY);
+}
+
+export async function localGetAccounts(): Promise<LocalAccount[]> {
+  return readAccounts();
+}
+
+export async function localGetAccount(): Promise<LocalAccount | null> {
+  const accounts = await readAccounts();
+  const sessionToken = await getSessionToken();
+  if (sessionToken?.startsWith("local-session-")) {
+    const id = Number(sessionToken.replace("local-session-", ""));
+    const active = accounts.find((account) => account.id === id);
+    if (active) return active;
+  }
+  return accounts[0] ?? null;
+}
+
+export async function localRegister(input: {
+  email: string;
+  name: string;
+  password: string;
+  userId?: number;
+}): Promise<User> {
+  const email = input.email.trim().toLowerCase();
+  const name = input.name.trim();
+  const password = input.password;
+  if (!email || !email.includes("@")) throw new Error("Email không hợp lệ.");
+  if (!name) throw new Error("Vui lòng nhập họ và tên.");
+  if (password.length < 6) throw new Error("Mật khẩu phải có ít nhất 6 ký tự.");
+
+  const accounts = await readAccounts();
+  if (accounts.some((account) => account.email?.toLowerCase() === email)) {
+    throw new Error("Email này đã được đăng ký trên thiết bị.");
+  }
+
+  const { listDeviceUserIds } = await import("@/src/core/storage/device-store");
+  const existingIds = await listDeviceUserIds();
+  const usedIds = new Set([...accounts.map((account) => account.id), ...existingIds]);
+  let id = input.userId ?? 1;
+  while (usedIds.has(id)) id += 1;
+
+  const now = new Date();
+  const user: User = {
+    id,
+    openId: `local_${id}`,
+    name,
+    email,
+    loginMethod: "local-password",
+    lastSignedIn: now,
+  };
+  await writeAccounts([...accounts, { ...user, password }]);
+  await setSessionToken(`local-session-${id}`);
+  await setUserInfo(user);
+  return user;
+}
+
+export async function localLogin(email: string, password: string): Promise<User> {
+  const accounts = await readAccounts();
+  const account = accounts.find((item) => item.email?.toLowerCase() === email.trim().toLowerCase());
+  if (!account || account.password !== password) {
+    throw new Error("Email hoặc mật khẩu không đúng.");
+  }
+  const user: User = { ...account, lastSignedIn: new Date() };
+  const updatedAccounts = accounts.map((item) =>
+    item.id === account.id ? { ...item, lastSignedIn: user.lastSignedIn } : item,
+  );
+  await writeAccounts(updatedAccounts);
+  await setSessionToken(`local-session-${user.id}`);
+  await setUserInfo(user);
+  return user;
+}
+
+export async function localLogout(): Promise<void> {
+  await removeSessionToken();
+  await clearUserInfo();
+}
+
+export async function localDeleteAccount(userId: number): Promise<void> {
+  const accounts = await readAccounts();
+  const remaining = accounts.filter((account) => account.id !== userId);
+  if (remaining.length === accounts.length) throw new Error("Không tìm thấy tài khoản.");
+
+  const { deleteDeviceUserData } = await import("@/src/core/storage/device-store");
+  await deleteDeviceUserData(userId);
+  await writeAccounts(remaining);
+
+  if ((await getSessionToken()) === `local-session-${userId}`) {
+    await removeSessionToken();
+    await clearUserInfo();
+  }
+}
