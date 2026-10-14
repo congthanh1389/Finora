@@ -8,16 +8,17 @@ import { TransactionService } from "../service/transaction.service";
 import type { TransactionSummary } from "../types/transaction.types";
 import type { WalletSummary } from "../../wallet/types/wallet.types";
 import { CategoryRepository } from "../../category/repository/category.repository";
-import type { Category } from "../../../../drizzle/schema";
 import { DeviceWalletRepository } from "../../wallet/repository/device-wallet.repository";
 import { WalletService } from "../../wallet/service/wallet.service";
+
+type CategoryItem = Awaited<ReturnType<CategoryRepository["listByUser"]>>[number];
 
 export function useTransactionViewModel(initialType: "income" | "expense" = "expense") {
   const [type, setType] = useState<"income" | "expense">(initialType);
   const [amount, setAmount] = useState("");
   const [walletId, setWalletId] = useState<number | null>(null);
   const [category, setCategory] = useState("");
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [note, setNote] = useState("");
   const [wallets, setWallets] = useState<WalletSummary[]>([]);
   const [transactions, setTransactions] = useState<TransactionSummary[]>([]);
