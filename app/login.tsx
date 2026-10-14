@@ -28,7 +28,7 @@ export default function LoginScreen() {
     <ScreenContainer className="flex-1 bg-[#F3FBF7]">
       <View className="flex-1 justify-center px-6 py-10">
         <View className="self-center mb-8 h-20 w-20 items-center justify-center rounded-[28px] bg-[#D7F6E7]">
-          <Feather name="trending-up" size={36} color="#13795B" />
+          <Text className="text-5xl font-extrabold tracking-tight text-[#13795B]">F</Text>
         </View>
 
         <Text className="text-center text-4xl font-extrabold tracking-tight text-[#123E36]">
