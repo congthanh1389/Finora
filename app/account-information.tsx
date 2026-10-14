@@ -141,7 +141,7 @@ export default function AccountInformationScreen() {
                     onPress: () => {
                       void (async () => {
                         await logout();
-                        router.replace("/(tabs)" as never);
+                        router.replace("/login" as never);
                         Alert.alert("Đã đăng xuất", "Phiên đăng nhập trên thiết bị này đã được xóa.");
                       })();
                     },
