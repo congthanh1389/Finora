@@ -12,6 +12,7 @@ export default function LoginScreen() {
     setOpeningLogin(true);
     try {
       await startOAuthLogin();
+      setOpeningLogin(false);
     } catch (error) {
       Alert.alert(
         "Không thể mở đăng nhập",
