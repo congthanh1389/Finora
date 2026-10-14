@@ -75,17 +75,28 @@ export function useAuth(options?: UseAuthOptions) {
   }, []);
 
   const logout = useCallback(async () => {
-    try {
-      await Api.logout();
-    } catch {
-      console.error("[Auth] Logout API call failed");
-      // Continue with logout even if API call fails
-    } finally {
-      await Auth.removeSessionToken();
-      await Auth.clearUserInfo();
-      setUser(null);
-      setError(null);
+    // Clear local credentials first so a slow/unreachable API cannot trap
+    // the user on a protected screen (especially on native devices).
+    await Auth.removeSessionToken();
+    await Auth.clearUserInfo();
+    setUser(null);
+    setError(null);
+
+    if (Platform.OS === "web") {
+      // Web sessions are cookie-based, so the server must clear its cookie.
+      try {
+        await Api.logout();
+      } catch {
+        console.error("[Auth] Web logout API call failed");
+      }
+      return;
     }
+
+    // Native session credentials are already removed. Invalidate the remote
+    // session in the background without blocking navigation to the login page.
+    void Api.logout().catch(() => {
+      console.error("[Auth] Native logout API call failed");
+    });
   }, []);
 
   const isAuthenticated = useMemo(() => Boolean(user), [user]);
