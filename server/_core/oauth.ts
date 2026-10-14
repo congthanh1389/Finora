@@ -24,9 +24,11 @@ async function syncUser(userInfo: {
   }
 
   const lastSignedIn = new Date();
+  const existingUser = await getUserByOpenId(userInfo.openId);
   await upsertUser({
     openId: userInfo.openId,
-    name: userInfo.name || null,
+    // Keep the user's chosen display name after the first account sync.
+    name: existingUser?.name ?? userInfo.name ?? null,
     email: userInfo.email ?? null,
     loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
     lastSignedIn,
@@ -35,7 +37,7 @@ async function syncUser(userInfo: {
   return (
     saved ?? {
       openId: userInfo.openId,
-      name: userInfo.name,
+      name: existingUser?.name ?? userInfo.name,
       email: userInfo.email,
       loginMethod: userInfo.loginMethod ?? null,
       lastSignedIn,
