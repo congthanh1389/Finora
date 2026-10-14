@@ -50,8 +50,8 @@ export function registerEmailOtpRoutes(app: Express): void {
     const email = normalizeEmail(req.body?.email);
     if (!email) return sendError(res, 400, "Vui lòng nhập địa chỉ email hợp lệ.");
 
-    const apiKey = process.env.RESEND_API_KEY;
-    const from = process.env.RESEND_FROM_EMAIL;
+    const apiKey = process.env.BREVO_API_KEY;
+    const from = process.env.BREVO_FROM_EMAIL;
     if (!apiKey || !from) {
       return sendError(res, 503, "Dịch vụ gửi email chưa được cấu hình trên máy chủ.");
     }
@@ -73,22 +73,23 @@ export function registerEmailOtpRoutes(app: Express): void {
       return sendError(res, 429, "Quá nhiều yêu cầu gửi mã. Vui lòng thử lại sau.");
     }
 
-    // Count IP attempts before contacting Resend to limit provider abuse.
+    // Count IP attempts before contacting the email provider.
     ipTimes.push(now);
     ipSendTimes.set(ip, ipTimes);
 
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
-    const response = await fetch("https://api.resend.com/emails", {
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        "api-key": apiKey,
         "Content-Type": "application/json",
+        accept: "application/json",
       },
       body: JSON.stringify({
-        from,
-        to: [email],
+        sender: { email: from },
+        to: [{ email }],
         subject: "Mã xác minh email Finora",
-        text: `Mã xác minh email Finora của bạn là: ${code}\n\nMã có hiệu lực trong 180 giây. Không chia sẻ mã này với bất kỳ ai.`,
+        textContent: `Mã xác minh email Finora của bạn là: ${code}\n\nMã có hiệu lực trong 180 giây. Không chia sẻ mã này với bất kỳ ai.`,
       }),
     }).catch(() => null);
 
