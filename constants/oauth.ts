@@ -83,7 +83,11 @@ export const getRedirectUri = () => {
 
 export const getLoginUrl = () => {
   if (!OAUTH_PORTAL_URL || !APP_ID) {
-    throw new Error("Manus login configuration is unavailable");
+    const missing = [
+      !OAUTH_PORTAL_URL ? "URL cổng đăng nhập (MANUS_OAUTH_PORTAL_URL)" : null,
+      !APP_ID ? "App ID (MANUS_PROJECT_ID)" : null,
+    ].filter(Boolean);
+    throw new Error(`Thiếu cấu hình đăng nhập: ${missing.join(" và ")}. Kiểm tra file .env và khởi động lại Expo.`);
   }
   const redirectUri = getRedirectUri();
   const state = encodeState(redirectUri);
