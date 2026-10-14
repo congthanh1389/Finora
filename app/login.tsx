@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { startOAuthLogin } from "@/constants/oauth";
 import { ScreenContainer } from "@/components/screen-container";
 import { useState } from "react";
-import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Text, TouchableOpacity, View } from "react-native";
 
 export default function LoginScreen() {
   const [openingLogin, setOpeningLogin] = useState(false);
@@ -27,9 +27,12 @@ export default function LoginScreen() {
   return (
     <ScreenContainer className="flex-1 bg-[#F3FBF7]">
       <View className="flex-1 justify-center px-6 py-10">
-        <View className="self-center mb-8 h-20 w-20 items-center justify-center rounded-[28px] bg-[#D7F6E7]">
-          <Text className="text-5xl font-extrabold tracking-tight text-[#13795B]">F</Text>
-        </View>
+        <Image
+          source={require("@/assets/images/icon.png")}
+          style={{ width: 148, height: 148, marginBottom: 24 }}
+          resizeMode="contain"
+          accessibilityLabel="Logo Finora"
+        />
 
         <Text className="text-center text-4xl font-extrabold tracking-tight text-[#123E36]">
           Finora
