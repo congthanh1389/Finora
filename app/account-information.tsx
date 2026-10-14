@@ -1,10 +1,12 @@
 import { useRouter } from "expo-router";
-import { useMemo } from "react";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useMemo, useState } from "react";
+import { ActivityIndicator, Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
+import * as Auth from "@/lib/_core/auth";
+import { trpc } from "@/lib/trpc";
 
 type RowProps = {
   icon: keyof typeof Feather.glyphMap;
@@ -50,10 +52,38 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 
 export default function AccountInformationScreen() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
+  const [isNameEditorVisible, setIsNameEditorVisible] = useState(false);
+  const [nameDraft, setNameDraft] = useState(user?.name ?? "");
+  const updateDisplayName = trpc.auth.updateDisplayName.useMutation();
   const displayName = user?.name?.trim() || "Người dùng Finora";
   const email = user?.email?.trim() || "Chưa có email";
   const initials = useMemo(() => (user?.name || user?.email || "F").trim().charAt(0).toUpperCase(), [user?.email, user?.name]);
+
+  async function saveDisplayName() {
+    const name = nameDraft.trim();
+    if (name.length < 2 || name.length > 60) {
+      Alert.alert("Tên hiển thị chưa hợp lệ", "Tên cần có từ 2 đến 60 ký tự.");
+      return;
+    }
+
+    try {
+      await updateDisplayName.mutateAsync({ name });
+      if (user) {
+        await Auth.setUserInfo({ ...user, name });
+      }
+      await refresh();
+      setIsNameEditorVisible(false);
+      Alert.alert("Đã cập nhật", "Tên hiển thị của bạn đã được lưu.");
+    } catch {
+      Alert.alert("Chưa thể cập nhật", "Không lưu được tên hiển thị. Hãy kiểm tra kết nối và thử lại.");
+    }
+  }
+
+  function openNameEditor() {
+    setNameDraft(user?.name ?? "");
+    setIsNameEditorVisible(true);
+  }
 
   return (
     <ScreenContainer className="bg-[#F5F8F7]">
@@ -83,17 +113,17 @@ export default function AccountInformationScreen() {
         </View>
 
         <Group title="Hồ sơ">
-          <AccountRow icon="user" title="Tên hiển thị" subtitle={displayName} onPress={() => Alert.alert("Tên hiển thị", "Chỉnh sửa tên hiển thị sẽ được triển khai ở commit tiếp theo.")} />
+          <AccountRow icon="user" title="Tên hiển thị" subtitle={displayName} onPress={openNameEditor} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 66 }} />
           <AccountRow icon="mail" title="Email đăng nhập" subtitle={email} onPress={() => Alert.alert("Email đăng nhập", email)} />
         </Group>
 
         <Group title="Bảo mật">
-          <AccountRow icon="lock" title="Đổi mật khẩu" subtitle="Cập nhật mật khẩu đăng nhập" onPress={() => Alert.alert("Đổi mật khẩu", "Luồng đổi mật khẩu sẽ được tích hợp sau khi xác minh tương thích với cơ chế đăng nhập hiện tại.")} />
+          <AccountRow icon="lock" title="Đổi mật khẩu" subtitle="Cập nhật mật khẩu đăng nhập" onPress={() => Alert.alert("Đổi mật khẩu", "Tài khoản hiện đăng nhập qua nhà cung cấp OAuth. Chức năng đổi mật khẩu cần được xử lý tại nhà cung cấp đăng nhập.")} />
         </Group>
 
         <Group title="Phiên đăng nhập">
-          <AccountRow icon="smartphone" title="Phiên hiện tại" subtitle="Tài khoản đang sử dụng trên thiết bị này" onPress={() => Alert.alert("Phiên đăng nhập", "Đây là thông tin tài khoản đang hoạt động trên thiết bị.")} />
+          <AccountRow icon="smartphone" title="Phiên hiện tại" subtitle={user?.loginMethod ? `Đăng nhập bằng ${user.loginMethod}` : "Tài khoản đang sử dụng trên thiết bị này"} onPress={() => Alert.alert("Phiên đăng nhập", `Tài khoản: ${displayName}\nPhương thức: ${user?.loginMethod || "Không xác định"}\nĐăng nhập gần nhất: ${user?.lastSignedIn ? new Date(user.lastSignedIn).toLocaleString("vi-VN") : "Không có dữ liệu"}`)} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 66 }} />
           <AccountRow icon="log-out" title="Đăng xuất" subtitle="Kết thúc phiên đăng nhập hiện tại" onPress={() => Alert.alert("Đăng xuất", "Bạn có thể đăng xuất từ màn hình Cài đặt.")} />
         </Group>
@@ -104,6 +134,36 @@ export default function AccountInformationScreen() {
 
         <Text style={{ textAlign: "center", color: "#9AA6A3", fontSize: 11, marginTop: 22 }}>FINORA · Tài chính rõ ràng, cuộc sống an tâm</Text>
       </ScrollView>
+
+      <Modal visible={isNameEditorVisible} transparent animationType="fade" onRequestClose={() => setIsNameEditorVisible(false)}>
+        <View style={{ flex: 1, justifyContent: "center", padding: 24, backgroundColor: "rgba(15, 23, 42, 0.45)" }}>
+          <View style={{ borderRadius: 24, padding: 22, backgroundColor: "#FFFFFF" }}>
+            <Text style={{ color: "#122D2A", fontSize: 21, fontWeight: "800" }}>Đổi tên hiển thị</Text>
+            <Text style={{ color: "#72817F", fontSize: 13, lineHeight: 19, marginTop: 7 }}>Tên mới sẽ hiển thị trên hồ sơ tài khoản Finora.</Text>
+            <TextInput
+              value={nameDraft}
+              onChangeText={setNameDraft}
+              autoFocus
+              maxLength={60}
+              placeholder="Nhập tên hiển thị"
+              placeholderTextColor="#94A3B8"
+              returnKeyType="done"
+              onSubmitEditing={() => void saveDisplayName()}
+              style={{ marginTop: 18, borderWidth: 1, borderColor: "#D8E7E0", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, color: "#172033", fontSize: 16 }}
+            />
+            <Text style={{ color: "#94A3B8", fontSize: 11, marginTop: 6 }}>Từ 2 đến 60 ký tự</Text>
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 20 }}>
+              <TouchableOpacity onPress={() => setIsNameEditorVisible(false)} disabled={updateDisplayName.isPending} style={{ flex: 1, alignItems: "center", paddingVertical: 13, borderRadius: 14, backgroundColor: "#F1F5F4" }}>
+                <Text style={{ color: "#52615D", fontWeight: "700" }}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => void saveDisplayName()} disabled={updateDisplayName.isPending} style={{ flex: 1, flexDirection: "row", gap: 8, justifyContent: "center", alignItems: "center", paddingVertical: 13, borderRadius: 14, backgroundColor: updateDisplayName.isPending ? "#86CDB3" : "#138363" }}>
+                {updateDisplayName.isPending ? <ActivityIndicator color="#FFFFFF" size="small" /> : null}
+                <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>Lưu thay đổi</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
