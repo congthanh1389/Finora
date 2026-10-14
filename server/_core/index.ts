@@ -41,14 +41,18 @@ async function startServer() {
   );
 
   const requestedPort = Number(process.env.PORT ?? 0);
-  server.listen(requestedPort, "127.0.0.1", async () => {
+  const listenHost =
+    process.env.HOST ??
+    (process.env.NODE_ENV === "development" ? "0.0.0.0" : "127.0.0.1");
+
+  server.listen(requestedPort, listenHost, async () => {
     const address = server.address();
     if (!address || typeof address === "string") {
       throw new Error("[api] unable to determine listening port");
     }
 
     await writeFile(PORT_FILE, String(address.port), "utf8");
-    console.log(`[api] server listening on http://127.0.0.1:${address.port}`);
+    console.log(`[api] server listening on ${listenHost}:${address.port}`);
   });
 
   const cleanup = async () => {

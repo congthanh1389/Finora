@@ -1,9 +1,11 @@
 import { useRouter } from "expo-router";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
+import { localLogin } from "@/lib/_core/auth";
 import { clearDeviceFinancialData } from "@/src/core/storage/device-store";
 
 type SettingRowProps = {
@@ -61,28 +63,47 @@ export default function SettingsScreen() {
     router.replace("/login" as never);
   };
 
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [password, setPassword] = useState("");
+  const [verifyingPassword, setVerifyingPassword] = useState(false);
+
   const handleClearFinancialData = () => {
-    if (!user?.id) {
+    if (!user?.id || !user?.email) {
       Alert.alert("Chưa có tài khoản", "Vui lòng đăng nhập trước khi xóa dữ liệu tài chính.");
       return;
     }
+    setPassword("");
+    setPasswordModalVisible(true);
+  };
 
-    Alert.alert(
-      "Xóa dữ liệu tài chính?",
-      "Toàn bộ giao dịch, ví, danh mục và ngân sách sẽ bị xóa. Tài khoản đăng nhập vẫn được giữ lại.",
-      [
-        { text: "Hủy", style: "cancel" },
-        {
-          text: "Xóa dữ liệu",
-          style: "destructive",
-          onPress: () => {
-            void clearDeviceFinancialData(user.id)
-              .then(() => Alert.alert("Đã xóa", "Dữ liệu tài chính đã được xóa."))
-              .catch((error) => Alert.alert("Không thể xóa", error instanceof Error ? error.message : "Đã xảy ra lỗi."));
+  const handleVerifyPassword = async () => {
+    if (!user?.email || !user?.id || !password.trim() || verifyingPassword) return;
+    setVerifyingPassword(true);
+    try {
+      await localLogin(user.email, password);
+      setPasswordModalVisible(false);
+      setPassword("");
+      Alert.alert(
+        "Xác nhận xóa dữ liệu tài chính?",
+        "Toàn bộ giao dịch, ví, danh mục và ngân sách sẽ bị xóa. Tài khoản đăng nhập vẫn được giữ lại.",
+        [
+          { text: "Hủy", style: "cancel" },
+          {
+            text: "Xóa dữ liệu",
+            style: "destructive",
+            onPress: () => {
+              void clearDeviceFinancialData(user.id)
+                .then(() => Alert.alert("Đã xóa", "Dữ liệu tài chính đã được xóa."))
+                .catch((error) => Alert.alert("Không thể xóa", error instanceof Error ? error.message : "Đã xảy ra lỗi."));
+            },
           },
-        },
-      ],
-    );
+        ],
+      );
+    } catch {
+      Alert.alert("Mật khẩu không đúng", "Vui lòng nhập đúng mật khẩu. Dữ liệu chưa bị xóa.");
+    } finally {
+      setVerifyingPassword(false);
+    }
   };
 
   return (
@@ -156,6 +177,39 @@ export default function SettingsScreen() {
         </TouchableOpacity>
         <Text style={{ textAlign: "center", color: "#9AA6A3", fontSize: 11, marginTop: 20 }}>FINORA · Tài chính rõ ràng, cuộc sống an tâm</Text>
       </ScrollView>
-    </ScreenContainer>
+        <Modal
+          visible={passwordModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => { setPasswordModalVisible(false); setPassword(""); }}
+        >
+          <View style={{ flex: 1, justifyContent: "center", padding: 24, backgroundColor: "rgba(15, 23, 42, 0.48)" }}>
+            <View style={{ backgroundColor: "#FFFFFF", borderRadius: 24, padding: 22 }}>
+              <Text style={{ color: "#123E36", fontSize: 20, fontWeight: "800" }}>Xác thực mật khẩu</Text>
+              <Text style={{ color: "#64748B", fontSize: 14, lineHeight: 21, marginTop: 9 }}>Nhập mật khẩu đăng nhập để tiếp tục.</Text>
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Mật khẩu đăng nhập"
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!verifyingPassword}
+                returnKeyType="done"
+                onSubmitEditing={handleVerifyPassword}
+                style={{ marginTop: 18, borderWidth: 1, borderColor: "#D7E5DF", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, color: "#172033" }}
+              />
+              <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 20 }}>
+                <TouchableOpacity disabled={verifyingPassword} onPress={() => { setPasswordModalVisible(false); setPassword(""); }} style={{ padding: 12, marginRight: 8 }}>
+                  <Text style={{ color: "#64748B", fontWeight: "700" }}>Hủy</Text>
+                </TouchableOpacity>
+                <TouchableOpacity disabled={!password || verifyingPassword} onPress={() => void handleVerifyPassword()} style={{ paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, backgroundColor: !password || verifyingPassword ? "#94A3B8" : "#138363" }}>
+                  <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{verifyingPassword ? "Đang xác thực..." : "Xác thực"}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </ScreenContainer>
   );
 }
