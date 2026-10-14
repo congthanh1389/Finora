@@ -142,7 +142,6 @@ export default function AccountInformationScreen() {
                       void (async () => {
                         await logout();
                         router.replace("/login" as never);
-                        Alert.alert("Đã đăng xuất", "Phiên đăng nhập trên thiết bị này đã được xóa.");
                       })();
                     },
                   },
