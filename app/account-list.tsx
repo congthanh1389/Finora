@@ -38,21 +38,39 @@ export default function AccountListScreen() {
           onPress: async () => {
             if (deletingAccountId !== null) return;
             setDeletingAccountId(Number(account.id));
+            let stage = "check auth functions";
             try {
+              // Guard each imported function so an undefined export is reported by name.
+              if (typeof Auth.getSessionToken !== "function") {
+                throw new Error("Auth.getSessionToken không khả dụng trong bundle đang chạy.");
+              }
+              if (typeof Auth.localRemoveSavedAccount !== "function") {
+                throw new Error("Auth.localRemoveSavedAccount không khả dụng trong bundle đang chạy.");
+              }
+
+              stage = "check current session";
               const isCurrent = (await Auth.getSessionToken()) === `local-session-${Number(account.id)}`;
+
+              stage = "remove saved account";
               await Auth.localRemoveSavedAccount(Number(account.id));
+
               if (isCurrent) {
+                stage = "navigate to login";
                 router.replace("/login" as never);
                 return;
               }
+
+              stage = "reload account list";
               await loadAccounts();
             } catch (deleteError) {
-              const message = deleteError instanceof Error
-                ? deleteError.message
-                : String(deleteError || "Lỗi không xác định khi gỡ tài khoản.");
+              const detail = deleteError instanceof Error ? deleteError.message : String(deleteError);
+              const stack = deleteError instanceof Error ? deleteError.stack : undefined;
+              const message = `Lỗi tại bước "${stage}": ${detail}`;
               console.error("[AccountList] Failed to remove saved account", {
                 accountId: account.id,
+                stage,
                 message,
+                stack,
                 error: deleteError,
               });
               Alert.alert("Không thể gỡ tài khoản", message);
