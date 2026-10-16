@@ -73,3 +73,10 @@ Thumbs.db
 
 # Finora local runtime data
 server/.data/
+
+# Finora local secrets and backups
+.env
+*.bak
+*.backup-*
+*.backup-password-confirmation
+android.outer-safety-*/
