@@ -9,6 +9,7 @@ export default function AccountListScreen() {
   const [accounts, setAccounts] = useState<Auth.LocalAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingAccountId, setDeletingAccountId] = useState<number | null>(null);
 
   const loadAccounts = useCallback(async () => {
     setLoading(true);
@@ -35,16 +36,28 @@ export default function AccountListScreen() {
           text: "Gỡ khỏi danh sách",
           style: "destructive",
           onPress: async () => {
+            if (deletingAccountId !== null) return;
+            setDeletingAccountId(Number(account.id));
             try {
-              const isCurrent = (await Auth.getSessionToken()) === `local-session-${account.id}`;
-              await Auth.localRemoveSavedAccount(account.id);
+              const isCurrent = (await Auth.getSessionToken()) === `local-session-${Number(account.id)}`;
+              await Auth.localRemoveSavedAccount(Number(account.id));
               if (isCurrent) {
                 router.replace("/login" as never);
                 return;
               }
               await loadAccounts();
-            } catch (error) {
-              Alert.alert("Không thể gỡ tài khoản", error instanceof Error ? error.message : "Đã xảy ra lỗi khi gỡ tài khoản.");
+            } catch (deleteError) {
+              const message = deleteError instanceof Error
+                ? deleteError.message
+                : String(deleteError || "Lỗi không xác định khi gỡ tài khoản.");
+              console.error("[AccountList] Failed to remove saved account", {
+                accountId: account.id,
+                message,
+                error: deleteError,
+              });
+              Alert.alert("Không thể gỡ tài khoản", message);
+            } finally {
+              setDeletingAccountId(null);
             }
           },
         },
@@ -85,12 +98,13 @@ export default function AccountListScreen() {
               </View>
               <TouchableOpacity
                 onPress={() => handleDelete(item)}
+                disabled={deletingAccountId !== null}
                 activeOpacity={0.8}
                 accessibilityRole="button"
                 accessibilityLabel={`Gỡ tài khoản ${item.email} khỏi danh sách đã lưu`}
-                style={{ marginLeft: 12, height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: "#FEE2E2" }}
+                style={{ marginLeft: 12, height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: deletingAccountId === Number(item.id) ? "#CBD5E1" : "#FEE2E2", opacity: deletingAccountId !== null && deletingAccountId !== Number(item.id) ? 0.5 : 1 }}
               >
-                <Text style={{ fontSize: 20 }}>🗑️</Text>
+                <Text style={{ fontSize: 20 }}>{deletingAccountId === Number(item.id) ? "…" : "🗑️"}</Text>
               </TouchableOpacity>
             </View>
           )}
