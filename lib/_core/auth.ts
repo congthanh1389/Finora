@@ -226,8 +226,15 @@ async function readAccounts(): Promise<LocalAccount[]> {
   return accounts;
 }
 
+async function requireSecureStoreMethod(name: "getItemAsync" | "setItemAsync" | "deleteItemAsync"): Promise<void> {
+  const method = SecureStore[name];
+  if (typeof method !== "function") {
+    throw new Error(`SecureStore.${name} không khả dụng trong bản Android đang chạy. Hãy đồng bộ mã và chạy lại ứng dụng Android.`);
+  }
+}
+
 async function writeAccounts(accounts: LocalAccount[]): Promise<void> {
-  const normalized = accounts.map(normalizeLocalAccount);
+  const normalized = accounts.map((account) => normalizeLocalAccount(account));
   if (normalized.some((item) => item === null)) {
     throw new Error("Không thể lưu danh sách vì có thông tin tài khoản không hợp lệ.");
   }
@@ -237,7 +244,14 @@ async function writeAccounts(accounts: LocalAccount[]): Promise<void> {
     throw new Error("Danh sách tài khoản có ID không hợp lệ hoặc bị trùng.");
   }
 
-  const previousIndexRaw = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_INDEX_KEY);
+  let previousIndexRaw: string | null;
+  try {
+    await requireSecureStoreMethod("getItemAsync");
+    previousIndexRaw = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_INDEX_KEY);
+  } catch (error) {
+    throw new Error(`Không đọc được chỉ mục tài khoản đã lưu: ${error instanceof Error ? error.message : String(error)}`);
+  }
+
   let previousIds: number[] = [];
   if (previousIndexRaw) {
     try {
@@ -248,28 +262,37 @@ async function writeAccounts(accounts: LocalAccount[]): Promise<void> {
     }
   }
 
-  // Write every account first, then atomically switch the small index to the new list.
-  for (const account of validAccounts) {
-    await SecureStore.setItemAsync(accountStorageKey(account.id), JSON.stringify(account));
+  // Do not switch the index until every remaining account has been written successfully.
+  try {
+    await requireSecureStoreMethod("setItemAsync");
+    for (const account of validAccounts) {
+      await SecureStore.setItemAsync(accountStorageKey(account.id), JSON.stringify(account));
+    }
+    await SecureStore.setItemAsync(LOCAL_ACCOUNTS_INDEX_KEY, JSON.stringify(ids));
+  } catch (error) {
+    throw new Error(`Không ghi được danh sách tài khoản đã lưu: ${error instanceof Error ? error.message : String(error)}`);
   }
-  await SecureStore.setItemAsync(LOCAL_ACCOUNTS_INDEX_KEY, JSON.stringify(ids));
 
-  // Cleanup happens after the new index is committed; cleanup errors must not undo a successful removal.
-  for (const oldId of previousIds) {
-    if (!ids.includes(oldId)) {
-      try {
-        await SecureStore.deleteItemAsync(accountStorageKey(oldId));
-      } catch (error) {
-        console.warn("[Auth] Could not clean up removed saved-account credentials.", error);
+  // Cleanup happens after the new index is committed. Cleanup failure must not report removal as failed.
+  if (typeof SecureStore.deleteItemAsync === "function") {
+    for (const oldId of previousIds) {
+      if (!ids.includes(oldId)) {
+        try {
+          await SecureStore.deleteItemAsync(accountStorageKey(oldId));
+        } catch (error) {
+          console.warn("[Auth] Could not clean up removed saved-account credentials.", error);
+        }
       }
     }
-  }
-  for (const legacyKey of [LOCAL_ACCOUNTS_KEY, LOCAL_ACCOUNT_KEY]) {
-    try {
-      await SecureStore.deleteItemAsync(legacyKey);
-    } catch (error) {
-      console.warn("[Auth] Could not clean up a legacy saved-account key.", error);
+    for (const legacyKey of [LOCAL_ACCOUNTS_KEY, LOCAL_ACCOUNT_KEY]) {
+      try {
+        await SecureStore.deleteItemAsync(legacyKey);
+      } catch (error) {
+        console.warn("[Auth] Could not clean up a legacy saved-account key.", error);
+      }
     }
+  } else {
+    console.warn("[Auth] SecureStore.deleteItemAsync is unavailable; skipped legacy credential cleanup.");
   }
 }
 
@@ -358,7 +381,13 @@ export async function localRemoveSavedAccount(userId: number): Promise<void> {
     throw new Error("Tài khoản không hợp lệ.");
   }
 
-  const accounts = await readAccounts();
+  let accounts: LocalAccount[];
+  try {
+    accounts = await readAccounts();
+  } catch (error) {
+    throw new Error(`Không đọc được dữ liệu tài khoản: ${error instanceof Error ? error.message : String(error)}`);
+  }
+
   const selected = accounts.find((account) => Number(account.id) === normalizedUserId);
   if (!selected) {
     throw new Error("Không tìm thấy tài khoản trong danh sách đã lưu. Hãy tải lại danh sách rồi thử lại.");
@@ -368,9 +397,14 @@ export async function localRemoveSavedAccount(userId: number): Promise<void> {
   await writeAccounts(remaining);
 
   // Removing a saved login must never delete wallets, transactions, budgets, or categories.
-  if ((await getSessionToken()) === `local-session-${normalizedUserId}`) {
-    await removeSessionToken();
-    await clearUserInfo();
+  try {
+    const token = await getSessionToken();
+    if (token === `local-session-${normalizedUserId}`) {
+      await removeSessionToken();
+      await clearUserInfo();
+    }
+  } catch (error) {
+    console.warn("[Auth] Account was removed from the saved list, but session cleanup failed.", error);
   }
   console.log("[Auth] Saved account removed from this device.", normalizedUserId);
 }
