@@ -163,6 +163,9 @@ function normalizeLocalAccount(value: unknown): LocalAccount | null {
  * The index contains only numeric IDs. Older v2/v3 data is migrated lazily.
  */
 async function readAccounts(): Promise<LocalAccount[]> {
+  // Validate the native module before calling it so a stale/mismatched Android
+  // binary produces an actionable error instead of Hermes' generic TypeError.
+  await requireSecureStoreMethod("getItemAsync");
   const indexRaw = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_INDEX_KEY);
   if (indexRaw !== null) {
     let ids: unknown;
