@@ -149,8 +149,14 @@ async function readAccounts(): Promise<LocalAccount[]> {
 }
 
 async function writeAccounts(accounts: LocalAccount[]): Promise<void> {
+  // Save the authoritative list first. Removing the legacy key is cleanup only:
+  // a cleanup failure must not make a successful account-list update look like a failed delete.
   await SecureStore.setItemAsync(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
-  await SecureStore.deleteItemAsync(LOCAL_ACCOUNT_KEY);
+  try {
+    await SecureStore.deleteItemAsync(LOCAL_ACCOUNT_KEY);
+  } catch (error) {
+    console.warn("[Auth] Could not remove legacy local-account key; the current list is already saved.", error);
+  }
 }
 
 export async function localGetAccounts(): Promise<LocalAccount[]> {
@@ -233,18 +239,23 @@ export async function localLogout(): Promise<void> {
  * Financial records remain associated with userId in the local database.
  */
 export async function localRemoveSavedAccount(userId: number): Promise<void> {
-  if (!Number.isSafeInteger(userId) || userId <= 0) {
+  // Older locally saved records may contain the ID as a string. Normalize it
+  // before validating or comparing so the selected account can still be removed.
+  const normalizedUserId = Number(userId);
+  if (!Number.isSafeInteger(normalizedUserId) || normalizedUserId <= 0) {
     throw new Error("Tài khoản không hợp lệ.");
   }
 
   const accounts = await readAccounts();
-  const remaining = accounts.filter((account) => account.id !== userId);
-  if (remaining.length === accounts.length) throw new Error("Không tìm thấy tài khoản.");
+  const remaining = accounts.filter((account) => Number(account.id) !== normalizedUserId);
+  if (remaining.length === accounts.length) {
+    throw new Error("Không tìm thấy tài khoản trong danh sách đã lưu. Hãy tải lại danh sách rồi thử lại.");
+  }
 
-  // Persist the account-list change first. Never delete the financial database here.
+  // Only remove saved sign-in credentials. Financial data in SQLite is preserved.
   await writeAccounts(remaining);
 
-  if ((await getSessionToken()) === `local-session-${userId}`) {
+  if ((await getSessionToken()) === `local-session-${normalizedUserId}`) {
     await removeSessionToken();
     await clearUserInfo();
   }
