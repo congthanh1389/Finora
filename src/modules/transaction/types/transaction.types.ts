@@ -26,3 +26,11 @@ export type TransactionSummary = {
   note: string | null;
   occurredAt: Date;
 };
+
+
+export type TransactionHistoryFilters = {
+  walletId?: number;
+  categoryId?: number;
+  minAmount?: number;
+  maxAmount?: number;
+};

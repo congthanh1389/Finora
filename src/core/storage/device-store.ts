@@ -4,7 +4,7 @@ import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 import type { Category, Wallet, Transaction } from "../../../drizzle/schema";
 
 const DATABASE_NAME = "finora.db";
-const CURRENT_SCHEMA_VERSION = 7;
+const CURRENT_SCHEMA_VERSION = 11;
 
 export const DEVICE_TRANSACTIONS_CHANGED_EVENT = "finora:transactions-changed";
 
@@ -12,7 +12,13 @@ let databasePromise: Promise<SQLiteDatabase> | null = null;
 let migrationPromise: Promise<void> | null = null;
 
 export async function getDeviceDatabase(): Promise<SQLiteDatabase> {
-  if (!databasePromise) databasePromise = openDatabaseAsync(DATABASE_NAME);
+  if (!databasePromise) {
+    databasePromise = openDatabaseAsync(DATABASE_NAME).catch((error) => {
+      // Allow a later call to retry if opening the database failed transiently.
+      databasePromise = null;
+      throw error;
+    });
+  }
   return databasePromise;
 }
 
@@ -95,13 +101,9 @@ async function migrateDatabase(db: SQLiteDatabase) {
       `);
     }
     if (version < 5) {
-      await db.runAsync(
-        `UPDATE categories SET is_archived = 1, updated_at = ?
-         WHERE is_archived = 0
-           AND ((type = 'expense' AND name IN ('Ăn uống', 'Mua sắm', 'Khác'))
-             OR (type = 'income' AND name IN ('Lương', 'Thưởng', 'Kinh doanh', 'Đầu tư', 'Khác')))` ,
-        new Date().toISOString(),
-      );
+      // Do not archive categories based only on their names.
+      // Users can create custom categories with the same names as built-in categories.
+      // Name-based migration would silently hide user data during an upgrade.
       await db.execAsync("PRAGMA user_version = 5;");
     }
     if (version < 6) {
@@ -124,6 +126,58 @@ async function migrateDatabase(db: SQLiteDatabase) {
         PRAGMA user_version = 7;
       `);
     }
+    if (version < 8) {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS budgets (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          category_id INTEGER NOT NULL,
+          wallet_id INTEGER,
+          amount INTEGER NOT NULL,
+          currency TEXT NOT NULL DEFAULT 'VND',
+          period_start TEXT NOT NULL,
+          period_end TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT,
+          FOREIGN KEY (wallet_id) REFERENCES wallets(id) ON DELETE RESTRICT
+        );
+        CREATE INDEX IF NOT EXISTS idx_budgets_user_period
+          ON budgets(user_id, period_start, period_end);
+        CREATE INDEX IF NOT EXISTS idx_budgets_user_category_period
+          ON budgets(user_id, category_id, period_start, period_end);
+        PRAGMA user_version = 8;
+      `);
+    }
+    if (version < 9) {
+      await db.execAsync(`
+        CREATE INDEX IF NOT EXISTS idx_transactions_user_type_category_occurred
+          ON transactions(user_id, type, category_id, occurred_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_transactions_user_type_category_wallet_occurred
+          ON transactions(user_id, type, category_id, wallet_id, occurred_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_budgets_user_category_period_wallet
+          ON budgets(user_id, category_id, period_start, period_end, wallet_id);
+        PRAGMA user_version = 9;
+      `);
+    }
+    if (version < 10) {
+      await db.execAsync(`
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_budgets_user_category_period_wallet
+          ON budgets(user_id, category_id, period_start, period_end, wallet_id)
+          WHERE wallet_id IS NOT NULL;
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_budgets_user_category_period_no_wallet
+          ON budgets(user_id, category_id, period_start, period_end)
+          WHERE wallet_id IS NULL;
+        PRAGMA user_version = 10;
+      `);
+    }
+    if (version < 11) {
+      await db.execAsync(`
+        CREATE INDEX IF NOT EXISTS idx_transactions_user_occurred_id
+          ON transactions(user_id, occurred_at DESC, id DESC);
+        PRAGMA user_version = 11;
+      `);
+    }
     if (version > CURRENT_SCHEMA_VERSION) throw new Error("Finora database version is newer than this app.");
   })();
   try { await migrationPromise; } catch (error) { migrationPromise = null; throw error; }
@@ -138,13 +192,63 @@ function walletFromRow(row: any): Wallet {
   return { id: Number(row.id), userId: Number(row.user_id), name: String(row.name), type: row.type, currency: String(row.currency), openingBalance: Number(row.opening_balance), allowNegative: Number(row.allow_negative), isArchived: Number(row.is_archived), createdAt: new Date(row.created_at), updatedAt: new Date(row.updated_at) };
 }
 function transactionFromRow(row: any): Transaction {
-  return { id: Number(row.id), userId: Number(row.user_id), type: row.type, amount: Number(row.amount), currency: String(row.currency), walletId: row.wallet_id == null ? null : Number(row.wallet_id), sourceWalletId: row.source_wallet_id == null ? null : Number(row.source_wallet_id), destinationWalletId: row.destination_wallet_id == null ? null : Number(row.destination_wallet_id), categoryId: row.category_id == null ? null : Number(row.category_id), note: row.note == null ? null : String(row.note), occurredAt: new Date(row.occurred_at), createdAt: new Date(row.created_at), updatedAt: new Date(row.updated_at) };
+  const id = Number(row.id);
+  const userId = Number(row.user_id);
+  const amount = Number(row.amount);
+  const walletId = row.wallet_id == null ? null : Number(row.wallet_id);
+  const sourceWalletId = row.source_wallet_id == null ? null : Number(row.source_wallet_id);
+  const destinationWalletId = row.destination_wallet_id == null ? null : Number(row.destination_wallet_id);
+  const categoryId = row.category_id == null ? null : Number(row.category_id);
+  const occurredAt = new Date(row.occurred_at);
+  const createdAt = new Date(row.created_at);
+  const updatedAt = new Date(row.updated_at);
+
+  if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Invalid persisted transaction id.");
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid persisted transaction user id.");
+  if (row.type !== "income" && row.type !== "expense" && row.type !== "transfer") throw new Error("Invalid persisted transaction type.");
+  if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error("Invalid persisted transaction amount.");
+  if (typeof row.currency !== "string" || !/^[A-Z]{3}$/.test(row.currency)) throw new Error("Invalid persisted transaction currency.");
+  if (walletId != null && (!Number.isSafeInteger(walletId) || walletId <= 0)) throw new Error("Invalid persisted transaction wallet id.");
+  if (sourceWalletId != null && (!Number.isSafeInteger(sourceWalletId) || sourceWalletId <= 0)) throw new Error("Invalid persisted transaction source wallet id.");
+  if (destinationWalletId != null && (!Number.isSafeInteger(destinationWalletId) || destinationWalletId <= 0)) throw new Error("Invalid persisted transaction destination wallet id.");
+  if (categoryId != null && (!Number.isSafeInteger(categoryId) || categoryId <= 0)) throw new Error("Invalid persisted transaction category id.");
+  if (row.note != null && typeof row.note !== "string") throw new Error("Invalid persisted transaction note.");
+  if (row.type === "transfer") {
+    if (walletId != null || categoryId != null || sourceWalletId == null || destinationWalletId == null || sourceWalletId === destinationWalletId) {
+      throw new Error("Invalid persisted transfer references.");
+    }
+  } else {
+    if (walletId == null || sourceWalletId != null || destinationWalletId != null) {
+      throw new Error("Invalid persisted transaction wallet references.");
+    }
+  }
+  if (Number.isNaN(occurredAt.getTime()) || Number.isNaN(createdAt.getTime()) || Number.isNaN(updatedAt.getTime())) {
+    throw new Error("Invalid persisted transaction date.");
+  }
+
+  return {
+    id,
+    userId,
+    type: row.type,
+    amount,
+    currency: row.currency,
+    walletId,
+    sourceWalletId,
+    destinationWalletId,
+    categoryId,
+    note: row.note == null ? null : row.note,
+    occurredAt,
+    createdAt,
+    updatedAt,
+  };
 }
 function categoryFromRow(row: any): Category {
   return { id: Number(row.id), userId: Number(row.user_id), name: String(row.name), type: row.type, parentId: row.parent_id == null ? null : Number(row.parent_id), icon: row.icon == null ? null : String(row.icon), isArchived: Number(row.is_archived), createdAt: new Date(row.created_at), updatedAt: new Date(row.updated_at) };
 }
 
 export async function listDeviceCategories(userId: number, type?: Category["type"]): Promise<Category[]> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (type !== undefined && type !== "income" && type !== "expense") throw new Error("Invalid category type.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const rows = type
     ? await db.getAllAsync(`SELECT * FROM categories WHERE user_id = ? AND type = ? ORDER BY is_archived ASC, name ASC`, userId, type)
@@ -152,28 +256,134 @@ export async function listDeviceCategories(userId: number, type?: Category["type
   return rows.map(categoryFromRow);
 }
 export async function createDeviceCategory(input: Omit<Category, "id" | "createdAt" | "updatedAt">): Promise<Category> {
+  if (!Number.isSafeInteger(input.userId) || input.userId <= 0) throw new Error("Invalid user id.");
+  if (typeof input.name !== "string" || !input.name.trim()) throw new Error("Category name cannot be empty.");
+  if (input.type !== "income" && input.type !== "expense") throw new Error("Invalid category type.");
+  if (input.parentId !== null && (!Number.isSafeInteger(input.parentId) || input.parentId <= 0)) throw new Error("Invalid parent category id.");
+  if (input.isArchived !== 0 && input.isArchived !== 1) throw new Error("Invalid category archived flag.");
+  if (input.icon !== null && (typeof input.icon !== "string" || !input.icon.trim())) throw new Error("Invalid category icon.");
+  if (input.parentId !== null) {
+    const parent = await (async () => {
+      const db = await getDeviceDatabase(); await migrateDatabase(db);
+      return db.getFirstAsync<{ id: number; user_id: number; type: string; is_archived: number }>(
+        "SELECT id, user_id, type, is_archived FROM categories WHERE id = ?",
+        input.parentId,
+      );
+    })();
+    if (!parent || parent.user_id !== input.userId) throw new Error("Invalid parent category.");
+    if (parent.type !== input.type) throw new Error("Parent category type mismatch.");
+    if (parent.is_archived !== 0) throw new Error("Parent category is archived.");
+  }
   const db = await getDeviceDatabase(); await migrateDatabase(db); const now = new Date();
   const result = await db.runAsync(`INSERT INTO categories (user_id, name, type, parent_id, icon, is_archived, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, input.userId, input.name, input.type, input.parentId, input.icon, input.isArchived, now.toISOString(), now.toISOString());
   return { ...input, id: result.lastInsertRowId, createdAt: now, updatedAt: now };
 }
-export async function updateDeviceCategory(userId: number, categoryId: number, name: string): Promise<Category> {
+export async function updateDeviceCategory(userId: number, categoryId: number, name: string, icon?: string): Promise<Category> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id.");
+  if (typeof name !== "string" || !name.trim()) throw new Error("Category name cannot be empty.");
+  if (icon !== undefined && (typeof icon !== "string" || !icon.trim())) throw new Error("Invalid category icon.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const current = await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId);
   if (!current) throw new Error("Không tìm thấy danh mục."); const trimmed = name.trim(); if (!trimmed) throw new Error("Tên danh mục không được để trống.");
-  await db.runAsync("UPDATE categories SET name = ?, updated_at = ? WHERE user_id = ? AND id = ?", trimmed, new Date().toISOString(), userId, categoryId);
+  await db.runAsync(
+    "UPDATE categories SET name = ?, icon = ?, updated_at = ? WHERE user_id = ? AND id = ?",
+    trimmed,
+    icon ?? (current as any).icon ?? "other",
+    new Date().toISOString(),
+    userId,
+    categoryId,
+  );
   return categoryFromRow(await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId));
 }
 export async function archiveDeviceCategory(userId: number, categoryId: number): Promise<Category> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const current = await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId);
   if (!current) throw new Error("Không tìm thấy danh mục.");
   await db.runAsync("UPDATE categories SET is_archived = 1, updated_at = ? WHERE user_id = ? AND id = ?", new Date().toISOString(), userId, categoryId);
   return categoryFromRow(await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId));
 }
-export async function deleteDeviceUserData(userId: number): Promise<void> {
+export async function restoreDeviceCategory(userId: number, categoryId: number): Promise<Category> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
-  await db.withTransactionAsync(async () => { await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId); await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId); await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId); await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId); });
+  const current = await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId);
+  if (!current) throw new Error("Không tìm thấy danh mục.");
+  if (Number((current as any).is_archived) !== 1) throw new Error("Danh mục chưa được lưu trữ.");
+  await db.runAsync("UPDATE categories SET is_archived = 0, updated_at = ? WHERE user_id = ? AND id = ?", new Date().toISOString(), userId, categoryId);
+  return categoryFromRow(await db.getFirstAsync("SELECT * FROM categories WHERE user_id = ? AND id = ?", userId, categoryId));
+}
+
+export async function deleteDeviceCategory(userId: number, categoryId: number): Promise<void> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(categoryId) || categoryId <= 0) throw new Error("Invalid category id.");
+
+  const db = await getDeviceDatabase();
+  await migrateDatabase(db);
+  const current = await db.getFirstAsync<{ id: number; is_archived: number }>(
+    "SELECT id, is_archived FROM categories WHERE user_id = ? AND id = ?",
+    userId,
+    categoryId,
+  );
+  if (!current) throw new Error("Không tìm thấy danh mục.");
+  if (Number(current.is_archived) !== 1) throw new Error("Chỉ có thể xóa hẳn danh mục đã lưu trữ.");
+
+  const transactionReference = await db.getFirstAsync<{ id: number }>(
+    "SELECT id FROM transactions WHERE user_id = ? AND category_id = ? LIMIT 1",
+    userId,
+    categoryId,
+  );
+  if (transactionReference) throw new Error("Không thể xóa hẳn danh mục đã có giao dịch.");
+  const budgetReference = await db.getFirstAsync<{ id: number }>(
+    "SELECT id FROM budgets WHERE user_id = ? AND category_id = ? LIMIT 1",
+    userId,
+    categoryId,
+  );
+  if (budgetReference) throw new Error("Không thể xóa hẳn danh mục đang được dùng trong ngân sách.");
+
+  const childReference = await db.getFirstAsync<{ id: number }>(
+    "SELECT id FROM categories WHERE user_id = ? AND parent_id = ? LIMIT 1",
+    userId,
+    categoryId,
+  );
+  if (childReference) throw new Error("Không thể xóa hẳn danh mục đang có danh mục con.");
+
+  const result = await db.runAsync(
+    "DELETE FROM categories WHERE user_id = ? AND id = ? AND is_archived = 1",
+    userId,
+    categoryId,
+  );
+  if (result.changes !== 1) throw new Error("Không thể xóa hẳn danh mục.");
+}
+
+export async function clearDeviceFinancialData(userId: number): Promise<void> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  const db = await getDeviceDatabase();
+  await migrateDatabase(db);
+  await db.withTransactionAsync(async () => {
+    await clearDeviceFinancialDataInTransaction(db, userId);
+  });
   await db.execAsync("VACUUM");
+}
+
+export async function deleteDeviceUserData(userId: number): Promise<void> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  const db = await getDeviceDatabase();
+  await migrateDatabase(db);
+  await db.withTransactionAsync(async () => {
+    await clearDeviceFinancialDataInTransaction(db, userId);
+    await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId);
+  });
+  await db.execAsync("VACUUM");
+}
+
+async function clearDeviceFinancialDataInTransaction(db: SQLiteDatabase, userId: number): Promise<void> {
+  await db.runAsync("DELETE FROM transactions WHERE user_id = ?", userId);
+  await db.runAsync("DELETE FROM budgets WHERE user_id = ?", userId);
+  await db.runAsync("DELETE FROM categories WHERE user_id = ?", userId);
+  await db.runAsync("DELETE FROM wallets WHERE user_id = ?", userId);
 }
 export type DeviceLocalAccount = { id: number; openId: string; name: string | null; email: string; loginMethod: string | null; lastSignedIn: Date };
 export async function listDeviceLocalAccounts(): Promise<DeviceLocalAccount[]> {
@@ -185,7 +395,7 @@ export async function upsertDeviceLocalAccount(account: DeviceLocalAccount): Pro
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   await db.runAsync(`INSERT INTO local_accounts (id, open_id, name, email, login_method, last_signed_in) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET open_id = excluded.open_id, name = excluded.name, email = excluded.email, login_method = excluded.login_method, last_signed_in = excluded.last_signed_in`, account.id, account.openId, account.name, account.email, account.loginMethod, account.lastSignedIn.toISOString());
 }
-export async function deleteDeviceLocalAccount(userId: number): Promise<void> { const db = await getDeviceDatabase(); await migrateDatabase(db); await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId); }
+export async function deleteDeviceLocalAccount(userId: number): Promise<void> { if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id."); const db = await getDeviceDatabase(); await migrateDatabase(db); await db.runAsync("DELETE FROM local_accounts WHERE id = ?", userId); }
 export async function listDeviceUserIds(): Promise<number[]> {
   const db = await getDeviceDatabase();
   await migrateDatabase(db);
@@ -199,17 +409,22 @@ export async function listDeviceUserIds(): Promise<number[]> {
   );
   return rows
     .map((row) => Number(row.user_id))
-    .filter((id) => Number.isInteger(id) && id > 0);
+    .filter((id) => Number.isSafeInteger(id) && id > 0);
 }
 export async function listDeviceWallets(userId: number): Promise<Wallet[]> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const rows = await db.getAllAsync(`SELECT * FROM wallets WHERE user_id = ? ORDER BY is_archived ASC, created_at DESC`, userId); return rows.map(walletFromRow);
 }
 export async function getDeviceWallet(userId: number, walletId: number): Promise<Wallet | undefined> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const row = await db.getFirstAsync("SELECT * FROM wallets WHERE user_id = ? AND id = ?", userId, walletId); return row ? walletFromRow(row) : undefined;
 }
 export async function getDeviceWalletWithBalance(userId: number, walletId: number): Promise<(Wallet & { balance: number }) | undefined> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase();
   await migrateDatabase(db);
   const row = await db.getFirstAsync(
@@ -247,19 +462,34 @@ export async function getDeviceWalletWithBalance(userId: number, walletId: numbe
   return row ? { ...walletFromRow(row), balance: Number((row as any).balance) } : undefined;
 }
 export async function createDeviceWallet(input: Omit<Wallet, "id" | "createdAt" | "updatedAt">): Promise<Wallet> {
+  if (!Number.isSafeInteger(input.userId) || input.userId <= 0) throw new Error("Invalid user id.");
+  if (typeof input.name !== "string" || !input.name.trim()) throw new Error("Wallet name cannot be empty.");
+  if (!["cash", "bank", "ewallet", "credit_card", "savings", "investment", "other_asset", "receivable", "payable"].includes(input.type)) throw new Error("Invalid wallet type.");
+  if (typeof input.currency !== "string" || !/^[A-Z]{3}$/.test(input.currency)) throw new Error("Invalid wallet currency.");
+  if (!Number.isSafeInteger(input.openingBalance)) throw new Error("Invalid wallet opening balance.");
+  if (input.allowNegative !== 0 && input.allowNegative !== 1) throw new Error("Invalid wallet negative-balance flag.");
+  if (input.isArchived !== 0 && input.isArchived !== 1) throw new Error("Invalid wallet archived flag.");
+  if (input.openingBalance < 0 && input.allowNegative !== 1) throw new Error("Opening balance cannot be negative for a non-negative wallet.");
   const db = await getDeviceDatabase(); await migrateDatabase(db); const now = new Date();
   const result = await db.runAsync(`INSERT INTO wallets (user_id, name, type, currency, opening_balance, allow_negative, is_archived, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, input.userId, input.name, input.type, input.currency, input.openingBalance, input.allowNegative, input.isArchived, now.toISOString(), now.toISOString());
   return { ...input, id: result.lastInsertRowId, createdAt: now, updatedAt: now };
 }
 export async function updateDeviceWallet(userId: number, walletId: number, input: Partial<Pick<Wallet, "name" | "type" | "allowNegative">>): Promise<Wallet> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db); const current = await getDeviceWallet(userId, walletId); if (!current) throw new Error("Wallet not found.");
   const name = input.name?.trim() || current.name; const type = input.type ?? current.type; const allowNegative = input.allowNegative == null ? current.allowNegative : input.allowNegative;
+  if (typeof name !== "string" || !name.trim()) throw new Error("Wallet name cannot be empty.");
+  if (!["cash", "bank", "ewallet", "credit_card", "savings", "investment", "other_asset", "receivable", "payable"].includes(type)) throw new Error("Invalid wallet type.");
+  if (allowNegative !== 0 && allowNegative !== 1) throw new Error("Invalid wallet negative-balance flag.");
   await db.runAsync("UPDATE wallets SET name = ?, type = ?, allow_negative = ?, updated_at = ? WHERE user_id = ? AND id = ?", name, type, allowNegative, new Date().toISOString(), userId, walletId);
   const updated = await getDeviceWalletWithBalance(userId, walletId);
   if (!updated) throw new Error("Wallet not found after update.");
   return updated;
 }
 export async function archiveDeviceWallet(userId: number, walletId: number): Promise<Wallet> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db); const current = await getDeviceWallet(userId, walletId); if (!current) throw new Error("Wallet not found.");
   await db.runAsync("UPDATE wallets SET is_archived = 1, updated_at = ? WHERE user_id = ? AND id = ?", new Date().toISOString(), userId, walletId);
   const archived = await getDeviceWalletWithBalance(userId, walletId);
@@ -268,6 +498,8 @@ export async function archiveDeviceWallet(userId: number, walletId: number): Pro
 }
 
 export async function restoreDeviceWallet(userId: number, walletId: number): Promise<Wallet> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const current = await getDeviceWallet(userId, walletId);
   if (!current) throw new Error("Wallet not found.");
@@ -284,6 +516,8 @@ export async function restoreDeviceWallet(userId: number, walletId: number): Pro
 }
 
 export async function deleteArchivedDeviceWallet(userId: number, walletId: number): Promise<void> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase();
   await migrateDatabase(db);
   await db.withTransactionAsync(async () => {
@@ -308,8 +542,9 @@ export async function deleteArchivedDeviceWallet(userId: number, walletId: numbe
   });
 }
 export async function listDeviceTransactions(userId: number): Promise<Transaction[]> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
-  const rows = await db.getAllAsync(`SELECT * FROM transactions WHERE user_id = ? ORDER BY occurred_at DESC`, userId); return rows.map(transactionFromRow);
+  const rows = await db.getAllAsync(`SELECT * FROM transactions WHERE user_id = ? ORDER BY occurred_at DESC, id DESC`, userId); return rows.map(transactionFromRow);
 }
 
 const BALANCE_EFFECT_SQL = `
@@ -341,6 +576,8 @@ export async function getDeviceWalletBalanceFromDatabase(
   userId: number,
   walletId: number,
 ): Promise<number> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const row = await db.getFirstAsync<{ opening_balance: number; balance_effect: number | null }>(
     `SELECT w.opening_balance, COALESCE(e.balance_effect, 0) AS balance_effect
      FROM wallets w
@@ -371,11 +608,14 @@ export async function getDeviceWalletBalanceFromDatabase(
 }
 
 export async function getDeviceWalletBalance(userId: number, walletId: number): Promise<number> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
+  if (!Number.isSafeInteger(walletId) || walletId <= 0) throw new Error("Invalid wallet id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   return getDeviceWalletBalanceFromDatabase(db, userId, walletId);
 }
 
 export async function listDeviceWalletsWithBalances(userId: number): Promise<(Wallet & { balance: number })[]> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) throw new Error("Invalid user id.");
   const db = await getDeviceDatabase(); await migrateDatabase(db);
   const rows = await db.getAllAsync(
     `SELECT w.*, w.opening_balance + COALESCE(e.balance_effect, 0) AS balance
@@ -389,19 +629,55 @@ export async function listDeviceWalletsWithBalances(userId: number): Promise<(Wa
 }
 
 function validateTransactionInput(input: Omit<Transaction, "id" | "createdAt" | "updatedAt">) {
+  if (!Number.isSafeInteger(input.userId) || input.userId <= 0) throw new Error("Invalid user id.");
   if (!Number.isSafeInteger(input.amount) || input.amount <= 0) throw new Error("Transaction amount must be a positive integer.");
+  if (input.type !== "income" && input.type !== "expense" && input.type !== "transfer") {
+    throw new Error("Invalid transaction type.");
+  }
+  if (typeof input.currency !== "string" || !/^[A-Z]{3}$/.test(input.currency)) {
+    throw new Error("Invalid transaction currency.");
+  }
+  if (!(input.occurredAt instanceof Date) || Number.isNaN(input.occurredAt.getTime())) {
+    throw new Error("Transaction date is invalid.");
+  }
+  if (input.categoryId != null && (!Number.isSafeInteger(input.categoryId) || input.categoryId <= 0)) {
+    throw new Error("Invalid category id.");
+  }
+  if (input.walletId != null && (!Number.isSafeInteger(input.walletId) || input.walletId <= 0)) {
+    throw new Error("Invalid wallet id.");
+  }
+  if (input.sourceWalletId != null && (!Number.isSafeInteger(input.sourceWalletId) || input.sourceWalletId <= 0)) {
+    throw new Error("Invalid source wallet id.");
+  }
+  if (input.destinationWalletId != null && (!Number.isSafeInteger(input.destinationWalletId) || input.destinationWalletId <= 0)) {
+    throw new Error("Invalid destination wallet id.");
+  }
+  if (input.note != null && typeof input.note !== "string") {
+    throw new Error("Invalid transaction note.");
+  }
   if (input.type === "transfer") {
+    if (input.sourceWalletId == null || !Number.isSafeInteger(input.sourceWalletId) || input.sourceWalletId <= 0) {
+      throw new Error("Invalid source wallet id.");
+    }
+    if (input.currency !== input.currency.trim()) throw new Error("Invalid transaction currency.");
+    if (input.currency !== input.currency.toUpperCase()) throw new Error("Invalid transaction currency.");
+    if (input.destinationWalletId == null || !Number.isSafeInteger(input.destinationWalletId) || input.destinationWalletId <= 0) {
+      throw new Error("Invalid destination wallet id.");
+    }
     if (input.walletId != null || input.categoryId != null) throw new Error("Transfer must use source and destination wallets.");
-    if (input.sourceWalletId == null || input.destinationWalletId == null) throw new Error("Transfer requires source and destination wallets.");
     if (input.sourceWalletId === input.destinationWalletId) throw new Error("Transfer wallets must be different.");
   } else {
-    if (input.walletId == null) throw new Error("Income and expense require a wallet.");
+    if (input.walletId == null || !Number.isSafeInteger(input.walletId) || input.walletId <= 0) {
+      throw new Error("Invalid wallet id.");
+    }
     if (input.sourceWalletId != null || input.destinationWalletId != null) throw new Error("Income and expense cannot use transfer wallets.");
   }
 }
 export async function createDeviceTransaction(input: Omit<Transaction, "id" | "createdAt" | "updatedAt">): Promise<Transaction> {
   const db = await getDeviceDatabase(); await migrateDatabase(db); validateTransactionInput(input);
-  const now = new Date(); const occurredAt = input.occurredAt ?? now; let transaction: Transaction;
+  const now = new Date();
+  const occurredAt = input.occurredAt ?? now;
+  let transaction: Transaction;
   await db.withTransactionAsync(async () => {
     if (input.categoryId != null) {
       const category = await db.getFirstAsync<{ id: number; type: string; is_archived: number }>(
@@ -450,6 +726,9 @@ export async function createDeviceTransaction(input: Omit<Transaction, "id" | "c
       }
     }
     const result = await db.runAsync(`INSERT INTO transactions (user_id, type, amount, currency, wallet_id, source_wallet_id, destination_wallet_id, category_id, note, occurred_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, input.userId, input.type, input.amount, input.currency, input.walletId, input.sourceWalletId, input.destinationWalletId, input.categoryId, input.note, occurredAt.toISOString(), now.toISOString(), now.toISOString());
+    if (!Number.isSafeInteger(result.lastInsertRowId) || result.lastInsertRowId <= 0) {
+      throw new Error("Invalid inserted transaction id.");
+    }
     transaction = { ...input, id: result.lastInsertRowId, createdAt: now, updatedAt: now, occurredAt };
   });
   DeviceEventEmitter.emit(DEVICE_TRANSACTIONS_CHANGED_EVENT, transaction!); return transaction!;

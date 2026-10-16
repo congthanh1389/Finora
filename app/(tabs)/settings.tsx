@@ -1,16 +1,110 @@
 import { useRouter } from "expo-router";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
+import { localLogin } from "@/lib/_core/auth";
+import { clearDeviceFinancialData } from "@/src/core/storage/device-store";
+
+type SettingRowProps = {
+  icon: keyof typeof Feather.glyphMap;
+  title: string;
+  subtitle?: string;
+  onPress: () => void;
+  danger?: boolean;
+  trailing?: string;
+};
+
+function SettingRow({ icon, title, subtitle, onPress, danger = false, trailing = "›" }: SettingRowProps) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.75}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      style={{ flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 14 }}
+    >
+      <View style={{
+        width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center",
+        backgroundColor: danger ? "#FFF1F2" : "#ECFDF5", marginRight: 12,
+      }}>
+        <Feather name={icon} size={20} color={danger ? "#BE123C" : "#138363"} strokeWidth={2} />
+      </View>
+      <View style={{ flex: 1, paddingRight: 8 }}>
+        <Text style={{ color: danger ? "#BE123C" : "#172033", fontSize: 15, fontWeight: "700" }}>{title}</Text>
+        {subtitle ? <Text style={{ color: "#7B8798", fontSize: 12, marginTop: 4, lineHeight: 17 }}>{subtitle}</Text> : null}
+      </View>
+      {trailing === "v1.0" ? <Text style={{ color: "#94A3B8", fontSize: 11, fontWeight: "700" }}>{trailing}</Text> : <Feather name="chevron-right" size={20} color={danger ? "#E11D48" : "#94A3B8"} /> }
+    </TouchableOpacity>
+  );
+}
+
+function SettingsGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <View style={{ marginTop: 22 }}>
+      <Text style={{ marginBottom: 9, marginLeft: 4, color: "#64748B", fontSize: 12, fontWeight: "800", letterSpacing: 1 }}>
+        {title.toLocaleUpperCase("vi-VN")}
+      </Text>
+      <View style={{ overflow: "hidden", borderRadius: 22, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E8EEF3" }}>
+        {children}
+      </View>
+    </View>
+  );
+}
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { user } = useAuth();
-  const displayName = user?.name?.trim() || "Người dùng Finora";
-  const email = user?.email?.trim() || "Chưa có thông tin tài khoản";
-  const initials = (user?.name || user?.email || "F").trim().charAt(0).toUpperCase();
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/login" as never);
+  };
+
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [password, setPassword] = useState("");
+  const [verifyingPassword, setVerifyingPassword] = useState(false);
+
+  const handleClearFinancialData = () => {
+    if (!user?.id || !user?.email) {
+      Alert.alert("Chưa có tài khoản", "Vui lòng đăng nhập trước khi xóa dữ liệu tài chính.");
+      return;
+    }
+    setPassword("");
+    setPasswordModalVisible(true);
+  };
+
+  const handleVerifyPassword = async () => {
+    if (!user?.email || !user?.id || !password.trim() || verifyingPassword) return;
+    setVerifyingPassword(true);
+    try {
+      await localLogin(user.email, password);
+      setPasswordModalVisible(false);
+      setPassword("");
+      Alert.alert(
+        "Xác nhận xóa dữ liệu tài chính?",
+        "Toàn bộ giao dịch, ví, danh mục và ngân sách sẽ bị xóa. Tài khoản đăng nhập vẫn được giữ lại.",
+        [
+          { text: "Hủy", style: "cancel" },
+          {
+            text: "Xóa dữ liệu",
+            style: "destructive",
+            onPress: () => {
+              void clearDeviceFinancialData(user.id)
+                .then(() => Alert.alert("Đã xóa", "Dữ liệu tài chính đã được xóa."))
+                .catch((error) => Alert.alert("Không thể xóa", error instanceof Error ? error.message : "Đã xảy ra lỗi."));
+            },
+          },
+        ],
+      );
+    } catch {
+      Alert.alert("Mật khẩu không đúng", "Vui lòng nhập đúng mật khẩu. Dữ liệu chưa bị xóa.");
+    } finally {
+      setVerifyingPassword(false);
+    }
+  };
 
   return (
     <ScreenContainer className="bg-[#F5F8F7]">
@@ -28,39 +122,94 @@ export default function SettingsScreen() {
         <View style={{ borderRadius: 26, padding: 19, backgroundColor: "#123E36", overflow: "hidden" }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={{ width: 54, height: 54, borderRadius: 19, backgroundColor: "#D4F6E6", alignItems: "center", justifyContent: "center", marginRight: 13 }}>
-              <Text style={{ color: "#12664D", fontSize: 24, fontWeight: "800" }}>{initials}</Text>
+              <Text style={{ color: "#12664D", fontSize: 24, fontWeight: "800" }}>
+                {(user?.name || user?.email || "F").trim().charAt(0).toUpperCase()}
+              </Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: "#BDEBD8", fontSize: 12, fontWeight: "700" }}>TÀI KHOẢN CỦA BẠN</Text>
-              <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800", marginTop: 5 }}>{displayName}</Text>
-              <Text numberOfLines={1} style={{ color: "#D1E6DE", fontSize: 12, marginTop: 3 }}>{email}</Text>
+              <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800", marginTop: 5 }}>
+                {user?.name || "Người dùng Finora"}
+              </Text>
+              <Text numberOfLines={1} style={{ color: "#D1E6DE", fontSize: 12, marginTop: 3 }}>
+                {user?.email ?? "Chưa có thông tin tài khoản"}
+              </Text>
             </View>
           </View>
           <View style={{ marginTop: 17, paddingTop: 14, borderTopWidth: 1, borderTopColor: "#326257" }}>
-            <Text style={{ color: "#D1E6DE", fontSize: 12, lineHeight: 18 }}>Quản lý thông tin đăng nhập và các thiết lập của bạn tại đây.</Text>
+            <Text style={{ color: "#D1E6DE", fontSize: 12, lineHeight: 18 }}>Quản lý thông tin đăng nhập và các thiết lập tài chính của bạn tại đây.</Text>
           </View>
         </View>
 
-        <Text style={{ marginTop: 26, marginBottom: 9, marginLeft: 4, color: "#64748B", fontSize: 12, fontWeight: "800", letterSpacing: 1 }}>TÀI KHOẢN</Text>
-        <View style={{ overflow: "hidden", borderRadius: 22, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E8EEF3" }}>
-          <TouchableOpacity onPress={() => router.push("/account-information" as never)} activeOpacity={0.75} accessibilityRole="button" accessibilityLabel="Thông tin tài khoản" style={{ flexDirection: "row", alignItems: "center", paddingVertical: 15, paddingHorizontal: 14 }}>
-            <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: "#ECFDF5", alignItems: "center", justifyContent: "center", marginRight: 12 }}>
-              <Feather name="user" size={20} color="#138363" />
-            </View>
-            <View style={{ flex: 1, paddingRight: 8 }}>
-              <Text style={{ color: "#172033", fontSize: 15, fontWeight: "700" }}>Thông tin tài khoản</Text>
-              <Text style={{ color: "#7B8798", fontSize: 12, marginTop: 4 }}>Hồ sơ, bảo mật và phiên đăng nhập</Text>
-            </View>
-            <Feather name="chevron-right" size={20} color="#94A3B8" />
-          </TouchableOpacity>
-        </View>
+        <SettingsGroup title="Tài khoản">
+          <SettingRow icon="user" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => Alert.alert("Thông tin tài khoản", user?.email ?? "Chưa có thông tin tài khoản")} />
+          <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
+          <SettingRow icon="shield" title="Danh sách tài khoản" subtitle="Quản lý tài khoản đã lưu trên thiết bị" onPress={() => router.push("/account-list" as never)} />
+        </SettingsGroup>
 
-        <View style={{ marginTop: 22, padding: 16, borderRadius: 18, backgroundColor: "#EAF7F0", flexDirection: "row", alignItems: "flex-start" }}>
-          <Feather name="shield" size={18} color="#138363" style={{ marginRight: 10, marginTop: 1 }} />
-          <Text style={{ flex: 1, color: "#35695A", fontSize: 12, lineHeight: 18 }}>Các thao tác bảo mật và dữ liệu sẽ được tích hợp theo từng bước để bảo vệ tài khoản và dữ liệu tài chính của bạn.</Text>
-        </View>
-        <Text style={{ textAlign: "center", color: "#9AA6A3", fontSize: 11, marginTop: 24 }}>FINORA · Tài chính rõ ràng, cuộc sống an tâm</Text>
+        <SettingsGroup title="Quản lý tài chính">
+          <SettingRow icon="tag" title="Danh mục thu chi" subtitle="Tùy chỉnh nhóm thu nhập và chi tiêu" onPress={() => router.push("/category" as never)} />
+          <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
+          <SettingRow icon="sliders" title="Thiết lập tài chính" subtitle="Ví, ngân sách và các thiết lập liên quan" onPress={() => Alert.alert("Thiết lập tài chính", "Các tùy chọn nâng cao sẽ được bổ sung ở bước tiếp theo.")} />
+        </SettingsGroup>
+
+        <SettingsGroup title="Ứng dụng">
+          <SettingRow icon="droplet" title="Giao diện" subtitle="Màu sắc và chế độ hiển thị" onPress={() => Alert.alert("Giao diện", "Tùy chỉnh giao diện sẽ được bổ sung ở bước tiếp theo.")} />
+          <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
+          <SettingRow icon="life-buoy" title="Trợ giúp & hỗ trợ" subtitle="Hướng dẫn sử dụng Finora" onPress={() => Alert.alert("Trợ giúp & hỗ trợ", "Trung tâm trợ giúp sẽ được bổ sung ở bước tiếp theo.")} />
+          <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
+          <SettingRow icon="info" title="Về Finora" subtitle="Thông tin ứng dụng" onPress={() => Alert.alert("Finora", "Ứng dụng quản lý tài chính cá nhân.")} trailing="v1.0" />
+        </SettingsGroup>
+
+        <SettingsGroup title="Khu vực nguy hiểm">
+          <SettingRow icon="trash-2" title="Xóa dữ liệu tài chính" subtitle="Xóa ví, giao dịch, danh mục và ngân sách trên thiết bị" onPress={handleClearFinancialData} danger />
+        </SettingsGroup>
+
+        <TouchableOpacity
+          onPress={handleLogout}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Đăng xuất"
+          style={{ marginTop: 22, minHeight: 54, borderRadius: 18, borderWidth: 1, borderColor: "#F3C8CC", backgroundColor: "#FFF7F7", flexDirection: "row", alignItems: "center", justifyContent: "center" }}
+        >
+          <Feather name="log-out" size={17} color="#BE123C" style={{ marginRight: 9 }} />
+          <Text style={{ color: "#BE123C", fontSize: 15, fontWeight: "800" }}>Đăng xuất</Text>
+        </TouchableOpacity>
+        <Text style={{ textAlign: "center", color: "#9AA6A3", fontSize: 11, marginTop: 20 }}>FINORA · Tài chính rõ ràng, cuộc sống an tâm</Text>
       </ScrollView>
-    </ScreenContainer>
+        <Modal
+          visible={passwordModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => { setPasswordModalVisible(false); setPassword(""); }}
+        >
+          <View style={{ flex: 1, justifyContent: "center", padding: 24, backgroundColor: "rgba(15, 23, 42, 0.48)" }}>
+            <View style={{ backgroundColor: "#FFFFFF", borderRadius: 24, padding: 22 }}>
+              <Text style={{ color: "#123E36", fontSize: 20, fontWeight: "800" }}>Xác thực mật khẩu</Text>
+              <Text style={{ color: "#64748B", fontSize: 14, lineHeight: 21, marginTop: 9 }}>Nhập mật khẩu đăng nhập để tiếp tục.</Text>
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Mật khẩu đăng nhập"
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!verifyingPassword}
+                returnKeyType="done"
+                onSubmitEditing={handleVerifyPassword}
+                style={{ marginTop: 18, borderWidth: 1, borderColor: "#D7E5DF", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, color: "#172033" }}
+              />
+              <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 20 }}>
+                <TouchableOpacity disabled={verifyingPassword} onPress={() => { setPasswordModalVisible(false); setPassword(""); }} style={{ padding: 12, marginRight: 8 }}>
+                  <Text style={{ color: "#64748B", fontWeight: "700" }}>Hủy</Text>
+                </TouchableOpacity>
+                <TouchableOpacity disabled={!password || verifyingPassword} onPress={() => void handleVerifyPassword()} style={{ paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, backgroundColor: !password || verifyingPassword ? "#94A3B8" : "#138363" }}>
+                  <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{verifyingPassword ? "Đang xác thực..." : "Xác thực"}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </ScreenContainer>
   );
 }

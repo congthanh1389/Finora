@@ -3,22 +3,17 @@ import { useFocusEffect } from "expo-router";
 
 import * as Auth from "@/lib/_core/auth";
 import type { User } from "@/lib/_core/auth";
-import { DeviceTransactionRepository } from "../repository/device-transaction.repository";
-import { TransactionService } from "../service/transaction.service";
+import { createTransactionDependencies } from "../transaction.factory";
 import type { TransactionSummary } from "../types/transaction.types";
 import type { WalletSummary } from "../../wallet/types/wallet.types";
-import { CategoryRepository } from "../../category/repository/category.repository";
-import { DeviceWalletRepository } from "../../wallet/repository/device-wallet.repository";
-import { WalletService } from "../../wallet/service/wallet.service";
-
-type CategoryItem = Awaited<ReturnType<CategoryRepository["listByUser"]>>[number];
+import type { Category } from "../../../../drizzle/schema";
 
 export function useTransactionViewModel(initialType: "income" | "expense" = "expense") {
   const [type, setType] = useState<"income" | "expense">(initialType);
   const [amount, setAmount] = useState("");
   const [walletId, setWalletId] = useState<number | null>(null);
   const [category, setCategory] = useState("");
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [note, setNote] = useState("");
   const [wallets, setWallets] = useState<WalletSummary[]>([]);
   const [transactions, setTransactions] = useState<TransactionSummary[]>([]);
@@ -28,23 +23,16 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
   const [createError, setCreateError] = useState<Error | null>(null);
   const [, setUser] = useState<User | null>(null);
 
-  const walletRepository = useMemo(() => new DeviceWalletRepository(), []);
-  const categoryRepository = useMemo(() => new CategoryRepository(), []);
-  const walletService = useMemo(() => new WalletService(walletRepository), [walletRepository]);
-  const transactionRepository = useMemo(() => new DeviceTransactionRepository(), []);
-  const transactionService = useMemo(
-    () => new TransactionService(transactionRepository),
-    [transactionRepository],
-  );
+  const dependencies = useMemo(() => createTransactionDependencies(), []);
 
 
   const loadCategories = useCallback(async (userId: number, transactionType: "income" | "expense") => {
-    const all = await categoryRepository.listByUser(userId, transactionType);
+    const all = await dependencies.categoryService.listCategories(userId, transactionType);
     const matching = all.filter((item) => item.type === transactionType && item.isArchived === 0);
     setCategories(matching);
     setCategory((current) => matching.some((item) => item.name === current) ? current : "");
     return matching;
-  }, [categoryRepository]);
+  }, [dependencies.categoryService]);
 
   const loadWallets = useCallback(async () => {
     try {
@@ -56,14 +44,14 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
         setWallets([]);
         return;
       }
-      const walletList = await walletService.listWallets(currentUser.id);
+      const walletList = await dependencies.walletService.listWallets(currentUser.id);
       setWallets(walletList.filter((wallet) => !wallet.isArchived));
     } catch (err) {
       setWalletsError(err instanceof Error ? err : new Error("Không thể tải danh sách ví."));
     } finally {
       setLoadingWallets(false);
     }
-  }, [walletService]);
+  }, [dependencies.walletService]);
 
   useFocusEffect(
     useCallback(() => {
@@ -107,7 +95,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
         throw new Error("Không tìm thấy người dùng hiện tại.");
       }
 
-      const currentWallets = (await walletService.listWallets(currentUser.id)).filter(
+      const currentWallets = (await dependencies.walletService.listWallets(currentUser.id)).filter(
         (wallet) => !wallet.isArchived,
       );
       const matchingCategories = await loadCategories(currentUser.id, transactionType);
@@ -127,7 +115,7 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
         );
       }
 
-      const transaction = await transactionService.createTransaction({
+      const transaction = await dependencies.transactionService.createTransaction({
         userId: currentUser.id,
         type: transactionType,
         amount: parsedAmount,

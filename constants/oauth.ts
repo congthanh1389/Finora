@@ -27,28 +27,21 @@ export const OWNER_OPEN_ID = env.ownerId;
 export const OWNER_NAME = env.ownerName;
 export const API_BASE_URL = env.apiBaseUrl;
 
-/**
- * Get the API base URL, deriving from current hostname if not set.
- * Metro runs on 8081, API server runs on 3000.
- * URL pattern: https://PORT-sandboxid.region.domain
- */
+/** Get the API base URL supplied by the current development/build environment. */
 export function getApiBaseUrl(): string {
-  // If API_BASE_URL is set, use it
   if (API_BASE_URL) {
     return API_BASE_URL.replace(/\/$/, "");
   }
 
-  // On web, derive from current hostname by replacing port 8081 with 3000
-  if (ReactNative.Platform.OS === "web" && typeof window !== "undefined" && window.location) {
-    const { protocol, hostname } = window.location;
-    // Pattern: 8081-sandboxid.region.domain -> 3000-sandboxid.region.domain
-    const apiHostname = hostname.replace(/^8081-/, "3000-");
-    if (apiHostname !== hostname) {
-      return `${protocol}//${apiHostname}`;
-    }
+  if (ReactNative.Platform.OS === "android") {
+    return "";
   }
 
-  // Fallback to empty (will use relative URL)
+  if (ReactNative.Platform.OS === "web" && typeof window !== "undefined" && window.location) {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}`;
+  }
+
   return "";
 }
 
@@ -83,11 +76,7 @@ export const getRedirectUri = () => {
 
 export const getLoginUrl = () => {
   if (!OAUTH_PORTAL_URL || !APP_ID) {
-    const missing = [
-      !OAUTH_PORTAL_URL ? "URL cổng đăng nhập (MANUS_OAUTH_PORTAL_URL)" : null,
-      !APP_ID ? "App ID (MANUS_PROJECT_ID)" : null,
-    ].filter(Boolean);
-    throw new Error(`Thiếu cấu hình đăng nhập: ${missing.join(" và ")}. Kiểm tra file .env và khởi động lại Expo.`);
+    throw new Error("Manus login configuration is unavailable");
   }
   const redirectUri = getRedirectUri();
   const state = encodeState(redirectUri);
@@ -115,26 +104,23 @@ export async function startOAuthLogin(): Promise<string | null> {
   const loginUrl = getLoginUrl();
 
   if (ReactNative.Platform.OS === "web") {
-    // On web, just redirect
     if (typeof window !== "undefined") {
       window.location.href = loginUrl;
     }
     return null;
   }
 
-  // Avoid canOpenURL preflight: Android may report HTTPS handlers unavailable
-  // even when the system browser can open the URL.
-  try {
-    await Linking.openURL(loginUrl);
-  } catch (error) {
-    console.error("[OAuth] Failed to open login URL");
-    throw new Error(
-      error instanceof Error
-        ? `Không mở được cổng đăng nhập: ${error.message}`
-        : "Không mở được cổng đăng nhập. Vui lòng thử lại.",
-    );
+  const supported = await Linking.canOpenURL(loginUrl);
+  if (!supported) {
+    console.warn("[OAuth] Cannot open login URL: URL scheme not supported");
+    return null;
   }
 
-  // The OAuth callback will reopen the app via deep link.
+  try {
+    await Linking.openURL(loginUrl);
+  } catch {
+    console.error("[OAuth] Failed to open login URL");
+  }
+
   return null;
 }

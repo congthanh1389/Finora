@@ -33,8 +33,10 @@ export interface IWalletRepository {
 export interface ICategoryRepository {
   create(input: NewCategory): Promise<Category>;
   listByUser(userId: number, type?: Category["type"]): Promise<Category[]>;
-  update(userId: number, categoryId: number, name: string): Promise<Category>;
+  update(userId: number, categoryId: number, name: string, icon?: string): Promise<Category>;
   archive(userId: number, categoryId: number): Promise<Category>;
+  restore(userId: number, categoryId: number): Promise<Category>;
+  delete(userId: number, categoryId: number): Promise<void>;
 }
 
 export interface ITransactionRepository {

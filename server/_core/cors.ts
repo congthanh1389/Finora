@@ -7,7 +7,10 @@ LOOPBACK_IPS.addAddress("::1", "ipv6");
 LOOPBACK_IPS.addSubnet("::ffff:127.0.0.0", 104, "ipv6");
 
 function configuredOrigin(name: "EXPO_PACKAGER_PROXY_URL" | "EXPO_WEB_PREVIEW_URL"): string | null {
-  const value = process.env[name];
+  const value =
+    name === "EXPO_PACKAGER_PROXY_URL"
+      ? process.env.EXPO_PACKAGER_PROXY_URL
+      : process.env.EXPO_WEB_PREVIEW_URL;
   if (!value) return null;
   try {
     const url = new URL(value);
@@ -69,8 +72,9 @@ function originHasLoopbackHostname(origin: string): boolean {
 
 function configuredLocalExpoWebOrigins(): Set<string> {
   const origins = new Set<string>();
-  for (const name of ["EXPO_PACKAGER_PROXY_URL", "EXPO_WEB_PREVIEW_URL"] as const) {
-    const origin = configuredOrigin(name);
+  const packager = configuredOrigin("EXPO_PACKAGER_PROXY_URL");
+  const preview = configuredOrigin("EXPO_WEB_PREVIEW_URL");
+  for (const origin of [packager, preview]) {
     if (!origin) continue;
     const url = new URL(origin);
     if (url.protocol === "http:" && isLoopbackApiHost(url.hostname)) origins.add(origin);

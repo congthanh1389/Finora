@@ -70,3 +70,11 @@ Thumbs.db
 
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
+
+# Finora local runtime data
+server/.data/
+
+# Local secrets - never commit
+.env
+.env.*
+!.env.example

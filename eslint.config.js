@@ -5,16 +5,6 @@ import expoConfig from "eslint-config-expo/flat.js";
 export default defineConfig([
   expoConfig,
   {
-    settings: {
-      "import/resolver": {
-        typescript: {
-          project: "./tsconfig.json",
-        },
-        node: {
-          extensions: [".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"],
-        },
-      },
-    },
     ignores: ["dist/*"],
   },
 ]);

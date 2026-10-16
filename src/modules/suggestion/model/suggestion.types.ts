@@ -1,0 +1,44 @@
+export type SuggestionType = "cash_flow" | "trend" | "category" | "budget" | "wallet";
+export type SuggestionSeverity = "positive" | "info" | "warning";
+
+export type Suggestion = {
+  id: string;
+  type: SuggestionType;
+  severity: SuggestionSeverity;
+  priority: number;
+  title: string;
+  description: string;
+};
+
+export type SuggestionInput = {
+  income: number;
+  expense: number;
+  previousIncome: number;
+  previousExpense: number;
+  savingsRate: number;
+  previousSavingsRate: number;
+  categories: {
+    categoryId: number | null;
+    name: string;
+    amount: number;
+    percentage: number;
+  }[];
+  budgets: {
+    budgetId: number;
+    categoryName: string;
+    limit: number;
+    spent: number;
+    percentageUsed: number;
+    isOverBudget: boolean;
+  }[];
+  wallets: {
+    walletId: number;
+    name: string;
+    expense: number;
+    balance: number;
+  }[];
+};
+
+export type SuggestionEngineOptions = {
+  limit?: number;
+};

@@ -1,7 +1,9 @@
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { FinoraAssetIcon, categoryIconName, walletIconName } from "@/components/ui/finora-asset-icons";
+import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
+import { CategoryIcon } from "@/components/ui/category-icons";
+import { resolveCategoryIconName } from "../../category/utils/category-icon-resolver";
 import { ScreenContainer } from "@/components/screen-container";
 import { useTransactionViewModel } from "../viewmodel/use-transaction-view-model";
 import { useTransferViewModel } from "../viewmodel/use-transfer-view-model";
@@ -95,7 +97,7 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
                 <Text className="text-base font-bold text-[#0F2A5F]">{isIncome ? "Nguồn thu nhập" : "Danh mục chi tiêu"}</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3" contentContainerStyle={{ gap: 8 }}>
                   {options.map((item) => <Pressable key={item.id} onPress={() => vm.setCategory(item.name)} className={`w-[92px] items-center rounded-2xl border p-3 ${vm.category === item.name ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0]"}`}>
-                    <FinoraAssetIcon name={categoryIconName(item.name, isIncome ? "income" : "expense")} width={42} height={42} />
+                    <CategoryIcon name={resolveCategoryIconName(item.icon)} size={34} />
                     <Text className="mt-2 text-center text-xs font-semibold text-[#334155]">{item.name}</Text>
                   </Pressable>)}
                   {options.length === 0 ? <View className="w-full py-3"><Text className="text-sm text-[#64748B]">Chưa có mục nào. Hãy tạo mục trong Cài đặt → Danh mục.</Text></View> : null}
@@ -106,7 +108,7 @@ export function TransactionView({ initialType: initialTypeProp }: TransactionVie
                 <Text className="text-base font-bold text-[#0F2A5F]">{isIncome ? "Ví nhận tiền" : "Ví"}</Text>
                 {vm.isLoadingWallets ? <ActivityIndicator className="mt-4" /> : vm.wallets.length === 0 ? <Text className="mt-3 text-sm text-[#64748B]">Bạn cần thêm ví trước khi ghi giao dịch.</Text> : <View className="mt-3 gap-2">
                   {vm.wallets.map((wallet) => <Pressable key={wallet.id} onPress={() => vm.setWalletId(wallet.id)} className={`flex-row items-center rounded-2xl border p-3 ${(vm.walletId ?? vm.wallets[0]?.id) === wallet.id ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0]"}`}>
-                    <FinoraAssetIcon name={walletIconName(wallet.type)} width={42} height={42} />
+                    <FinoraMockupIcon name="01_finance_wallet" size={34} />
                     <View className="ml-3 flex-1"><Text className="font-bold text-[#0F2A5F]">{wallet.name}</Text><Text className="mt-0.5 text-xs text-[#64748B]">{wallet.currency}</Text></View>
                     <Text className="text-sm font-bold text-[#0F172A]">Số dư: {new Intl.NumberFormat("vi-VN").format(wallet.balance)} ₫</Text>
                   </Pressable>)}
