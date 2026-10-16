@@ -379,35 +379,42 @@ export async function localLogout(): Promise<void> {
  * Financial records remain associated with userId in the local database.
  */
 export async function localRemoveSavedAccount(userId: number): Promise<void> {
-  const normalizedUserId = Number(userId);
-  if (!Number.isSafeInteger(normalizedUserId) || normalizedUserId <= 0) {
-    throw new Error("Tài khoản không hợp lệ.");
-  }
-
-  let accounts: LocalAccount[];
+  let stage = "validate account ID";
   try {
-    accounts = await readAccounts();
-  } catch (error) {
-    throw new Error(`Không đọc được dữ liệu tài khoản: ${error instanceof Error ? error.message : String(error)}`);
-  }
-
-  const selected = accounts.find((account) => Number(account.id) === normalizedUserId);
-  if (!selected) {
-    throw new Error("Không tìm thấy tài khoản trong danh sách đã lưu. Hãy tải lại danh sách rồi thử lại.");
-  }
-
-  const remaining = accounts.filter((account) => Number(account.id) !== normalizedUserId);
-  await writeAccounts(remaining);
-
-  // Removing a saved login must never delete wallets, transactions, budgets, or categories.
-  try {
-    const token = await getSessionToken();
-    if (token === `local-session-${normalizedUserId}`) {
-      await removeSessionToken();
-      await clearUserInfo();
+    const normalizedUserId = Number(userId);
+    if (!Number.isSafeInteger(normalizedUserId) || normalizedUserId <= 0) {
+      throw new Error("Tài khoản không hợp lệ.");
     }
+
+    stage = "read saved accounts";
+    const accounts = await readAccounts();
+
+    stage = "find selected account";
+    const selected = accounts.find((account) => Number(account.id) === normalizedUserId);
+    if (!selected) {
+      throw new Error("Không tìm thấy tài khoản trong danh sách đã lưu. Hãy tải lại danh sách rồi thử lại.");
+    }
+
+    stage = "write remaining saved accounts";
+    const remaining = accounts.filter((account) => Number(account.id) !== normalizedUserId);
+    await writeAccounts(remaining);
+
+    // Removing a saved login must never delete wallets, transactions, budgets, or categories.
+    stage = "clean up active session";
+    try {
+      const token = await getSessionToken();
+      if (token === `local-session-${normalizedUserId}`) {
+        await removeSessionToken();
+        await clearUserInfo();
+      }
+    } catch (error) {
+      console.warn("[Auth] Account was removed from the saved list, but session cleanup failed.", error);
+    }
+    console.log("[Auth] Saved account removed from this device.", normalizedUserId);
   } catch (error) {
-    console.warn("[Auth] Account was removed from the saved list, but session cleanup failed.", error);
+    const detail = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : undefined;
+    console.error("[Auth] Failed to remove saved account at stage:", stage, detail, stack);
+    throw new Error(`Lỗi khi gỡ tài khoản tại bước "${stage}": ${detail}`);
   }
-  console.log("[Auth] Saved account removed from this device.", normalizedUserId);
 }
