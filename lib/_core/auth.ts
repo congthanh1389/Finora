@@ -127,35 +127,149 @@ export async function clearUserInfo(): Promise<void> {
 
 const LOCAL_ACCOUNT_KEY = "finora.local.account.v2";
 const LOCAL_ACCOUNTS_KEY = "finora.local.accounts.v3";
+const LOCAL_ACCOUNTS_INDEX_KEY = "finora.local.accounts.v4.index";
+const LOCAL_ACCOUNT_PREFIX = "finora.local.account.v4.";
 
 export type LocalAccount = User & { password: string };
 
-async function readAccounts(): Promise<LocalAccount[]> {
-  try {
-    const raw = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed as LocalAccount[];
-    }
-    const legacyRaw = await SecureStore.getItemAsync(LOCAL_ACCOUNT_KEY);
-    if (!legacyRaw) return [];
-    const legacy = JSON.parse(legacyRaw) as LocalAccount;
-    const accounts = [legacy];
-    await SecureStore.setItemAsync(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
-    return accounts;
-  } catch {
-    return [];
+function accountStorageKey(id: number): string {
+  return `${LOCAL_ACCOUNT_PREFIX}${id}`;
+}
+
+function normalizeLocalAccount(value: unknown): LocalAccount | null {
+  if (!value || typeof value !== "object") return null;
+  const item = value as Partial<LocalAccount>;
+  const id = Number(item.id);
+  if (!Number.isSafeInteger(id) || id <= 0 || typeof item.email !== "string" || typeof item.password !== "string") {
+    return null;
   }
+  const lastSignedIn = item.lastSignedIn instanceof Date
+    ? item.lastSignedIn
+    : new Date(item.lastSignedIn as unknown as string);
+  return {
+    id,
+    openId: typeof item.openId === "string" ? item.openId : `local_${id}`,
+    name: typeof item.name === "string" ? item.name : null,
+    email: item.email,
+    loginMethod: typeof item.loginMethod === "string" ? item.loginMethod : "local-password",
+    lastSignedIn: Number.isNaN(lastSignedIn.getTime()) ? new Date(0) : lastSignedIn,
+    password: item.password,
+  };
+}
+
+/**
+ * Account credentials are stored one account per SecureStore item.
+ * This avoids SecureStore's per-value size limit when several accounts are saved.
+ * The index contains only numeric IDs. Older v2/v3 data is migrated lazily.
+ */
+async function readAccounts(): Promise<LocalAccount[]> {
+  const indexRaw = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_INDEX_KEY);
+  if (indexRaw !== null) {
+    let ids: unknown;
+    try {
+      ids = JSON.parse(indexRaw);
+    } catch {
+      throw new Error("Danh sách tài khoản đã lưu bị lỗi định dạng. Dữ liệu tài chính không bị ảnh hưởng.");
+    }
+    if (!Array.isArray(ids)) {
+      throw new Error("Danh sách tài khoản đã lưu không hợp lệ. Dữ liệu tài chính không bị ảnh hưởng.");
+    }
+
+    const accounts: LocalAccount[] = [];
+    const seen = new Set<number>();
+    for (const rawId of ids) {
+      const id = Number(rawId);
+      if (!Number.isSafeInteger(id) || id <= 0 || seen.has(id)) continue;
+      seen.add(id);
+      const rawAccount = await SecureStore.getItemAsync(accountStorageKey(id));
+      if (!rawAccount) continue;
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(rawAccount);
+      } catch {
+        throw new Error(`Dữ liệu đăng nhập của tài khoản ID ${id} bị lỗi định dạng.`);
+      }
+      const account = normalizeLocalAccount(parsed);
+      if (account) accounts.push({ ...account, id });
+    }
+    return accounts;
+  }
+
+  // Migrate the previous single-list format into per-account SecureStore items.
+  const listRaw = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_KEY);
+  if (listRaw) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(listRaw);
+    } catch {
+      throw new Error("Không đọc được danh sách tài khoản đã lưu.");
+    }
+    if (!Array.isArray(parsed)) throw new Error("Danh sách tài khoản đã lưu không hợp lệ.");
+    const accounts = parsed.map(normalizeLocalAccount).filter((item): item is LocalAccount => item !== null);
+    await writeAccounts(accounts);
+    return accounts;
+  }
+
+  // Migrate the oldest single-account format.
+  const legacyRaw = await SecureStore.getItemAsync(LOCAL_ACCOUNT_KEY);
+  if (!legacyRaw) return [];
+  let legacyParsed: unknown;
+  try {
+    legacyParsed = JSON.parse(legacyRaw);
+  } catch {
+    throw new Error("Không đọc được tài khoản đã lưu theo định dạng cũ.");
+  }
+  const legacyAccount = normalizeLocalAccount(legacyParsed);
+  if (!legacyAccount) throw new Error("Tài khoản đã lưu theo định dạng cũ không hợp lệ.");
+  const accounts = [legacyAccount];
+  await writeAccounts(accounts);
+  return accounts;
 }
 
 async function writeAccounts(accounts: LocalAccount[]): Promise<void> {
-  // Save the authoritative list first. Removing the legacy key is cleanup only:
-  // a cleanup failure must not make a successful account-list update look like a failed delete.
-  await SecureStore.setItemAsync(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
-  try {
-    await SecureStore.deleteItemAsync(LOCAL_ACCOUNT_KEY);
-  } catch (error) {
-    console.warn("[Auth] Could not remove legacy local-account key; the current list is already saved.", error);
+  const normalized = accounts.map(normalizeLocalAccount);
+  if (normalized.some((item) => item === null)) {
+    throw new Error("Không thể lưu danh sách vì có thông tin tài khoản không hợp lệ.");
+  }
+  const validAccounts = normalized as LocalAccount[];
+  const ids = validAccounts.map((account) => Number(account.id));
+  if (ids.some((id) => !Number.isSafeInteger(id) || id <= 0) || new Set(ids).size !== ids.length) {
+    throw new Error("Danh sách tài khoản có ID không hợp lệ hoặc bị trùng.");
+  }
+
+  const previousIndexRaw = await SecureStore.getItemAsync(LOCAL_ACCOUNTS_INDEX_KEY);
+  let previousIds: number[] = [];
+  if (previousIndexRaw) {
+    try {
+      const parsed = JSON.parse(previousIndexRaw);
+      if (Array.isArray(parsed)) previousIds = parsed.map(Number).filter((id) => Number.isSafeInteger(id) && id > 0);
+    } catch {
+      // A malformed old index must not prevent writing a fresh authoritative index.
+    }
+  }
+
+  // Write every account first, then atomically switch the small index to the new list.
+  for (const account of validAccounts) {
+    await SecureStore.setItemAsync(accountStorageKey(account.id), JSON.stringify(account));
+  }
+  await SecureStore.setItemAsync(LOCAL_ACCOUNTS_INDEX_KEY, JSON.stringify(ids));
+
+  // Cleanup happens after the new index is committed; cleanup errors must not undo a successful removal.
+  for (const oldId of previousIds) {
+    if (!ids.includes(oldId)) {
+      try {
+        await SecureStore.deleteItemAsync(accountStorageKey(oldId));
+      } catch (error) {
+        console.warn("[Auth] Could not clean up removed saved-account credentials.", error);
+      }
+    }
+  }
+  for (const legacyKey of [LOCAL_ACCOUNTS_KEY, LOCAL_ACCOUNT_KEY]) {
+    try {
+      await SecureStore.deleteItemAsync(legacyKey);
+    } catch (error) {
+      console.warn("[Auth] Could not clean up a legacy saved-account key.", error);
+    }
   }
 }
 
@@ -239,24 +353,24 @@ export async function localLogout(): Promise<void> {
  * Financial records remain associated with userId in the local database.
  */
 export async function localRemoveSavedAccount(userId: number): Promise<void> {
-  // Older locally saved records may contain the ID as a string. Normalize it
-  // before validating or comparing so the selected account can still be removed.
   const normalizedUserId = Number(userId);
   if (!Number.isSafeInteger(normalizedUserId) || normalizedUserId <= 0) {
     throw new Error("Tài khoản không hợp lệ.");
   }
 
   const accounts = await readAccounts();
-  const remaining = accounts.filter((account) => Number(account.id) !== normalizedUserId);
-  if (remaining.length === accounts.length) {
+  const selected = accounts.find((account) => Number(account.id) === normalizedUserId);
+  if (!selected) {
     throw new Error("Không tìm thấy tài khoản trong danh sách đã lưu. Hãy tải lại danh sách rồi thử lại.");
   }
 
-  // Only remove saved sign-in credentials. Financial data in SQLite is preserved.
+  const remaining = accounts.filter((account) => Number(account.id) !== normalizedUserId);
   await writeAccounts(remaining);
 
+  // Removing a saved login must never delete wallets, transactions, budgets, or categories.
   if ((await getSessionToken()) === `local-session-${normalizedUserId}`) {
     await removeSessionToken();
     await clearUserInfo();
   }
+  console.log("[Auth] Saved account removed from this device.", normalizedUserId);
 }
