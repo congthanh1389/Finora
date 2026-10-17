@@ -195,7 +195,10 @@ async function readAccounts(): Promise<LocalAccount[]> {
       const account = normalizeLocalAccount(parsed);
       if (account) accounts.push({ ...account, id });
     }
-    return accounts;
+    // A stale/empty v4 index can exist after an interrupted migration or an older
+    // app build. If it contains no readable accounts, continue to legacy storage
+    // instead of treating the account list as definitively empty.
+    if (accounts.length > 0) return accounts;
   }
 
   // Migrate the previous single-list format into per-account SecureStore items.
