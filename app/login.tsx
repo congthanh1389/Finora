@@ -90,6 +90,29 @@ export default function LoginScreen() {
     }
   };
 
+  const handleInspectSavedAccounts = async () => {
+    try {
+      setLoading(true);
+      const accounts = await Auth.localGetAccounts();
+      const emails = accounts
+        .map((account) => account.email?.trim())
+        .filter((value): value is string => Boolean(value));
+      Alert.alert(
+        "Email đã lưu trên thiết bị",
+        emails.length > 0
+          ? `Tìm thấy ${emails.length} tài khoản:\n\n${emails.join("\n")}`
+          : "Không đọc được email tài khoản nào từ bộ nhớ ứng dụng. Dữ liệu chưa bị xóa.",
+      );
+    } catch (err) {
+      Alert.alert(
+        "Không đọc được tài khoản",
+        err instanceof Error ? err.message : "Đã xảy ra lỗi khi kiểm tra bộ nhớ.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleResetPassword = () => {
     Alert.alert(
       "Đặt lại mật khẩu",
@@ -235,16 +258,28 @@ export default function LoginScreen() {
             </View>
 
             {!registerMode ? (
-              <TouchableOpacity
-                className="mt-3 self-end px-1 py-1"
-                onPress={handleResetPassword}
-                disabled={loading}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel="Quên mật khẩu"
-              >
-                <Text className="text-sm font-medium text-primary">Quên mật khẩu?</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  className="mt-3 self-end px-1 py-1"
+                  onPress={handleResetPassword}
+                  disabled={loading}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel="Quên mật khẩu"
+                >
+                  <Text className="text-sm font-medium text-primary">Quên mật khẩu?</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="mt-2 self-center px-2 py-1"
+                  onPress={handleInspectSavedAccounts}
+                  disabled={loading || sendingOtp}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel="Kiểm tra email đã lưu trên thiết bị"
+                >
+                  <Text className="text-sm text-muted-foreground">Kiểm tra email đã lưu trên thiết bị</Text>
+                </TouchableOpacity>
+              </>
             ) : null}
 
             <TouchableOpacity
