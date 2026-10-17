@@ -158,7 +158,7 @@ export default function SettingsScreen() {
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
           <SettingRow icon="life-buoy" title="Trợ giúp & hỗ trợ" subtitle="Hướng dẫn sử dụng Finora" onPress={() => Alert.alert("Trợ giúp & hỗ trợ", "Trung tâm trợ giúp sẽ được bổ sung ở bước tiếp theo.")} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
-          <SettingRow icon="info" title="Về Finora" subtitle="Thông tin ứng dụng" onPress={() => Alert.alert("Finora", "Ứng dụng quản lý tài chính cá nhân.")} trailing="v1.0" />
+          <SettingRow icon="info" title="Về Finora" subtitle="Giới thiệu, tính năng và thông tin phiên bản" onPress={() => router.push("/about" as never)} trailing="v1.0" />
         </SettingsGroup>
 
         <SettingsGroup title="Khu vực nguy hiểm">
