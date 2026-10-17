@@ -89,10 +89,10 @@ export default function AccountListScreen() {
         style={{
           backgroundColor: "#00BFA5",
           borderRadius: 28,
-          paddingHorizontal: 22,
-          paddingTop: 22,
-          paddingBottom: 24,
-          marginBottom: 22,
+          paddingHorizontal: 18,
+          paddingTop: 16,
+          paddingBottom: 18,
+          marginBottom: 18,
           overflow: "hidden",
         }}
       >
@@ -105,33 +105,33 @@ export default function AccountListScreen() {
             alignSelf: "flex-start",
             flexDirection: "row",
             alignItems: "center",
-            marginBottom: 22,
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 14,
-            backgroundColor: "rgba(0, 83, 76, 0.14)",
+            marginBottom: 14,
+            paddingHorizontal: 11,
+            paddingVertical: 7,
+            borderRadius: 12,
+            backgroundColor: "rgba(255,255,255,0.20)",
           }}
         >
-          <Text style={{ color: "#064E49", fontSize: 14, fontWeight: "700" }}>‹  Quay lại</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700" }}>‹  Quay lại</Text>
         </TouchableOpacity>
 
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <View style={{ flex: 1, paddingRight: 10 }}>
-            <Text style={{ color: "#075E55", fontSize: 11, fontWeight: "800", letterSpacing: 1.4, marginBottom: 8 }}>
+            <Text style={{ color: "#E8FFFA", fontSize: 10, fontWeight: "800", letterSpacing: 1.2, marginBottom: 6 }}>
               QUẢN LÝ CÁ NHÂN
             </Text>
-            <Text style={{ color: "#FFFFFF", fontSize: 27, lineHeight: 33, fontWeight: "800" }}>
+            <Text style={{ color: "#FFFFFF", fontSize: 23, lineHeight: 28, fontWeight: "800" }}>
               Danh sách tài khoản
             </Text>
-            <Text style={{ color: "#E7FFFA", fontSize: 13, lineHeight: 19, marginTop: 8 }}>
+            <Text style={{ color: "#F0FFFC", fontSize: 12, lineHeight: 17, marginTop: 6 }}>
               Quản lý các tài khoản đã lưu trên thiết bị của bạn.
             </Text>
           </View>
           <View
             style={{
-              width: 54,
-              height: 54,
-              borderRadius: 19,
+              width: 46,
+              height: 46,
+              borderRadius: 16,
               alignItems: "center",
               justifyContent: "center",
               backgroundColor: "rgba(255,255,255,0.22)",
@@ -149,15 +149,15 @@ export default function AccountListScreen() {
               alignSelf: "flex-start",
               flexDirection: "row",
               alignItems: "center",
-              marginTop: 18,
-              paddingHorizontal: 12,
-              paddingVertical: 7,
-              borderRadius: 20,
-              backgroundColor: "rgba(0, 83, 76, 0.14)",
+              marginTop: 14,
+              paddingHorizontal: 11,
+              paddingVertical: 6,
+              borderRadius: 18,
+              backgroundColor: "rgba(255,255,255,0.90)",
             }}
           >
-            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#FFFFFF", marginRight: 8 }} />
-            <Text style={{ color: "#064E49", fontSize: 12, fontWeight: "700" }}>
+            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#009E8A", marginRight: 8 }} />
+            <Text style={{ color: "#075E55", fontSize: 11, fontWeight: "800" }}>
               {accounts.length} tài khoản đã lưu
             </Text>
           </View>
