@@ -5,11 +5,11 @@ import { Text, TouchableOpacity, View, ScrollView } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
 
-const BLUE = "#2563EB";
+const BLUE = "#22B8A8";
 const DARK_BLUE = "#0F2A5F";
 const MUTED = "#64748B";
-const BORDER = "#DBEAFE";
-const SOFT_BLUE = "#EFF6FF";
+const BORDER = "#B8F0E5";
+const SOFT_BLUE = "#E6FFFA";
 
 function InfoRow({
   icon,
@@ -58,7 +58,7 @@ export default function AccountInformationScreen() {
             accessibilityLabel="Quay lại cài đặt"
             style={{ width: 44, height: 44, borderRadius: 15, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: BORDER, alignItems: "center", justifyContent: "center", marginRight: 13 }}
           >
-            <Feather name="arrow-left" size={20} color={#DARK_BLUE} />
+            <Feather name="arrow-left" size={20} color={DARK_BLUE} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={{ color: "#0F2A5F", fontSize: 25, fontWeight: "800", letterSpacing: -0.5 }}>Thông tin tài khoản</Text>
@@ -66,25 +66,25 @@ export default function AccountInformationScreen() {
           </View>
         </View>
 
-        <View style={{ backgroundColor: #DARK_BLUE, borderRadius: 26, padding: 22, overflow: "hidden" }}>
+        <View style={{ backgroundColor: "#0EA5A8", borderRadius: 26, padding: 22, overflow: "hidden" }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View style={{ width: 68, height: 68, borderRadius: 23, backgroundColor: "#DBEAFE", alignItems: "center", justifyContent: "center", marginRight: 15, borderWidth: 3, borderColor: "#FFFFFF30" }}>
+            <View style={{ width: 68, height: 68, borderRadius: 23, backgroundColor: #DDFBF4, alignItems: "center", justifyContent: "center", marginRight: 15, borderWidth: 3, borderColor: "#FFFFFF30" }}>
               <Text style={{ color: BLUE, fontSize: 29, fontWeight: "800" }}>{initial}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "#BFDBFE", fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>HỒ SƠ CỦA BẠN</Text>
+              <Text style={{ color: #B7F7E8, fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>HỒ SƠ CỦA BẠN</Text>
               <Text numberOfLines={2} style={{ color: "#FFFFFF", fontSize: 19, fontWeight: "800", marginTop: 6 }}>
                 {loading ? "Đang tải thông tin..." : user?.name || "Người dùng Finora"}
               </Text>
-              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 9, alignSelf: "flex-start", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: "#1E40AF" }}>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#60A5FA", marginRight: 6 }} />
-                <Text style={{ color: "#DBEAFE", fontSize: 11, fontWeight: "700" }}>{user ? "Tài khoản đang hoạt động" : "Chưa đăng nhập"}</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 9, alignSelf: "flex-start", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: #087F8C }}>
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: #8BE28B, marginRight: 6 }} />
+                <Text style={{ color: #DDFBF4, fontSize: 11, fontWeight: "700" }}>{user ? "Tài khoản đang hoạt động" : "Chưa đăng nhập"}</Text>
               </View>
             </View>
           </View>
-          <View style={{ marginTop: 20, paddingTop: 15, borderTopWidth: 1, borderTopColor: "#274472", flexDirection: "row", alignItems: "center" }}>
-            <Feather name="shield" size={16} color="#BFDBFE" style={{ marginRight: 9 }} />
-            <Text style={{ flex: 1, color: "#DBEAFE", fontSize: 12, lineHeight: 18 }}>Thông tin tài khoản được hiển thị riêng tư trên thiết bị của bạn.</Text>
+          <View style={{ marginTop: 20, paddingTop: 15, borderTopWidth: 1, borderTopColor: #167C82, flexDirection: "row", alignItems: "center" }}>
+            <Feather name="shield" size={16} color=#B7F7E8 style={{ marginRight: 9 }} />
+            <Text style={{ flex: 1, color: #DDFBF4, fontSize: 12, lineHeight: 18 }}>Thông tin tài khoản được hiển thị riêng tư trên thiết bị của bạn.</Text>
           </View>
         </View>
 
@@ -98,7 +98,7 @@ export default function AccountInformationScreen() {
           </View>
         </View>
 
-        <View style={{ marginTop: 18, padding: 16, borderRadius: 18, backgroundColor: "#EFF6FF", flexDirection: "row", alignItems: "flex-start" }}>
+        <View style={{ marginTop: 18, padding: 16, borderRadius: 18, backgroundColor: #E6FFFA, flexDirection: "row", alignItems: "flex-start" }}>
           <Feather name="info" size={18} color={BLUE} style={{ marginRight: 10, marginTop: 1 }} />
           <Text style={{ flex: 1, color: "#475569", fontSize: 12, lineHeight: 19 }}>
             Đây là thông tin của tài khoản đang đăng nhập. Để quản lý các tài khoản đã lưu trên thiết bị, hãy quay lại Cài đặt và chọn “Danh sách tài khoản”.
