@@ -119,7 +119,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <View style={{ borderRadius: 26, padding: 19, backgroundColor: "#0EA5A8", overflow: "hidden" }}>
+        <View style={{ borderRadius: 26, padding: 19, backgroundColor: "#00BFA5", overflow: "hidden" }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={{ width: 54, height: 54, borderRadius: 19, backgroundColor: "#DDFBF4", alignItems: "center", justifyContent: "center", marginRight: 13 }}>
               <Text style={{ color: "#0F2A5F", fontSize: 24, fontWeight: "800" }}>
@@ -136,7 +136,7 @@ export default function SettingsScreen() {
               </Text>
             </View>
           </View>
-          <View style={{ marginTop: 17, paddingTop: 14, borderTopWidth: 1, borderTopColor: "#167C82" }}>
+          <View style={{ marginTop: 17, paddingTop: 14, borderTopWidth: 1, borderTopColor: "#00A995" }}>
             <Text style={{ color: "#DDFBF4", fontSize: 12, lineHeight: 18 }}>Quản lý thông tin đăng nhập và các thiết lập tài chính của bạn tại đây.</Text>
           </View>
         </View>
