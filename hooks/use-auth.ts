@@ -80,7 +80,7 @@ export function useAuth(options?: UseAuthOptions) {
       setUser(user);
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to fetch user");
-      console.error("[useAuth] fetchUser error");
+      console.error("[useAuth] fetchUser error:", error.message, error);
       setError(error);
       setUser(null);
     } finally {
