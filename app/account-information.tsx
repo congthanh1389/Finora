@@ -5,8 +5,8 @@ import { Text, TouchableOpacity, View, ScrollView } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
 
-#BLUE = "#2563EB";
-##DARK_BLUE = "#0F2A5F";
+const BLUE = "#2563EB";
+const DARK_BLUE = "#0F2A5F";
 const MUTED = "#64748B";
 const BORDER = "#DBEAFE";
 const SOFT_BLUE = "#EFF6FF";
