@@ -117,7 +117,7 @@ export default function BackupRestoreScreen() {
       <Text style={{ color: "#64748B", fontSize: 12, lineHeight: 18, marginTop: 5 }}>Tối thiểu 8 ký tự. Mật khẩu này không phải mật khẩu đăng nhập. Nếu quên, không thể giải mã tệp.</Text>
       <TextInput value={backupPassword} onChangeText={setBackupPassword} placeholder="Tạo mật khẩu sao lưu" secureTextEntry autoCapitalize="none" autoCorrect={false} style={{ borderWidth: 1, borderColor: "#CBD5E1", borderRadius: 12, padding: 12, marginTop: 12, color: "#172033" }} />
       <ActionButton title="Sao lưu vào thư mục" detail="Chọn Documents/backupdata hoặc vị trí lưu trữ khác" icon="folder" onPress={() => void backupToFolder()} disabled={busy} />
-      <ActionButton title="Sao lưu lên Google Drive" detail="Chọn Google Drive trong trình chọn thư mục nếu nhà cung cấp xuất hiện" icon="cloud" onPress={() => void backupToFolder()} disabled={busy} />
+      <ActionButton title="Sao lưu vào Google Drive hoặc bộ nhớ khác" detail="Chọn Google Drive trong trình chọn thư mục nếu thiết bị có cung cấp" icon="cloud" onPress={() => void backupToFolder()} disabled={busy} />
     </View>
     <View style={{ marginTop: 18, backgroundColor: "#FFFFFF", borderRadius: 20, padding: 16, borderWidth: 1, borderColor: "#E2E8F0" }}>
       <Text style={{ color: "#172033", fontSize: 16, fontWeight: "800" }}>Khôi phục dữ liệu</Text>
