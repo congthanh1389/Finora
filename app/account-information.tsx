@@ -5,11 +5,11 @@ import { Text, TouchableOpacity, View, ScrollView } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
 
-const GREEN = "#2563EB";
-const DARK_GREEN = "#0F2A5F";
-const MUTED = "#71817D";
+#BLUE = "#2563EB";
+##DARK_BLUE = "#0F2A5F";
+const MUTED = "#64748B";
 const BORDER = "#DBEAFE";
-const SOFT_GREEN = "#EFF6FF";
+const SOFT_BLUE = "#EFF6FF";
 
 function InfoRow({
   icon,
@@ -25,14 +25,14 @@ function InfoRow({
   return (
     <View>
       <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 17 }}>
-        <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: SOFT_GREEN, alignItems: "center", justifyContent: "center", marginRight: 13 }}>
-          <Feather name={icon} size={18} color={GREEN} />
+        <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: SOFT_BLUE, alignItems: "center", justifyContent: "center", marginRight: 13 }}>
+          <Feather name={icon} size={18} color={BLUE} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ color: MUTED, fontSize: 12, fontWeight: "600", marginBottom: 5 }}>{label}</Text>
           <Text selectable style={{ color: "#172033", fontSize: 15, fontWeight: "700" }}>{value}</Text>
         </View>
-        <Feather name="check-circle" size={17} color={GREEN} />
+        <Feather name="check-circle" size={17} color={BLUE} />
       </View>
       {!last ? <View style={{ height: 1, backgroundColor: "#EAF0F8", marginLeft: 55 }} /> : null}
     </View>
@@ -58,7 +58,7 @@ export default function AccountInformationScreen() {
             accessibilityLabel="Quay lại cài đặt"
             style={{ width: 44, height: 44, borderRadius: 15, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: BORDER, alignItems: "center", justifyContent: "center", marginRight: 13 }}
           >
-            <Feather name="arrow-left" size={20} color={DARK_GREEN} />
+            <Feather name="arrow-left" size={20} color={#DARK_BLUE} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={{ color: "#0F2A5F", fontSize: 25, fontWeight: "800", letterSpacing: -0.5 }}>Thông tin tài khoản</Text>
@@ -66,10 +66,10 @@ export default function AccountInformationScreen() {
           </View>
         </View>
 
-        <View style={{ backgroundColor: DARK_GREEN, borderRadius: 26, padding: 22, overflow: "hidden" }}>
+        <View style={{ backgroundColor: #DARK_BLUE, borderRadius: 26, padding: 22, overflow: "hidden" }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={{ width: 68, height: 68, borderRadius: 23, backgroundColor: "#DBEAFE", alignItems: "center", justifyContent: "center", marginRight: 15, borderWidth: 3, borderColor: "#FFFFFF30" }}>
-              <Text style={{ color: GREEN, fontSize: 29, fontWeight: "800" }}>{initial}</Text>
+              <Text style={{ color: BLUE, fontSize: 29, fontWeight: "800" }}>{initial}</Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: "#BFDBFE", fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>HỒ SƠ CỦA BẠN</Text>
@@ -99,7 +99,7 @@ export default function AccountInformationScreen() {
         </View>
 
         <View style={{ marginTop: 18, padding: 16, borderRadius: 18, backgroundColor: "#EFF6FF", flexDirection: "row", alignItems: "flex-start" }}>
-          <Feather name="info" size={18} color={GREEN} style={{ marginRight: 10, marginTop: 1 }} />
+          <Feather name="info" size={18} color={BLUE} style={{ marginRight: 10, marginTop: 1 }} />
           <Text style={{ flex: 1, color: "#475569", fontSize: 12, lineHeight: 19 }}>
             Đây là thông tin của tài khoản đang đăng nhập. Để quản lý các tài khoản đã lưu trên thiết bị, hãy quay lại Cài đặt và chọn “Danh sách tài khoản”.
           </Text>
@@ -109,7 +109,7 @@ export default function AccountInformationScreen() {
           onPress={() => router.back()}
           activeOpacity={0.82}
           accessibilityRole="button"
-          style={{ marginTop: 24, minHeight: 54, borderRadius: 17, backgroundColor: GREEN, alignItems: "center", justifyContent: "center", flexDirection: "row" }}
+          style={{ marginTop: 24, minHeight: 54, borderRadius: 17, backgroundColor: BLUE, alignItems: "center", justifyContent: "center", flexDirection: "row" }}
         >
           <Feather name="check" size={18} color="#FFFFFF" style={{ marginRight: 9 }} />
           <Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "800" }}>Hoàn tất</Text>
