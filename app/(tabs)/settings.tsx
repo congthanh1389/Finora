@@ -28,9 +28,9 @@ function SettingRow({ icon, title, subtitle, onPress, danger = false, trailing =
     >
       <View style={{
         width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center",
-        backgroundColor: danger ? "#FFF1F2" : "#EFF6FF", marginRight: 12,
+        backgroundColor: danger ? "#FFF1F2" : "#E6FFFA", marginRight: 12,
       }}>
-        <Feather name={icon} size={20} color={danger ? "#BE123C" : "#2563EB"} strokeWidth={2} />
+        <Feather name={icon} size={20} color={danger ? "#BE123C" : "#22B8A8"} strokeWidth={2} />
       </View>
       <View style={{ flex: 1, paddingRight: 8 }}>
         <Text style={{ color: danger ? "#BE123C" : "#172033", fontSize: 15, fontWeight: "700" }}>{title}</Text>
@@ -114,14 +114,14 @@ export default function SettingsScreen() {
             <Text style={{ color: "#0F2A5F", fontSize: 29, fontWeight: "800", letterSpacing: -0.8 }}>Cài đặt</Text>
             <Text style={{ color: "#64748B", fontSize: 14, marginTop: 5 }}>Cá nhân hóa trải nghiệm Finora</Text>
           </View>
-          <View style={{ width: 48, height: 48, borderRadius: 17, backgroundColor: "#EFF6FF", alignItems: "center", justifyContent: "center" }}>
+          <View style={{ width: 48, height: 48, borderRadius: 17, backgroundColor: "#E6FFFA", alignItems: "center", justifyContent: "center" }}>
             <Feather name="settings" size={23} color="#0F2A5F" />
           </View>
         </View>
 
         <View style={{ borderRadius: 26, padding: 19, backgroundColor: "#0F2A5F", overflow: "hidden" }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View style={{ width: 54, height: 54, borderRadius: 19, backgroundColor: "#DBEAFE", alignItems: "center", justifyContent: "center", marginRight: 13 }}>
+            <View style={{ width: 54, height: 54, borderRadius: 19, backgroundColor: "#DDFBF4", alignItems: "center", justifyContent: "center", marginRight: 13 }}>
               <Text style={{ color: "#0F2A5F", fontSize: 24, fontWeight: "800" }}>
                 {(user?.name || user?.email || "F").trim().charAt(0).toUpperCase()}
               </Text>
@@ -131,13 +131,13 @@ export default function SettingsScreen() {
               <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800", marginTop: 5 }}>
                 {user?.name || "Người dùng Finora"}
               </Text>
-              <Text numberOfLines={1} style={{ color: "#DBEAFE", fontSize: 12, marginTop: 3 }}>
+              <Text numberOfLines={1} style={{ color: "#DDFBF4", fontSize: 12, marginTop: 3 }}>
                 {user?.email ?? "Chưa có thông tin tài khoản"}
               </Text>
             </View>
           </View>
           <View style={{ marginTop: 17, paddingTop: 14, borderTopWidth: 1, borderTopColor: "#274472" }}>
-            <Text style={{ color: "#DBEAFE", fontSize: 12, lineHeight: 18 }}>Quản lý thông tin đăng nhập và các thiết lập tài chính của bạn tại đây.</Text>
+            <Text style={{ color: "#DDFBF4", fontSize: 12, lineHeight: 18 }}>Quản lý thông tin đăng nhập và các thiết lập tài chính của bạn tại đây.</Text>
           </View>
         </View>
 
@@ -203,7 +203,7 @@ export default function SettingsScreen() {
                 <TouchableOpacity disabled={verifyingPassword} onPress={() => { setPasswordModalVisible(false); setPassword(""); }} style={{ padding: 12, marginRight: 8 }}>
                   <Text style={{ color: "#64748B", fontWeight: "700" }}>Hủy</Text>
                 </TouchableOpacity>
-                <TouchableOpacity disabled={!password || verifyingPassword} onPress={() => void handleVerifyPassword()} style={{ paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, backgroundColor: !password || verifyingPassword ? "#94A3B8" : "#2563EB" }}>
+                <TouchableOpacity disabled={!password || verifyingPassword} onPress={() => void handleVerifyPassword()} style={{ paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, backgroundColor: !password || verifyingPassword ? "#94A3B8" : "#22B8A8" }}>
                   <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{verifyingPassword ? "Đang xác thực..." : "Xác thực"}</Text>
                 </TouchableOpacity>
               </View>
