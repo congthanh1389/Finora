@@ -49,6 +49,7 @@ function AuthGate() {
       <Stack.Screen name="login" />
       <Stack.Screen name="oauth/callback" />
       <Stack.Screen name="account-list" />
+      <Stack.Screen name="backup-restore" />
     </Stack>
     {!loading && error ? (
       <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: "#F8FAFC" }}>
