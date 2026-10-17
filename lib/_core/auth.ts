@@ -375,8 +375,7 @@ export async function localLogout(): Promise<void> {
 }
 
 /**
- * Removes saved sign-in credentials from this device without deleting financial data.
- * Financial records remain associated with userId in the local database.
+ * Permanently deletes this account's local financial records and saved credentials.
  */
 export async function localRemoveSavedAccount(userId: number): Promise<void> {
   let stage = "validate account ID";
@@ -395,11 +394,14 @@ export async function localRemoveSavedAccount(userId: number): Promise<void> {
       throw new Error("Không tìm thấy tài khoản trong danh sách đã lưu. Hãy tải lại danh sách rồi thử lại.");
     }
 
-    stage = "write remaining saved accounts";
+    stage = "delete local financial data";
+    const { deleteDeviceUserData } = await import("@/src/core/storage/device-store");
+    await deleteDeviceUserData(normalizedUserId);
+
+    stage = "remove saved credentials";
     const remaining = accounts.filter((account) => Number(account.id) !== normalizedUserId);
     await writeAccounts(remaining);
 
-    // Removing a saved login must never delete wallets, transactions, budgets, or categories.
     stage = "clean up active session";
     try {
       const token = await getSessionToken();

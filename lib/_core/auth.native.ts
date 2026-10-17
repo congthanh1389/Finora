@@ -254,18 +254,30 @@ export async function localLogout(): Promise<void> {
   await clearUserInfo();
 }
 
-export async function localDeleteAccount(userId: number): Promise<void> {
+export async function localRemoveSavedAccount(userId: number): Promise<void> {
+  const normalizedUserId = Number(userId);
+  if (!Number.isSafeInteger(normalizedUserId) || normalizedUserId <= 0) {
+    throw new Error("Tài khoản không hợp lệ.");
+  }
+
   const accounts = await readDeviceAccounts();
-  const exists = accounts.some((account) => account.id === userId);
-  if (!exists) return;
+  if (!accounts.some((account) => Number(account.id) === normalizedUserId)) {
+    throw new Error("Không tìm thấy tài khoản trong danh sách đã lưu. Hãy tải lại danh sách rồi thử lại.");
+  }
 
   const { deleteDeviceUserData } = await import("@/src/core/storage/device-store");
-  await deleteDeviceUserData(userId);
+  await deleteDeviceUserData(normalizedUserId);
 
   const secureAccounts = await readSecureAccounts();
-  await writeSecureAccounts(secureAccounts.filter((account) => account.id !== userId));
+  await writeSecureAccounts(
+    secureAccounts.filter((account) => Number(account.id) !== normalizedUserId),
+  );
 
   const token = await getSessionToken();
-  if (token === `local-session-${userId}`) await localLogout();
+  if (token === `local-session-${normalizedUserId}`) await localLogout();
 }
 
+/** Backwards-compatible name for callers that still use the older API. */
+export async function localDeleteAccount(userId: number): Promise<void> {
+  await localRemoveSavedAccount(userId);
+}

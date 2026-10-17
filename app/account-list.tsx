@@ -28,12 +28,12 @@ export default function AccountListScreen() {
 
   const handleDelete = (account: Auth.LocalAccount) => {
     Alert.alert(
-      "Gỡ tài khoản đã lưu",
-      `Gỡ tài khoản ${account.email} khỏi danh sách đăng nhập đã lưu trên thiết bị? Ví, giao dịch, danh mục và ngân sách sẽ được giữ nguyên. Bạn sẽ cần đăng nhập lại để thêm tài khoản này vào danh sách.`,
+      "Xóa tài khoản khỏi thiết bị?",
+      `Xóa tài khoản ${account.email} và toàn bộ dữ liệu tài chính được lưu cục bộ của tài khoản này (ví, giao dịch, danh mục và ngân sách)? Thao tác này không thể hoàn tác.`,
       [
         { text: "Hủy", style: "cancel" },
         {
-          text: "Gỡ khỏi danh sách",
+          text: "Xóa tài khoản và dữ liệu",
           style: "destructive",
           onPress: async () => {
             if (deletingAccountId !== null) return;
@@ -51,7 +51,7 @@ export default function AccountListScreen() {
               stage = "check current session";
               const isCurrent = (await Auth.getSessionToken()) === `local-session-${Number(account.id)}`;
 
-              stage = "remove saved account";
+              stage = "delete account and local financial data";
               await Auth.localRemoveSavedAccount(Number(account.id));
 
               if (isCurrent) {
@@ -73,7 +73,7 @@ export default function AccountListScreen() {
                 stack,
                 error: deleteError,
               });
-              Alert.alert("Không thể gỡ tài khoản", message);
+              Alert.alert("Không thể xóa tài khoản", message);
             } finally {
               setDeletingAccountId(null);
             }
@@ -119,7 +119,7 @@ export default function AccountListScreen() {
                 disabled={deletingAccountId !== null}
                 activeOpacity={0.8}
                 accessibilityRole="button"
-                accessibilityLabel={`Gỡ tài khoản ${item.email} khỏi danh sách đã lưu`}
+                accessibilityLabel={`Xóa tài khoản ${item.email} và dữ liệu tài chính cục bộ`}
                 style={{ marginLeft: 12, height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: deletingAccountId === Number(item.id) ? "#CBD5E1" : "#FEE2E2", opacity: deletingAccountId !== null && deletingAccountId !== Number(item.id) ? 0.5 : 1 }}
               >
                 <Text style={{ fontSize: 20 }}>{deletingAccountId === Number(item.id) ? "…" : "🗑️"}</Text>

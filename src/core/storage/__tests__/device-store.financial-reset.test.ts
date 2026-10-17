@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { clearDeviceFinancialData } from "../device-store";
+import { clearDeviceFinancialData, deleteDeviceUserData } from "../device-store";
 
 const getFirstAsync = vi.fn();
 const getAllAsync = vi.fn();
@@ -48,6 +48,32 @@ describe("clearDeviceFinancialData", () => {
     expect(runAsync).toHaveBeenNthCalledWith(3, "DELETE FROM categories WHERE user_id = ?", 42);
     expect(runAsync).toHaveBeenNthCalledWith(4, "DELETE FROM wallets WHERE user_id = ?", 42);
     expect(runAsync).toHaveBeenCalledTimes(4);
+    expect(execAsync).toHaveBeenLastCalledWith("VACUUM");
+  });
+});
+
+describe("deleteDeviceUserData", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getFirstAsync.mockResolvedValue({ user_version: 8 });
+  });
+
+  it("rejects invalid user ids before touching the database", async () => {
+    await expect(deleteDeviceUserData(-1)).rejects.toThrow("Invalid user id.");
+    expect(getFirstAsync).not.toHaveBeenCalled();
+    expect(withTransactionAsync).not.toHaveBeenCalled();
+  });
+
+  it("deletes all financial rows and the local account in one transaction", async () => {
+    await deleteDeviceUserData(42);
+
+    expect(withTransactionAsync).toHaveBeenCalledTimes(1);
+    expect(runAsync).toHaveBeenNthCalledWith(1, "DELETE FROM transactions WHERE user_id = ?", 42);
+    expect(runAsync).toHaveBeenNthCalledWith(2, "DELETE FROM budgets WHERE user_id = ?", 42);
+    expect(runAsync).toHaveBeenNthCalledWith(3, "DELETE FROM categories WHERE user_id = ?", 42);
+    expect(runAsync).toHaveBeenNthCalledWith(4, "DELETE FROM wallets WHERE user_id = ?", 42);
+    expect(runAsync).toHaveBeenNthCalledWith(5, "DELETE FROM local_accounts WHERE id = ?", 42);
+    expect(runAsync).toHaveBeenCalledTimes(5);
     expect(execAsync).toHaveBeenLastCalledWith("VACUUM");
   });
 });
