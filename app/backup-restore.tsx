@@ -42,6 +42,7 @@ export default function BackupRestoreScreen() {
 
   const backupToFolder = async () => {
     if (busy) return;
+    if (backupPassword.trim().length < 8) { Alert.alert("Thiếu mật khẩu", "Mật khẩu sao lưu phải có ít nhất 8 ký tự."); return; }
     setBusy(true);
     try {
       const permission = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
@@ -61,7 +62,7 @@ export default function BackupRestoreScreen() {
     setBusy(true);
     try {
       const picked = await DocumentPicker.getDocumentAsync({ type: ["application/json", "text/plain", "*/*"], copyToCacheDirectory: true, multiple: false });
-      if (picked.canceled || !picked.assets[0]) return;
+      if (picked.canceled || !picked.assets[0]) { setBusy(false); return; }
       const raw = await FileSystem.readAsStringAsync(picked.assets[0].uri, { encoding: FileSystem.EncodingType.UTF8 });
       const envelope = JSON.parse(raw) as { format?: string; encrypted?: boolean; payload?: string };
       if (envelope.format !== BACKUP_FORMAT || envelope.encrypted !== true || typeof envelope.payload !== "string") throw new Error("Tệp không phải bản sao lưu Finora hợp lệ.");
