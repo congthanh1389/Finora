@@ -30,7 +30,7 @@ function SettingRow({ icon, title, subtitle, onPress, danger = false, trailing =
         width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center",
         backgroundColor: danger ? "#FFF1F2" : "#ECFDF5", marginRight: 12,
       }}>
-        <Feather name={icon} size={20} color={danger ? "#BE123C" : "#138363"} strokeWidth={2} />
+        <Feather name={icon} size={20} color={danger ? "#BE123C" : "#22B8A8"} strokeWidth={2} />
       </View>
       <View style={{ flex: 1, paddingRight: 8 }}>
         <Text style={{ color: danger ? "#BE123C" : "#172033", fontSize: 15, fontWeight: "700" }}>{title}</Text>
@@ -107,42 +107,42 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScreenContainer className="bg-[#F5F8F7]">
+    <ScreenContainer className="bg-[#F8FAFC]">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <View>
             <Text style={{ color: "#122D2A", fontSize: 29, fontWeight: "800", letterSpacing: -0.8 }}>Cài đặt</Text>
             <Text style={{ color: "#72817F", fontSize: 14, marginTop: 5 }}>Cá nhân hóa trải nghiệm Finora</Text>
           </View>
-          <View style={{ width: 48, height: 48, borderRadius: 17, backgroundColor: "#DDF7EB", alignItems: "center", justifyContent: "center" }}>
-            <Feather name="settings" size={23} color="#12664D" />
+          <View style={{ width: 48, height: 48, borderRadius: 17, backgroundColor: "#E6FFFA", alignItems: "center", justifyContent: "center" }}>
+            <Feather name="settings" size={23} color="#0F2A5F" />
           </View>
         </View>
 
-        <View style={{ borderRadius: 26, padding: 19, backgroundColor: "#123E36", overflow: "hidden" }}>
+        <View style={{ borderRadius: 26, padding: 19, backgroundColor: "#0EA5A8", overflow: "hidden" }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View style={{ width: 54, height: 54, borderRadius: 19, backgroundColor: "#D4F6E6", alignItems: "center", justifyContent: "center", marginRight: 13 }}>
-              <Text style={{ color: "#12664D", fontSize: 24, fontWeight: "800" }}>
+            <View style={{ width: 54, height: 54, borderRadius: 19, backgroundColor: "#DDFBF4", alignItems: "center", justifyContent: "center", marginRight: 13 }}>
+              <Text style={{ color: "#0F2A5F", fontSize: 24, fontWeight: "800" }}>
                 {(user?.name || user?.email || "F").trim().charAt(0).toUpperCase()}
               </Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "#BDEBD8", fontSize: 12, fontWeight: "700" }}>TÀI KHOẢN CỦA BẠN</Text>
+              <Text style={{ color: "#B7F7E8", fontSize: 12, fontWeight: "700" }}>TÀI KHOẢN CỦA BẠN</Text>
               <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800", marginTop: 5 }}>
                 {user?.name || "Người dùng Finora"}
               </Text>
-              <Text numberOfLines={1} style={{ color: "#D1E6DE", fontSize: 12, marginTop: 3 }}>
+              <Text numberOfLines={1} style={{ color: "#DDFBF4", fontSize: 12, marginTop: 3 }}>
                 {user?.email ?? "Chưa có thông tin tài khoản"}
               </Text>
             </View>
           </View>
-          <View style={{ marginTop: 17, paddingTop: 14, borderTopWidth: 1, borderTopColor: "#326257" }}>
-            <Text style={{ color: "#D1E6DE", fontSize: 12, lineHeight: 18 }}>Quản lý thông tin đăng nhập và các thiết lập tài chính của bạn tại đây.</Text>
+          <View style={{ marginTop: 17, paddingTop: 14, borderTopWidth: 1, borderTopColor: "#167C82" }}>
+            <Text style={{ color: "#DDFBF4", fontSize: 12, lineHeight: 18 }}>Quản lý thông tin đăng nhập và các thiết lập tài chính của bạn tại đây.</Text>
           </View>
         </View>
 
         <SettingsGroup title="Tài khoản">
-          <SettingRow icon="user" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => Alert.alert("Thông tin tài khoản", user?.email ?? "Chưa có thông tin tài khoản")} />
+          <SettingRow icon="user" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => router.push("/account-information" as never)} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
           <SettingRow icon="shield" title="Danh sách tài khoản" subtitle="Quản lý tài khoản đã lưu trên thiết bị" onPress={() => router.push("/account-list" as never)} />
         </SettingsGroup>
@@ -185,7 +185,7 @@ export default function SettingsScreen() {
         >
           <View style={{ flex: 1, justifyContent: "center", padding: 24, backgroundColor: "rgba(15, 23, 42, 0.48)" }}>
             <View style={{ backgroundColor: "#FFFFFF", borderRadius: 24, padding: 22 }}>
-              <Text style={{ color: "#123E36", fontSize: 20, fontWeight: "800" }}>Xác thực mật khẩu</Text>
+              <Text style={{ color: "#0EA5A8", fontSize: 20, fontWeight: "800" }}>Xác thực mật khẩu</Text>
               <Text style={{ color: "#64748B", fontSize: 14, lineHeight: 21, marginTop: 9 }}>Nhập mật khẩu đăng nhập để tiếp tục.</Text>
               <TextInput
                 value={password}
@@ -197,13 +197,13 @@ export default function SettingsScreen() {
                 editable={!verifyingPassword}
                 returnKeyType="done"
                 onSubmitEditing={handleVerifyPassword}
-                style={{ marginTop: 18, borderWidth: 1, borderColor: "#D7E5DF", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, color: "#172033" }}
+                style={{ marginTop: 18, borderWidth: 1, borderColor: "#B8F0E5", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, color: "#172033" }}
               />
               <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 20 }}>
                 <TouchableOpacity disabled={verifyingPassword} onPress={() => { setPasswordModalVisible(false); setPassword(""); }} style={{ padding: 12, marginRight: 8 }}>
                   <Text style={{ color: "#64748B", fontWeight: "700" }}>Hủy</Text>
                 </TouchableOpacity>
-                <TouchableOpacity disabled={!password || verifyingPassword} onPress={() => void handleVerifyPassword()} style={{ paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, backgroundColor: !password || verifyingPassword ? "#94A3B8" : "#138363" }}>
+                <TouchableOpacity disabled={!password || verifyingPassword} onPress={() => void handleVerifyPassword()} style={{ paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, backgroundColor: !password || verifyingPassword ? "#94A3B8" : "#22B8A8" }}>
                   <Text style={{ color: "#FFFFFF", fontWeight: "800" }}>{verifyingPassword ? "Đang xác thực..." : "Xác thực"}</Text>
                 </TouchableOpacity>
               </View>
