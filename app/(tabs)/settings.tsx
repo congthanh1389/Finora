@@ -153,7 +153,7 @@ export default function SettingsScreen() {
           <SettingRow icon="sliders" title="Thiết lập tài chính" subtitle="Ví, ngân sách và các thiết lập liên quan" onPress={() => Alert.alert("Thiết lập tài chính", "Các tùy chọn nâng cao sẽ được bổ sung ở bước tiếp theo.")} />
         </SettingsGroup>
 
-        <SettingsGroup title="Ứng dụng">
+        <SettingsGroup title="Sao lưu & dữ liệu">\n          <SettingRow icon="shield" title="Sao lưu và khôi phục" subtitle="Lưu bản sao mã hóa hoặc khôi phục dữ liệu Finora" onPress={() => router.push("/backup-restore" as never)} />\n        </SettingsGroup>\n\n        <SettingsGroup title="Ứng dụng">
           <SettingRow icon="droplet" title="Giao diện" subtitle="Màu sắc và chế độ hiển thị" onPress={() => Alert.alert("Giao diện", "Tùy chỉnh giao diện sẽ được bổ sung ở bước tiếp theo.")} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
           <SettingRow icon="life-buoy" title="Trợ giúp & hỗ trợ" subtitle="Hướng dẫn sử dụng Finora" onPress={() => Alert.alert("Trợ giúp & hỗ trợ", "Trung tâm trợ giúp sẽ được bổ sung ở bước tiếp theo.")} />
