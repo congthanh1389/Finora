@@ -28,7 +28,7 @@ function SettingRow({ icon, title, subtitle, onPress, danger = false, trailing =
     >
       <View style={{
         width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center",
-        backgroundColor: danger ? "#FFF1F2" : "#ECFDF5", marginRight: 12,
+        backgroundColor: danger ? "#FFF1F2" : "#E6FFFA", marginRight: 12,
       }}>
         <Feather name={icon} size={20} color={danger ? "#BE123C" : "#22B8A8"} strokeWidth={2} />
       </View>
@@ -112,7 +112,7 @@ export default function SettingsScreen() {
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <View>
             <Text style={{ color: "#122D2A", fontSize: 29, fontWeight: "800", letterSpacing: -0.8 }}>Cài đặt</Text>
-            <Text style={{ color: "#72817F", fontSize: 14, marginTop: 5 }}>Cá nhân hóa trải nghiệm Finora</Text>
+            <Text style={{ color: "#64748B", fontSize: 14, marginTop: 5 }}>Cá nhân hóa trải nghiệm Finora</Text>
           </View>
           <View style={{ width: 48, height: 48, borderRadius: 17, backgroundColor: "#E6FFFA", alignItems: "center", justifyContent: "center" }}>
             <Feather name="settings" size={23} color="#0F2A5F" />
