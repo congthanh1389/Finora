@@ -170,7 +170,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
-          <AuthGate />
+          {runtimeReady ? <AuthGate /> : null}
           <StatusBar style="auto" />
           {!runtimeReady ? (
             <View
