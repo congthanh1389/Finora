@@ -28,7 +28,7 @@ function SettingRow({ icon, title, subtitle, onPress, danger = false, trailing =
     >
       <View style={{
         width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center",
-        backgroundColor: danger ? "#FFF1F2" : "#ECFDF5", marginRight: 12,
+        backgroundColor: danger ? "#FFF1F2" : "#EFF6FF", marginRight: 12,
       }}>
         <Feather name={icon} size={20} color={danger ? "#BE123C" : "#2563EB"} strokeWidth={2} />
       </View>
