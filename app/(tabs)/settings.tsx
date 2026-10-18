@@ -142,7 +142,7 @@ export default function SettingsScreen() {
         </View>
 
         <SettingsGroup title="Tài khoản">
-          <SettingRow icon="user" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => Alert.alert("Thông tin tài khoản", user?.email ?? "Chưa có thông tin tài khoản")} />
+          <SettingRow icon="user" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => router.push("/account-information" as never)} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
           <SettingRow icon="shield" title="Danh sách tài khoản" subtitle="Quản lý tài khoản đã lưu trên thiết bị" onPress={() => router.push("/account-list" as never)} />
         </SettingsGroup>
