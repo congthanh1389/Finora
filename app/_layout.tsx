@@ -4,9 +4,9 @@ import { Stack, usePathname, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
-import { ActivityIndicator, Platform, Text, View } from "react-native";
 import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
 import {
@@ -25,6 +25,15 @@ import { AppErrorBoundary } from "@/src/core/ui/app-error-boundary";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
+const DEVICE_RUNTIME_TIMEOUT_MS = 15_000;
+
+// Keep the native splash visible until bootstrap has either succeeded or failed.
+// The React UI below always takes over, including when initialization fails.
+if (Platform.OS !== "web") {
+  void SplashScreen.preventAutoHideAsync().catch((error) => {
+    console.warn("[Finora] Could not hold native splash screen", error);
+  });
+}
 
 function AuthGate() {
   const router = useRouter();
@@ -56,7 +65,7 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-const DEVICE_RUNTIME_TIMEOUT_MS = 15_000;
+type BootstrapStatus = "loading" | "ready" | "error";
 
 export default function RootLayout() {
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
@@ -64,8 +73,9 @@ export default function RootLayout() {
 
   const [insets, setInsets] = useState<EdgeInsets>(initialInsets);
   const [frame, setFrame] = useState<Rect>(initialFrame);
-  const [runtimeReady, setRuntimeReady] = useState(false);
-  const [runtimeError, setRuntimeError] = useState<string | null>(null);
+  const [bootstrapStatus, setBootstrapStatus] = useState<BootstrapStatus>("loading");
+  const [bootstrapError, setBootstrapError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     initManusRuntime();
@@ -73,39 +83,49 @@ export default function RootLayout() {
 
   useEffect(() => {
     let active = true;
-    const runtimeInitialization = initializeDeviceRuntime();
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
     const timeout = new Promise<never>((_, reject) => {
-      setTimeout(
-        () => reject(new Error("Khởi tạo bộ nhớ trên thiết bị quá lâu. Vui lòng thử mở lại Finora.")),
+      timeoutId = setTimeout(
+        () => reject(new Error("Khởi tạo bộ nhớ trên thiết bị quá lâu. Vui lòng thử lại Finora.")),
         DEVICE_RUNTIME_TIMEOUT_MS,
       );
     });
 
-    void Promise.race([runtimeInitialization, timeout])
-      .then((info) => {
+    const bootstrap = async () => {
+      try {
+        const info = await Promise.race([initializeDeviceRuntime(), timeout]);
         if (!active) return;
         console.log("[Finora] Device runtime ready", info);
-        setRuntimeReady(true);
-      })
-      .catch((error) => {
+        setBootstrapError(null);
+        setBootstrapStatus("ready");
+      } catch (error) {
         if (!active) return;
         const message =
           error instanceof Error ? error.message : "Không thể khởi tạo bộ nhớ Finora.";
         console.error("[Finora] Device runtime initialization failed", error);
-        setRuntimeError(message);
-      });
+        setBootstrapError(message);
+        setBootstrapStatus("error");
+      } finally {
+        if (timeoutId !== undefined) clearTimeout(timeoutId);
+        if (active && Platform.OS !== "web") {
+          try {
+            await SplashScreen.hideAsync();
+            console.log("[Finora] Native splash dismissed");
+          } catch (error) {
+            console.warn("[Finora] Splash screen hide failed", error);
+          }
+        }
+      }
+    };
+
+    void bootstrap();
 
     return () => {
       active = false;
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
     };
-  }, []);
-
-  useEffect(() => {
-    if (!runtimeReady || Platform.OS === "web") return;
-    void SplashScreen.hideAsync().catch((error) => {
-      console.warn("[Finora] Splash screen hide failed", error);
-    });
-  }, [runtimeReady]);
+  }, [retryCount]);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {
     setInsets(metrics.insets);
@@ -143,32 +163,68 @@ export default function RootLayout() {
     };
   }, [initialInsets, initialFrame]);
 
+  const retryBootstrap = () => {
+    setBootstrapError(null);
+    setBootstrapStatus("loading");
+    setRetryCount((count) => count + 1);
+  };
+
+  const bootstrapScreen =
+    bootstrapStatus === "loading" ? (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#F8FAFC",
+          padding: 24,
+        }}
+      >
+        <ActivityIndicator size="large" color="#00BFA5" />
+        <Text style={{ marginTop: 14, color: "#334155", fontSize: 15 }}>
+          Finora đang khởi tạo bộ nhớ trên thiết bị...
+        </Text>
+      </View>
+    ) : bootstrapStatus === "error" ? (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#F8FAFC",
+          padding: 24,
+        }}
+      >
+        <Text style={{ color: "#0F172A", fontSize: 22, fontWeight: "700", textAlign: "center" }}>
+          Finora chưa thể khởi động
+        </Text>
+        <Text style={{ marginTop: 12, color: "#475569", fontSize: 15, lineHeight: 22, textAlign: "center" }}>
+          {bootstrapError ?? "Đã xảy ra lỗi khi khởi tạo bộ nhớ trên thiết bị."}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={retryBootstrap}
+          style={{
+            marginTop: 22,
+            borderRadius: 12,
+            backgroundColor: "#00A88F",
+            paddingHorizontal: 22,
+            paddingVertical: 13,
+          }}
+        >
+          <Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}>Thử khởi động lại</Text>
+        </Pressable>
+      </View>
+    ) : (
+      <AuthGate />
+    );
+
   const content = (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
-          <AuthGate />
+          {bootstrapScreen}
           <StatusBar style="auto" />
-          {!runtimeReady ? (
-            <View
-              pointerEvents="none"
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#F8FAFC",
-              }}
-            >
-              <ActivityIndicator />
-              <Text style={{ marginTop: 12 }}>
-                {runtimeError ?? "Đang khởi tạo bộ nhớ trên thiết bị..."}
-              </Text>
-            </View>
-          ) : null}
         </QueryClientProvider>
       </trpc.Provider>
     </GestureHandlerRootView>
