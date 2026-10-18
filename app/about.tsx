@@ -85,7 +85,7 @@ export default function AboutFinoraScreen() {
             <Feather name="arrow-left" size={20} color="#123E36" />
           </TouchableOpacity>
           <View>
-            <Text style={{ color: "#122D2A", fontSize: 26, fontWeight: "800", letterSpacing: -0.5 }}>
+            <Text style={{ color: "#22B8A8", fontSize: 26, fontWeight: "800", letterSpacing: -0.5 }}>
               Về Finora
             </Text>
             <Text style={{ color: "#72817F", fontSize: 13, marginTop: 3 }}>
