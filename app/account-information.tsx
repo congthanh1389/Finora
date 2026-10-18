@@ -61,7 +61,7 @@ export default function AccountInformationScreen() {
             <Feather name="arrow-left" size={20} color={DARK_BLUE} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: "#0F2A5F", fontSize: 25, fontWeight: "800", letterSpacing: -0.5 }}>Thông tin tài khoản</Text>
+            <Text style={{ color: "#22B8A8", fontSize: 25, fontWeight: "800", letterSpacing: -0.5 }}>Thông tin tài khoản</Text>
             <Text style={{ color: MUTED, fontSize: 13, marginTop: 4 }}>Thông tin hồ sơ Finora của bạn</Text>
           </View>
         </View>
