@@ -15,9 +15,10 @@ type SettingRowProps = {
   onPress: () => void;
   danger?: boolean;
   trailing?: string;
+  titleColor?: string;
 };
 
-function SettingRow({ icon, title, subtitle, onPress, danger = false, trailing = "›" }: SettingRowProps) {
+function SettingRow({ icon, title, subtitle, onPress, danger = false, trailing = "›", titleColor }: SettingRowProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -33,7 +34,7 @@ function SettingRow({ icon, title, subtitle, onPress, danger = false, trailing =
         <Feather name={icon} size={20} color={danger ? "#BE123C" : "#22B8A8"} strokeWidth={2} />
       </View>
       <View style={{ flex: 1, paddingRight: 8 }}>
-        <Text style={{ color: danger ? "#BE123C" : "#172033", fontSize: 15, fontWeight: "700" }}>{title}</Text>
+        <Text style={{ color: titleColor ?? (danger ? "#BE123C" : "#172033"), fontSize: 15, fontWeight: "700" }}>{title}</Text>
         {subtitle ? <Text style={{ color: "#7B8798", fontSize: 12, marginTop: 4, lineHeight: 17 }}>{subtitle}</Text> : null}
       </View>
       {trailing === "v1.0" ? <Text style={{ color: "#94A3B8", fontSize: 11, fontWeight: "700" }}>{trailing}</Text> : <Feather name="chevron-right" size={20} color={danger ? "#E11D48" : "#94A3B8"} /> }
@@ -127,7 +128,7 @@ export default function SettingsScreen() {
               </Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "#B7F7E8", fontSize: 12, fontWeight: "700" }}>TÀI KHOẢN CỦA BẠN</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>TÀI KHOẢN CỦA BẠN</Text>
               <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800", marginTop: 5 }}>
                 {user?.name || "Người dùng Finora"}
               </Text>
@@ -158,7 +159,7 @@ export default function SettingsScreen() {
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
           <SettingRow icon="life-buoy" title="Trợ giúp & hỗ trợ" subtitle="Hướng dẫn sử dụng Finora" onPress={() => Alert.alert("Trợ giúp & hỗ trợ", "Trung tâm trợ giúp sẽ được bổ sung ở bước tiếp theo.")} />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
-          <SettingRow icon="info" title="Về Finora" subtitle="Thông tin ứng dụng" onPress={() => router.push("/about" as never)} trailing="v1.0" />
+          <SettingRow icon="info" title="Về Finora" subtitle="Thông tin ứng dụng" onPress={() => router.push("/about" as never)} trailing="v1.0" titleColor="#008F83" />
         </SettingsGroup>
 
         <SettingsGroup title="Khu vực nguy hiểm">
