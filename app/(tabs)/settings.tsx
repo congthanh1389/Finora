@@ -4,7 +4,6 @@ import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } fro
 import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
-import { FinoraHeaderBanner } from "@/components/ui/finora-header-banner";
 import { useAuth } from "@/hooks/use-auth";
 import { localLogin } from "@/lib/_core/auth";
 import { clearDeviceFinancialData } from "@/src/core/storage/device-store";
@@ -121,31 +120,58 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <FinoraHeaderBanner
-          eyebrow="HỒ SƠ FINORA"
-          title="Tài khoản của bạn"
-          titleSize={27}
-          subtitle={user?.name || "Người dùng Finora"}
-          badgeText={(user?.name || user?.email || "F").trim().charAt(0).toUpperCase()}
-          footer={
-            <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.84)", paddingHorizontal: 12, paddingVertical: 11 }}>
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Feather name="mail" size={15} color="#075E55" style={{ marginRight: 8 }} />
-                  <Text numberOfLines={1} style={{ flex: 1, color: "#075E55", fontSize: 12, lineHeight: 18, fontWeight: "800" }}>
-                    {user?.email ?? "Chưa có email"}
-                  </Text>
-                </View>
-                <View style={{ flexDirection: "row", alignItems: "flex-start", marginTop: 7 }}>
-                  <Feather name="info" size={15} color="#075E55" style={{ marginRight: 8, marginTop: 1 }} />
-                  <Text style={{ flex: 1, color: "#075E55", fontSize: 12, lineHeight: 18, fontWeight: "600" }}>
-                    Quản lý thông tin đăng nhập và thiết lập tài chính tại đây.
-                  </Text>
-                </View>
-              </View>
+        <View
+          style={{
+            position: "relative",
+            marginBottom: 18,
+            borderRadius: 24,
+            backgroundColor: "#FFFFFF",
+            borderWidth: 1,
+            borderColor: "#B5EEE4",
+            padding: 18,
+            paddingTop: 23,
+            overflow: "hidden",
+            shadowColor: "#0F766E",
+            shadowOffset: { width: 0, height: 5 },
+            shadowOpacity: 0.08,
+            shadowRadius: 12,
+            elevation: 2,
+          }}
+        >
+          <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: 5, backgroundColor: "#00D4B3" }} />
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ width: 58, height: 58, borderRadius: 20, backgroundColor: "#E6FAF6", borderWidth: 1, borderColor: "#B5EEE4", alignItems: "center", justifyContent: "center", marginRight: 14 }}>
+              <Text style={{ color: "#008F83", fontSize: 24, fontWeight: "900" }}>
+                {(user?.name || user?.email || "F").trim().charAt(0).toUpperCase()}
+              </Text>
             </View>
-          }
-        />
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: "#075E55", fontSize: 26, lineHeight: 32, fontWeight: "900", letterSpacing: -0.4 }}>
+                Tài khoản của bạn
+              </Text>
+              <Text numberOfLines={1} style={{ color: "#1F2937", fontSize: 15, fontWeight: "700", marginTop: 5 }}>
+                {user?.name || "Người dùng Finora"}
+              </Text>
+            </View>
+          </View>
+
+          <View style={{ height: 1, backgroundColor: "#E6EEF0", marginTop: 16, marginBottom: 12 }} />
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: "#E6FAF6", alignItems: "center", justifyContent: "center", marginRight: 10 }}>
+              <Feather name="mail" size={15} color="#008F83" />
+            </View>
+            <Text numberOfLines={1} style={{ flex: 1, color: "#52616B", fontSize: 13, fontWeight: "600" }}>
+              {user?.email ?? "Chưa có email"}
+            </Text>
+          </View>
+
+          <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", marginTop: 14, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 18, backgroundColor: user ? "#E8F7F2" : "#F1F5F9" }}>
+            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: user ? "#059669" : "#94A3B8", marginRight: 8 }} />
+            <Text style={{ color: user ? "#0F766E" : "#475569", fontSize: 11, fontWeight: "800" }}>
+              {user ? "Đang đăng nhập" : "Chưa đăng nhập"}
+            </Text>
+          </View>
+        </View>
 
         <SettingsGroup title="Tài khoản">
           <SettingRow icon="user" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => router.push("/account-information" as never)} titleColor="#008F83" />
