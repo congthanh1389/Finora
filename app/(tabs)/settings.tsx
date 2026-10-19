@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Animated, Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
@@ -58,6 +58,16 @@ function SettingsGroup({ title, children }: { title: string; children: React.Rea
 export default function SettingsScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const [profileCardScale] = useState(() => new Animated.Value(1));
+
+  const animateProfileCard = (toValue: number) => {
+    Animated.spring(profileCardScale, {
+      toValue,
+      speed: 26,
+      bounciness: 3,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -120,7 +130,12 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <View
+        <Pressable
+          onPressIn={() => animateProfileCard(0.985)}
+          onPressOut={() => animateProfileCard(1)}
+          accessible={false}
+        >
+        <Animated.View
           style={{
             position: "relative",
             marginBottom: 18,
@@ -136,6 +151,7 @@ export default function SettingsScreen() {
             shadowOpacity: 0.08,
             shadowRadius: 12,
             elevation: 2,
+            transform: [{ scale: profileCardScale }],
           }}
         >
           <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: 5, backgroundColor: "#00D4B3" }} />
@@ -171,7 +187,8 @@ export default function SettingsScreen() {
               {user ? "Đang đăng nhập" : "Chưa đăng nhập"}
             </Text>
           </View>
-        </View>
+        </Animated.View>
+        </Pressable>
 
         <SettingsGroup title="Tài khoản">
           <SettingRow icon="user" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => router.push("/account-information" as never)} titleColor="#008F83" />
