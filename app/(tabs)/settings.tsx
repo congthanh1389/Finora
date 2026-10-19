@@ -122,13 +122,14 @@ export default function SettingsScreen() {
         </View>
 
         <FinoraHeaderBanner
-          eyebrow="HỒ SƠ FINORA"
-          title="Tài khoản của bạn"
-          subtitle={`${user?.name || "Người dùng Finora"} · ${user?.email ?? "Chưa có thông tin tài khoản"}`}
+          eyebrow="TÀI KHOẢN CỦA BẠN"
+          title={user?.name || "Người dùng Finora"}
+          subtitle={user?.email ?? "Chưa có thông tin tài khoản"}
           badgeText={(user?.name || user?.email || "F").trim().charAt(0).toUpperCase()}
           footer={
-            <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#079B8B" }}>
-              <Text style={{ color: "#F0FFFC", fontSize: 12, lineHeight: 18 }}>
+            <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.84)", paddingHorizontal: 12, paddingVertical: 11 }}>
+              <Feather name="info" size={16} color="#075E55" style={{ marginRight: 9 }} />
+              <Text style={{ flex: 1, color: "#064E48", fontSize: 12, lineHeight: 18, fontWeight: "600" }}>
                 Quản lý thông tin đăng nhập và các thiết lập tài chính của bạn tại đây.
               </Text>
             </View>

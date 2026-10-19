@@ -49,22 +49,22 @@ export function FinoraHeaderBanner({
             paddingHorizontal: 11,
             paddingVertical: 7,
             borderRadius: 12,
-            backgroundColor: "rgba(255,255,255,0.20)",
+            backgroundColor: "rgba(255,255,255,0.84)",
           }}
         >
-          <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700" }}>‹  Quay lại</Text>
+          <Text style={{ color: "#064E48", fontSize: 13, fontWeight: "800" }}>‹  Quay lại</Text>
         </TouchableOpacity>
       ) : null}
 
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <View style={{ flex: 1, paddingRight: 10 }}>
-          <Text style={{ color: "#E8FFFA", fontSize: 10, fontWeight: "800", letterSpacing: 1.2, marginBottom: 6 }}>
+          <Text style={{ color: "#075E55", fontSize: 10, fontWeight: "900", letterSpacing: 1.2, marginBottom: 6 }}>
             {eyebrow}
           </Text>
-          <Text style={{ color: "#FFFFFF", fontSize: 23, lineHeight: 28, fontWeight: "800" }}>
+          <Text style={{ color: "#003D37", fontSize: 23, lineHeight: 28, fontWeight: "900" }}>
             {title}
           </Text>
-          <Text style={{ color: "#F0FFFC", fontSize: 12, lineHeight: 17, marginTop: 6 }}>
+          <Text style={{ color: "#064E48", fontSize: 13, lineHeight: 19, fontWeight: "600", marginTop: 6 }}>
             {subtitle}
           </Text>
         </View>
@@ -75,15 +75,15 @@ export function FinoraHeaderBanner({
             borderRadius: 16,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "rgba(255,255,255,0.22)",
+            backgroundColor: "rgba(255,255,255,0.86)",
             borderWidth: 1,
-            borderColor: "rgba(255,255,255,0.35)",
+            borderColor: "rgba(255,255,255,0.95)",
           }}
         >
           {badgeText ? (
-            <Text style={{ color: "#FFFFFF", fontSize: 24, fontWeight: "800" }}>{badgeText}</Text>
+            <Text style={{ color: "#003D37", fontSize: 24, fontWeight: "900" }}>{badgeText}</Text>
           ) : (
-            <Feather name={icon} size={22} color="#FFFFFF" />
+            <Feather name={icon} size={22} color="#003D37" />
           )}
         </View>
       </View>
