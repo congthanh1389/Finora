@@ -122,16 +122,27 @@ export default function SettingsScreen() {
         </View>
 
         <FinoraHeaderBanner
-          eyebrow="TÀI KHOẢN CỦA BẠN"
-          title={user?.name || "Người dùng Finora"}
-          subtitle={user?.email ?? "Chưa có thông tin tài khoản"}
+          eyebrow="HỒ SƠ FINORA"
+          title="Tài khoản của bạn"
+          titleSize={27}
+          subtitle={user?.name || "Người dùng Finora"}
           badgeText={(user?.name || user?.email || "F").trim().charAt(0).toUpperCase()}
           footer={
             <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.84)", paddingHorizontal: 12, paddingVertical: 11 }}>
-              <Feather name="info" size={16} color="#075E55" style={{ marginRight: 9 }} />
-              <Text style={{ flex: 1, color: "#064E48", fontSize: 12, lineHeight: 18, fontWeight: "600" }}>
-                Quản lý thông tin đăng nhập và các thiết lập tài chính của bạn tại đây.
-              </Text>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Feather name="mail" size={15} color="#075E55" style={{ marginRight: 8 }} />
+                  <Text numberOfLines={1} style={{ flex: 1, color: "#075E55", fontSize: 12, lineHeight: 18, fontWeight: "800" }}>
+                    {user?.email ?? "Chưa có email"}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: "row", alignItems: "flex-start", marginTop: 7 }}>
+                  <Feather name="info" size={15} color="#075E55" style={{ marginRight: 8, marginTop: 1 }} />
+                  <Text style={{ flex: 1, color: "#075E55", fontSize: 12, lineHeight: 18, fontWeight: "600" }}>
+                    Quản lý thông tin đăng nhập và thiết lập tài chính tại đây.
+                  </Text>
+                </View>
+              </View>
             </View>
           }
         />

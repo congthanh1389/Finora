@@ -12,6 +12,7 @@ export type FinoraHeaderBannerProps = {
   badgeText?: string;
   onBack?: () => void;
   footer?: ReactNode;
+  titleSize?: number;
 };
 
 export function FinoraHeaderBanner({
@@ -22,6 +23,7 @@ export function FinoraHeaderBanner({
   badgeText,
   onBack,
   footer,
+  titleSize = 23,
 }: FinoraHeaderBannerProps) {
   return (
     <View
@@ -52,7 +54,7 @@ export function FinoraHeaderBanner({
             backgroundColor: "rgba(255,255,255,0.84)",
           }}
         >
-          <Text style={{ color: "#064E48", fontSize: 13, fontWeight: "800" }}>‹  Quay lại</Text>
+          <Text style={{ color: "#075E55", fontSize: 13, fontWeight: "800" }}>‹  Quay lại</Text>
         </TouchableOpacity>
       ) : null}
 
@@ -61,10 +63,10 @@ export function FinoraHeaderBanner({
           <Text style={{ color: "#075E55", fontSize: 10, fontWeight: "900", letterSpacing: 1.2, marginBottom: 6 }}>
             {eyebrow}
           </Text>
-          <Text style={{ color: "#003D37", fontSize: 23, lineHeight: 28, fontWeight: "900" }}>
+          <Text style={{ color: "#075E55", fontSize: titleSize, lineHeight: titleSize + 5, fontWeight: "900", letterSpacing: -0.3 }}>
             {title}
           </Text>
-          <Text style={{ color: "#064E48", fontSize: 13, lineHeight: 19, fontWeight: "600", marginTop: 6 }}>
+          <Text style={{ color: "#075E55", fontSize: 13, lineHeight: 19, fontWeight: "700", marginTop: 6 }}>
             {subtitle}
           </Text>
         </View>
@@ -81,9 +83,9 @@ export function FinoraHeaderBanner({
           }}
         >
           {badgeText ? (
-            <Text style={{ color: "#003D37", fontSize: 24, fontWeight: "900" }}>{badgeText}</Text>
+            <Text style={{ color: "#075E55", fontSize: 24, fontWeight: "900" }}>{badgeText}</Text>
           ) : (
-            <Feather name={icon} size={22} color="#003D37" />
+            <Feather name={icon} size={22} color="#075E55" />
           )}
         </View>
       </View>
