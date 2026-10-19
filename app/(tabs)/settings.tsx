@@ -44,7 +44,7 @@ function SettingRow({ icon, title, subtitle, onPress, danger = false, trailing =
 function SettingsGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={{ marginTop: 22 }}>
-      <Text style={{ marginBottom: 9, marginLeft: 4, color: "#64748B", fontSize: 12, fontWeight: "800", letterSpacing: 1 }}>
+      <Text style={{ marginBottom: 9, marginLeft: 4, color: "#008F83", fontSize: 12, fontWeight: "800", letterSpacing: 1 }}>
         {title.toLocaleUpperCase("vi-VN")}
       </Text>
       <View style={{ overflow: "hidden", borderRadius: 22, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E8EEF3" }}>
