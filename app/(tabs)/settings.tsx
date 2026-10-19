@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { localLogin } from "@/lib/_core/auth";
 import { clearDeviceFinancialData } from "@/src/core/storage/device-store";
 
+const FINORA_TURQUOISE = "#00BFA5";
+
 type SettingRowProps = {
   icon: keyof typeof Feather.glyphMap;
   title: string;
@@ -120,7 +122,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <View style={{ borderRadius: 26, padding: 19, backgroundColor: "#00BFA5", overflow: "hidden" }}>
+        <View style={{ borderRadius: 26, padding: 19, backgroundColor: FINORA_TURQUOISE, overflow: "hidden" }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={{ width: 54, height: 54, borderRadius: 19, backgroundColor: "#D9FFF5", alignItems: "center", justifyContent: "center", marginRight: 13 }}>
               <Text style={{ color: "#008F83", fontSize: 24, fontWeight: "800" }}>
@@ -143,21 +145,21 @@ export default function SettingsScreen() {
         </View>
 
         <SettingsGroup title="Tài khoản">
-          <SettingRow icon="user" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => router.push("/account-information" as never)} />
+          <SettingRow icon="user" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => router.push("/account-information" as never)} titleColor="#008F83" />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
           <SettingRow icon="shield" title="Danh sách tài khoản" subtitle="Quản lý tài khoản đã lưu trên thiết bị" onPress={() => router.push("/account-list" as never)} />
         </SettingsGroup>
 
         <SettingsGroup title="Quản lý tài chính">
-          <SettingRow icon="tag" title="Danh mục thu chi" subtitle="Tùy chỉnh nhóm thu nhập và chi tiêu" onPress={() => router.push("/category" as never)} />
+          <SettingRow icon="tag" title="Danh mục thu chi" subtitle="Tùy chỉnh nhóm thu nhập và chi tiêu" onPress={() => router.push("/category" as never)} titleColor="#008F83" />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
           <SettingRow icon="sliders" title="Thiết lập tài chính" subtitle="Ví, ngân sách và các thiết lập liên quan" onPress={() => Alert.alert("Thiết lập tài chính", "Các tùy chọn nâng cao sẽ được bổ sung ở bước tiếp theo.")} />
         </SettingsGroup>
 
         <SettingsGroup title="Ứng dụng">
-          <SettingRow icon="droplet" title="Giao diện" subtitle="Màu sắc và chế độ hiển thị" onPress={() => Alert.alert("Giao diện", "Tùy chỉnh giao diện sẽ được bổ sung ở bước tiếp theo.")} />
+          <SettingRow icon="droplet" title="Giao diện" subtitle="Màu sắc và chế độ hiển thị" onPress={() => Alert.alert("Giao diện", "Tùy chỉnh giao diện sẽ được bổ sung ở bước tiếp theo.")} titleColor="#008F83" />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
-          <SettingRow icon="life-buoy" title="Trợ giúp & hỗ trợ" subtitle="Hướng dẫn sử dụng Finora" onPress={() => Alert.alert("Trợ giúp & hỗ trợ", "Trung tâm trợ giúp sẽ được bổ sung ở bước tiếp theo.")} />
+          <SettingRow icon="life-buoy" title="Trợ giúp & hỗ trợ" subtitle="Hướng dẫn sử dụng Finora" onPress={() => Alert.alert("Trợ giúp & hỗ trợ", "Trung tâm trợ giúp sẽ được bổ sung ở bước tiếp theo.")} titleColor="#008F83" />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
           <SettingRow icon="info" title="Về Finora" subtitle="Thông tin ứng dụng" onPress={() => router.push("/about" as never)} trailing="v1.0" titleColor="#008F83" />
         </SettingsGroup>

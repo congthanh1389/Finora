@@ -5,6 +5,8 @@ import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
 
+const FINORA_TURQUOISE = "#00BFA5";
+
 type Feature = {
   icon: keyof typeof Feather.glyphMap;
   title: string;
@@ -38,7 +40,7 @@ function SectionTitle({ children }: { children: string }) {
   return (
     <Text
       style={{
-        color: "#64748B",
+        color: "#008F83",
         fontSize: 12,
         fontWeight: "800",
         letterSpacing: 1,
@@ -98,7 +100,7 @@ export default function AboutFinoraScreen() {
           style={{
             borderRadius: 28,
             padding: 22,
-            backgroundColor: "#123E36",
+            backgroundColor: FINORA_TURQUOISE,
             overflow: "hidden",
           }}
         >

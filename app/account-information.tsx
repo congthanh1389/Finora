@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 const BLUE = "#00A995";
 const DARK_BLUE = "#008F83";
+const FINORA_TURQUOISE = "#00BFA5";
 const MUTED = "#64748B";
 const BORDER = "#B5EEE4";
 const SOFT_BLUE = "#E6FAF6";
@@ -48,7 +49,7 @@ export default function AccountInformationScreen() {
     : "Chưa có thông tin";
 
   return (
-    <ScreenContainer className="bg-[#F8FAFC]">
+    <ScreenContainer className="bg-[#F3FAF8]">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 36 }}>
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 24 }}>
           <TouchableOpacity
@@ -66,13 +67,13 @@ export default function AccountInformationScreen() {
           </View>
         </View>
 
-        <View style={{ backgroundColor: "#00BFA5", borderRadius: 26, padding: 22, overflow: "hidden" }}>
+        <View style={{ backgroundColor: FINORA_TURQUOISE, borderRadius: 26, padding: 22, overflow: "hidden" }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={{ width: 68, height: 68, borderRadius: 23, backgroundColor: "#DDFBF4", alignItems: "center", justifyContent: "center", marginRight: 15, borderWidth: 3, borderColor: "#FFFFFF30" }}>
               <Text style={{ color: BLUE, fontSize: 29, fontWeight: "800" }}>{initial}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "#B7F7E8", fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>HỒ SƠ CỦA BẠN</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>HỒ SƠ CỦA BẠN</Text>
               <Text numberOfLines={2} style={{ color: "#FFFFFF", fontSize: 19, fontWeight: "800", marginTop: 6 }}>
                 {loading ? "Đang tải thông tin..." : user?.name || "Người dùng Finora"}
               </Text>
@@ -89,7 +90,7 @@ export default function AccountInformationScreen() {
         </View>
 
         <View style={{ marginTop: 25 }}>
-          <Text style={{ color: "#64748B", fontSize: 12, fontWeight: "800", letterSpacing: 1, marginBottom: 10, marginLeft: 3 }}>CHI TIẾT TÀI KHOẢN</Text>
+          <Text style={{ color: DARK_BLUE, fontSize: 12, fontWeight: "800", letterSpacing: 1, marginBottom: 10, marginLeft: 3 }}>CHI TIẾT TÀI KHOẢN</Text>
           <View style={{ backgroundColor: "#FFFFFF", borderRadius: 24, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 16 }}>
             <InfoRow icon="user" label="Tên hiển thị" value={user?.name?.trim() || "Chưa cập nhật"} />
             <InfoRow icon="mail" label="Địa chỉ email" value={user?.email || "Chưa có email"} />
