@@ -1,11 +1,10 @@
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import { Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Platform, ScrollView, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
-
-const FINORA_TURQUOISE = "#00BFA5";
+import { FinoraHeaderBanner } from "@/components/ui/finora-header-banner";
 
 type Feature = {
   icon: keyof typeof Feather.glyphMap;
@@ -61,71 +60,22 @@ export default function AboutFinoraScreen() {
     Platform.OS === "android" ? "Android" : Platform.OS === "ios" ? "iOS" : "Web";
 
   return (
-    <ScreenContainer className="bg-[#F5F8F7]">
+    <ScreenContainer className="bg-[#F3FAF8]">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 36 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36 }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 18 }}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            activeOpacity={0.75}
-            accessibilityRole="button"
-            accessibilityLabel="Quay lại"
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 14,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#FFFFFF",
-              borderWidth: 1,
-              borderColor: "#E5ECE9",
-              marginRight: 12,
-            }}
-          >
-            <Feather name="arrow-left" size={20} color="#123E36" />
-          </TouchableOpacity>
-          <View>
-            <Text style={{ color: "#008F83", fontSize: 26, fontWeight: "800", letterSpacing: -0.5 }}>
-              Về Finora
-            </Text>
-            <Text style={{ color: "#72817F", fontSize: 13, marginTop: 3 }}>
-              Thông tin về ứng dụng
-            </Text>
-          </View>
-        </View>
+        <FinoraHeaderBanner
+          eyebrow="GIỚI THIỆU FINORA"
+          title="Về Finora"
+          subtitle="Tài chính rõ ràng, cuộc sống an tâm"
+          icon="pie-chart"
+          onBack={() => router.back()}
+        />
 
-        <View
-          style={{
-            borderRadius: 28,
-            padding: 22,
-            backgroundColor: FINORA_TURQUOISE,
-            overflow: "hidden",
-          }}
-        >
-          <View
-            style={{
-              width: 62,
-              height: 62,
-              borderRadius: 21,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#D4F6E6",
-              marginBottom: 17,
-            }}
-          >
-            <Feather name="pie-chart" size={30} color="#12664D" />
-          </View>
-          <Text style={{ color: "#FFFFFF", fontSize: 30, fontWeight: "900", letterSpacing: -0.8 }}>
-            Finora
-          </Text>
-          <Text style={{ color: "#BDEBD8", fontSize: 14, fontWeight: "700", marginTop: 5 }}>
-            Tài chính rõ ràng, cuộc sống an tâm
-          </Text>
-          <Text style={{ color: "#E1F0EA", fontSize: 14, lineHeight: 21, marginTop: 16 }}>
-            Finora giúp cá nhân và gia đình quản lý tài chính hằng ngày, theo dõi dòng tiền và
-            hiểu rõ hơn cách mình sử dụng tiền.
+        <View style={{ marginTop: 0, borderRadius: 22, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E8EEF3", padding: 17 }}>
+          <Text style={{ color: "#31594D", fontSize: 14, lineHeight: 21 }}>
+            Finora giúp cá nhân và gia đình quản lý tài chính hằng ngày, theo dõi dòng tiền và hiểu rõ hơn cách mình sử dụng tiền.
           </Text>
         </View>
 

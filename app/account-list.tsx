@@ -2,6 +2,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
+import { FinoraHeaderBanner } from "@/components/ui/finora-header-banner";
 import * as Auth from "@/lib/_core/auth";
 
 export default function AccountListScreen() {
@@ -85,65 +86,13 @@ export default function AccountListScreen() {
 
   return (
     <ScreenContainer className="bg-[#F3FAF8] px-5 pt-5">
-      <View
-        style={{
-          backgroundColor: "#00BFA5",
-          borderRadius: 28,
-          paddingHorizontal: 18,
-          paddingTop: 16,
-          paddingBottom: 18,
-          marginBottom: 18,
-          overflow: "hidden",
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel="Quay lại"
-          style={{
-            alignSelf: "flex-start",
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 14,
-            paddingHorizontal: 11,
-            paddingVertical: 7,
-            borderRadius: 12,
-            backgroundColor: "rgba(255,255,255,0.20)",
-          }}
-        >
-          <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700" }}>‹  Quay lại</Text>
-        </TouchableOpacity>
-
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <View style={{ flex: 1, paddingRight: 10 }}>
-            <Text style={{ color: "#E8FFFA", fontSize: 10, fontWeight: "800", letterSpacing: 1.2, marginBottom: 6 }}>
-              QUẢN LÝ CÁ NHÂN
-            </Text>
-            <Text style={{ color: "#FFFFFF", fontSize: 23, lineHeight: 28, fontWeight: "800" }}>
-              Danh sách tài khoản
-            </Text>
-            <Text style={{ color: "#F0FFFC", fontSize: 12, lineHeight: 17, marginTop: 6 }}>
-              Quản lý các tài khoản đã lưu trên thiết bị của bạn.
-            </Text>
-          </View>
-          <View
-            style={{
-              width: 46,
-              height: 46,
-              borderRadius: 16,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "rgba(255,255,255,0.22)",
-              borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.35)",
-            }}
-          >
-            <Text style={{ fontSize: 27 }}>👥</Text>
-          </View>
-        </View>
-
-        {!loading && !error && (
+      <FinoraHeaderBanner
+        eyebrow="QUẢN LÝ CÁ NHÂN"
+        title="Danh sách tài khoản"
+        subtitle="Quản lý các tài khoản đã lưu trên thiết bị của bạn."
+        onBack={() => router.back()}
+        badgeText="👥"
+        footer={!loading && !error ? (
           <View
             style={{
               alignSelf: "flex-start",
@@ -161,8 +110,8 @@ export default function AccountListScreen() {
               {accounts.length} tài khoản đã lưu
             </Text>
           </View>
-        )}
-      </View>
+        ) : null}
+      />
 
       <View style={{ flex: 1 }}>
         <View style={{ marginBottom: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>

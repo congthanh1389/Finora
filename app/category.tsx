@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
+import { FinoraHeaderBanner } from "@/components/ui/finora-header-banner";
 import { CategoryIcon, EXPENSE_CATEGORY_ICONS, INCOME_CATEGORY_ICONS } from "@/components/ui/category-icons";
 import type { Category } from "@/drizzle/schema";
 import { useCategoryViewModel } from "@/src/modules/category/viewmodel/use-category-view-model";
@@ -71,32 +71,13 @@ export default function CategoryScreen() {
   return (
     <ScreenContainer className="bg-[#F3FAF8]">
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 36 }}>
-        <View style={{ backgroundColor: FINORA_TURQUOISE, borderRadius: 28, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 18, marginBottom: 18, overflow: "hidden" }}>
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Quay lại"
-            style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", marginBottom: 14, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.20)" }}
-          >
-            <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "700" }}>‹  Quay lại</Text>
-          </Pressable>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={{ color: "#E8FFFA", fontSize: 10, fontWeight: "800", letterSpacing: 1.2, marginBottom: 6 }}>
-                QUẢN LÝ TÀI CHÍNH
-              </Text>
-              <Text style={{ color: "#FFFFFF", fontSize: 23, lineHeight: 28, fontWeight: "800" }}>
-                Danh mục thu chi
-              </Text>
-              <Text style={{ color: "#F0FFFC", fontSize: 12, lineHeight: 17, marginTop: 6 }}>
-                Tạo và sắp xếp các mục chi tiêu, nguồn thu nhập của bạn.
-              </Text>
-            </View>
-            <View style={{ width: 46, height: 46, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.22)", borderWidth: 1, borderColor: "rgba(255,255,255,0.35)" }}>
-              <Feather name="tag" size={22} color="#FFFFFF" />
-            </View>
-          </View>
-        </View>
+        <FinoraHeaderBanner
+          eyebrow="QUẢN LÝ TÀI CHÍNH"
+          title="Danh mục thu chi"
+          subtitle="Tạo và sắp xếp các mục chi tiêu, nguồn thu nhập của bạn."
+          icon="tag"
+          onBack={() => router.back()}
+        />
 
         <View className="mt-1 flex-row rounded-2xl p-1" style={{ backgroundColor: FINORA_TURQUOISE_SOFT }}>
           <Pressable onPress={() => setShowArchived(false)} className="flex-1 rounded-xl px-3 py-3" style={{ backgroundColor: !showArchived ? FINORA_TURQUOISE : "transparent" }}>

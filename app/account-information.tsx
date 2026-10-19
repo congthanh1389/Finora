@@ -3,11 +3,11 @@ import { Feather } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View, ScrollView } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
+import { FinoraHeaderBanner } from "@/components/ui/finora-header-banner";
 import { useAuth } from "@/hooks/use-auth";
 
 const BLUE = "#00A995";
 const DARK_BLUE = "#008F83";
-const FINORA_TURQUOISE = "#00BFA5";
 const MUTED = "#64748B";
 const BORDER = "#B5EEE4";
 const SOFT_BLUE = "#E6FAF6";
@@ -50,46 +50,24 @@ export default function AccountInformationScreen() {
 
   return (
     <ScreenContainer className="bg-[#F3FAF8]">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 36 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 24 }}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            activeOpacity={0.75}
-            accessibilityRole="button"
-            accessibilityLabel="Quay lại cài đặt"
-            style={{ width: 44, height: 44, borderRadius: 15, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: BORDER, alignItems: "center", justifyContent: "center", marginRight: 13 }}
-          >
-            <Feather name="arrow-left" size={20} color={DARK_BLUE} />
-          </TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: "#008F83", fontSize: 24, fontWeight: "800", letterSpacing: -0.5 }}>Thông tin tài khoản</Text>
-            <Text style={{ color: MUTED, fontSize: 13, marginTop: 4 }}>Thông tin hồ sơ Finora của bạn</Text>
-          </View>
-        </View>
-
-        <View style={{ backgroundColor: FINORA_TURQUOISE, borderRadius: 26, padding: 22, overflow: "hidden" }}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View style={{ width: 68, height: 68, borderRadius: 23, backgroundColor: "#DDFBF4", alignItems: "center", justifyContent: "center", marginRight: 15, borderWidth: 3, borderColor: "#FFFFFF30" }}>
-              <Text style={{ color: BLUE, fontSize: 29, fontWeight: "800" }}>{initial}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>HỒ SƠ CỦA BẠN</Text>
-              <Text numberOfLines={2} style={{ color: "#FFFFFF", fontSize: 19, fontWeight: "800", marginTop: 6 }}>
-                {loading ? "Đang tải thông tin..." : user?.name || "Người dùng Finora"}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36 }}>
+        <FinoraHeaderBanner
+          eyebrow="QUẢN LÝ CÁ NHÂN"
+          title="Thông tin tài khoản"
+          subtitle={loading ? "Đang tải thông tin hồ sơ..." : `${user?.name || "Người dùng Finora"} · ${user?.email || "Chưa có email"}`}
+          onBack={() => router.back()}
+          badgeText={initial}
+          footer={
+            <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", marginTop: 14, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.90)" }}>
+              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#009E8A", marginRight: 8 }} />
+              <Text style={{ color: "#075E55", fontSize: 11, fontWeight: "800" }}>
+                {loading ? "Đang tải trạng thái..." : user ? "Tài khoản đang hoạt động" : "Chưa đăng nhập"}
               </Text>
-              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 9, alignSelf: "flex-start", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: "#008F83" }}>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#8BE28B", marginRight: 6 }} />
-                <Text style={{ color: "#DDFBF4", fontSize: 11, fontWeight: "700" }}>{user ? "Tài khoản đang hoạt động" : "Chưa đăng nhập"}</Text>
-              </View>
             </View>
-          </View>
-          <View style={{ marginTop: 20, paddingTop: 15, borderTopWidth: 1, borderTopColor: "#079B8B", flexDirection: "row", alignItems: "center" }}>
-            <Feather name="shield" size={16} color="#B7F7E8" style={{ marginRight: 9 }} />
-            <Text style={{ flex: 1, color: "#DDFBF4", fontSize: 12, lineHeight: 18 }}>Thông tin tài khoản được hiển thị riêng tư trên thiết bị của bạn.</Text>
-          </View>
-        </View>
+          }
+        />
 
-        <View style={{ marginTop: 25 }}>
+        <View style={{ marginTop: 4 }}>
           <Text style={{ color: DARK_BLUE, fontSize: 12, fontWeight: "800", letterSpacing: 1, marginBottom: 10, marginLeft: 3 }}>CHI TIẾT TÀI KHOẢN</Text>
           <View style={{ backgroundColor: "#FFFFFF", borderRadius: 24, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 16 }}>
             <InfoRow icon="user" label="Tên hiển thị" value={user?.name?.trim() || "Chưa cập nhật"} />
@@ -102,7 +80,7 @@ export default function AccountInformationScreen() {
         <View style={{ marginTop: 18, padding: 16, borderRadius: 18, backgroundColor: "#E6FAF6", flexDirection: "row", alignItems: "flex-start" }}>
           <Feather name="info" size={18} color={BLUE} style={{ marginRight: 10, marginTop: 1 }} />
           <Text style={{ flex: 1, color: "#475569", fontSize: 12, lineHeight: 19 }}>
-            Đây là thông tin của tài khoản đang đăng nhập. Để quản lý các tài khoản đã lưu trên thiết bị, hãy quay lại Cài đặt và chọn “Danh sách tài khoản”.
+            Thông tin tài khoản được hiển thị riêng tư trên thiết bị của bạn. Đây là tài khoản đang đăng nhập; để quản lý các tài khoản đã lưu, hãy quay lại Cài đặt và chọn “Danh sách tài khoản”.
           </Text>
         </View>
 

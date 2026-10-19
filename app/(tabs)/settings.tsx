@@ -4,11 +4,10 @@ import { Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } fro
 import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
+import { FinoraHeaderBanner } from "@/components/ui/finora-header-banner";
 import { useAuth } from "@/hooks/use-auth";
 import { localLogin } from "@/lib/_core/auth";
 import { clearDeviceFinancialData } from "@/src/core/storage/device-store";
-
-const FINORA_TURQUOISE = "#00BFA5";
 
 type SettingRowProps = {
   icon: keyof typeof Feather.glyphMap;
@@ -122,27 +121,19 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <View style={{ borderRadius: 26, padding: 19, backgroundColor: FINORA_TURQUOISE, overflow: "hidden" }}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View style={{ width: 54, height: 54, borderRadius: 19, backgroundColor: "#D9FFF5", alignItems: "center", justifyContent: "center", marginRight: 13 }}>
-              <Text style={{ color: "#008F83", fontSize: 24, fontWeight: "800" }}>
-                {(user?.name || user?.email || "F").trim().charAt(0).toUpperCase()}
+        <FinoraHeaderBanner
+          eyebrow="HỒ SƠ FINORA"
+          title="Tài khoản của bạn"
+          subtitle={`${user?.name || "Người dùng Finora"} · ${user?.email ?? "Chưa có thông tin tài khoản"}`}
+          badgeText={(user?.name || user?.email || "F").trim().charAt(0).toUpperCase()}
+          footer={
+            <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#079B8B" }}>
+              <Text style={{ color: "#F0FFFC", fontSize: 12, lineHeight: 18 }}>
+                Quản lý thông tin đăng nhập và các thiết lập tài chính của bạn tại đây.
               </Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "700" }}>TÀI KHOẢN CỦA BẠN</Text>
-              <Text numberOfLines={1} style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "800", marginTop: 5 }}>
-                {user?.name || "Người dùng Finora"}
-              </Text>
-              <Text numberOfLines={1} style={{ color: "#DDFBF4", fontSize: 12, marginTop: 3 }}>
-                {user?.email ?? "Chưa có thông tin tài khoản"}
-              </Text>
-            </View>
-          </View>
-          <View style={{ marginTop: 17, paddingTop: 14, borderTopWidth: 1, borderTopColor: "#079B8B" }}>
-            <Text style={{ color: "#DDFBF4", fontSize: 12, lineHeight: 18 }}>Quản lý thông tin đăng nhập và các thiết lập tài chính của bạn tại đây.</Text>
-          </View>
-        </View>
+          }
+        />
 
         <SettingsGroup title="Tài khoản">
           <SettingRow icon="user" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => router.push("/account-information" as never)} titleColor="#008F83" />
