@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Feather } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 
-const FINORA_TURQUOISE = "#00BFA5";
+const FINORA_TURQUOISE = "#00D4B3";
 
 export type FinoraHeaderBannerProps = {
   eyebrow: string;
