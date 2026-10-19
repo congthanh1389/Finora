@@ -87,15 +87,15 @@ export default function AccountListScreen() {
     <ScreenContainer className="bg-[#F8FAFC] px-5 pt-6">
       <View className="mb-5 flex-row items-center">
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={{ marginRight: 12, paddingVertical: 8, paddingHorizontal: 4 }}>
-          <Text style={{ fontSize: 16, fontWeight: "600", color: "#0F2A5F" }}>‹ Quay lại</Text>
+          <Text style={{ fontSize: 16, fontWeight: "600", color: "#008F83" }}>‹ Quay lại</Text>
         </TouchableOpacity>
-        <Text className="text-2xl font-bold text-[#0F2A5F]">Danh sách tài khoản</Text>
+        <Text style={{ fontSize: 24, fontWeight: "800", color: "#008F83", letterSpacing: -0.5 }}>Danh sách tài khoản</Text>
       </View>
       {loading ? <Text className="text-sm text-[#64748B]">Đang tải...</Text> : error ? (
         <View className="rounded-3xl border border-[#FECACA] bg-[#FEF2F2] p-5">
           <Text className="text-base font-semibold text-[#B91C1C]">Không thể tải danh sách tài khoản</Text>
           <Text className="mt-2 text-sm text-[#B91C1C]">{error}</Text>
-          <TouchableOpacity onPress={loadAccounts} activeOpacity={0.8} style={{ marginTop: 16, alignSelf: "flex-start", borderRadius: 12, backgroundColor: "#0F2A5F", paddingHorizontal: 16, paddingVertical: 8 }}>
+          <TouchableOpacity onPress={loadAccounts} activeOpacity={0.8} style={{ marginTop: 16, alignSelf: "flex-start", borderRadius: 12, backgroundColor: "#00BFA5", paddingHorizontal: 16, paddingVertical: 8 }}>
             <Text style={{ fontWeight: "600", color: "#FFFFFF" }}>Thử lại</Text>
           </TouchableOpacity>
         </View>
