@@ -111,18 +111,18 @@ export default function SettingsScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <View>
-            <Text style={{ color: "#122D2A", fontSize: 29, fontWeight: "800", letterSpacing: -0.8 }}>Cài đặt</Text>
+            <Text style={{ color: "#008F83", fontSize: 25, fontWeight: "800", letterSpacing: -0.5 }}>Cài đặt</Text>
             <Text style={{ color: "#64748B", fontSize: 14, marginTop: 5 }}>Cá nhân hóa trải nghiệm Finora</Text>
           </View>
-          <View style={{ width: 48, height: 48, borderRadius: 17, backgroundColor: "#E6FFFA", alignItems: "center", justifyContent: "center" }}>
-            <Feather name="settings" size={23} color="#0F2A5F" />
+          <View style={{ width: 48, height: 48, borderRadius: 17, backgroundColor: "#E6FAF6", alignItems: "center", justifyContent: "center" }}>
+            <Feather name="settings" size={23} color="#008F83" />
           </View>
         </View>
 
-        <View style={{ borderRadius: 26, padding: 19, backgroundColor: "#0EA5A8", overflow: "hidden" }}>
+        <View style={{ borderRadius: 26, padding: 19, backgroundColor: "#00BFA5", overflow: "hidden" }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View style={{ width: 54, height: 54, borderRadius: 19, backgroundColor: "#DDFBF4", alignItems: "center", justifyContent: "center", marginRight: 13 }}>
-              <Text style={{ color: "#0F2A5F", fontSize: 24, fontWeight: "800" }}>
+            <View style={{ width: 54, height: 54, borderRadius: 19, backgroundColor: "#D9FFF5", alignItems: "center", justifyContent: "center", marginRight: 13 }}>
+              <Text style={{ color: "#008F83", fontSize: 24, fontWeight: "800" }}>
                 {(user?.name || user?.email || "F").trim().charAt(0).toUpperCase()}
               </Text>
             </View>
@@ -136,7 +136,7 @@ export default function SettingsScreen() {
               </Text>
             </View>
           </View>
-          <View style={{ marginTop: 17, paddingTop: 14, borderTopWidth: 1, borderTopColor: "#167C82" }}>
+          <View style={{ marginTop: 17, paddingTop: 14, borderTopWidth: 1, borderTopColor: "#079B8B" }}>
             <Text style={{ color: "#DDFBF4", fontSize: 12, lineHeight: 18 }}>Quản lý thông tin đăng nhập và các thiết lập tài chính của bạn tại đây.</Text>
           </View>
         </View>
@@ -185,7 +185,7 @@ export default function SettingsScreen() {
         >
           <View style={{ flex: 1, justifyContent: "center", padding: 24, backgroundColor: "rgba(15, 23, 42, 0.48)" }}>
             <View style={{ backgroundColor: "#FFFFFF", borderRadius: 24, padding: 22 }}>
-              <Text style={{ color: "#0EA5A8", fontSize: 20, fontWeight: "800" }}>Xác thực mật khẩu</Text>
+              <Text style={{ color: "#008F83", fontSize: 20, fontWeight: "800" }}>Xác thực mật khẩu</Text>
               <Text style={{ color: "#64748B", fontSize: 14, lineHeight: 21, marginTop: 9 }}>Nhập mật khẩu đăng nhập để tiếp tục.</Text>
               <TextInput
                 value={password}
