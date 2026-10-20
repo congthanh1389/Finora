@@ -75,6 +75,7 @@ export function useAuth(options?: UseAuthOptions) {
         email: localAccount.email,
         loginMethod: localAccount.loginMethod,
         lastSignedIn: new Date(localAccount.lastSignedIn),
+        avatarUri: localAccount.avatarUri ?? null,
       };
       await Auth.setUserInfo(user);
       setUser(user);
