@@ -85,17 +85,29 @@ export default function AccountEditScreen() {
         </View>
 
         <View style={{ alignItems: "center", paddingTop: 8, paddingBottom: 28 }}>
-          <View style={{ width: 150, height: 150, borderRadius: 75, backgroundColor: "#B9F1E1", borderWidth: 5, borderColor: C.white, alignItems: "center", justifyContent: "center", shadowColor: "#087768", shadowOpacity: 0.12, shadowRadius: 12, elevation: 3 }}>
+          <TouchableOpacity
+            onPress={chooseAvatar}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Chọn ảnh đại diện"
+            style={{ width: 150, height: 150, borderRadius: 75, backgroundColor: "#B9F1E1", borderWidth: 5, borderColor: C.white, alignItems: "center", justifyContent: "center", shadowColor: "#087768", shadowOpacity: 0.12, shadowRadius: 12, elevation: 3 }}
+          >
             {avatarUri ? <Image source={{ uri: avatarUri }} style={{ width: 140, height: 140, borderRadius: 70 }} resizeMode="cover" /> : <Text style={{ color: C.dark, fontSize: 60, fontWeight: "800" }}>{initial}</Text>}
-            <View style={{ position: "absolute", right: -2, bottom: 3, width: 42, height: 42, borderRadius: 22, backgroundColor: "#07866E", borderWidth: 3, borderColor: C.white, alignItems: "center", justifyContent: "center" }}>
+            <View pointerEvents="none" style={{ position: "absolute", right: -2, bottom: 3, width: 42, height: 42, borderRadius: 22, backgroundColor: "#07866E", borderWidth: 3, borderColor: C.white, alignItems: "center", justifyContent: "center" }}>
               <Feather name="camera" size={19} color={C.white} />
             </View>
-          </View>
-          <View style={{ marginTop: 20, flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#BCEEDF", borderRadius: 25, paddingHorizontal: 21, paddingVertical: 12 }}>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={chooseAvatar}
+            activeOpacity={0.82}
+            accessibilityRole="button"
+            accessibilityLabel="Thay đổi ảnh đại diện"
+            style={{ marginTop: 20, flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#BCEEDF", borderRadius: 25, paddingHorizontal: 21, paddingVertical: 12 }}
+          >
             <Feather name="camera" size={19} color={C.dark} style={{ marginRight: 10 }} />
-            <Text style={{ color: C.dark, fontSize: 14, fontWeight: "700" }}>Ảnh đại diện</Text>
-          </View>
-          <Text style={{ color: C.muted, fontSize: 12, marginTop: 9 }}>Đổi ảnh đại diện sẽ được bổ sung sau</Text>
+            <Text style={{ color: C.dark, fontSize: 14, fontWeight: "700" }}>Chọn ảnh đại diện</Text>
+          </TouchableOpacity>
+          <Text style={{ color: C.muted, fontSize: 12, marginTop: 9 }}>Chạm vào ảnh để chọn hoặc thay ảnh đại diện.</Text>
         </View>
 
         <View style={{ backgroundColor: C.white, borderRadius: 24, padding: 18, borderWidth: 1, borderColor: "#E0F4ED" }}>
