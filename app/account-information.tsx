@@ -1,11 +1,10 @@
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { ScreenContainer } from "@/components/screen-container";
-import { useAuth } from "@/hooks/use-auth";
+import { notifyAuthState, useAuth } from "@/hooks/use-auth";
 import * as Auth from "@/lib/_core/auth";
-import { trpc } from "@/lib/trpc";
 
 const C = { bg: "#F4FBF8", white: "#FFFFFF", ink: "#12463D", text: "#263B38", muted: "#738782", mint: "#DDF7EE", green: "#11745C", soft: "#F0FAF6", border: "#DDEFE8", line: "#EDF4F1" };
 
@@ -26,7 +25,6 @@ export default function AccountInformationScreen() {
   const { user, refresh, logout } = useAuth();
   const [editorVisible, setEditorVisible] = useState(false);
   const [nameDraft, setNameDraft] = useState(user?.name ?? "");
-  const updateName = trpc.auth.updateDisplayName.useMutation();
   const name = user?.name?.trim() || "Người dùng Finora";
   const email = user?.email?.trim() || "Chưa có email";
   const initial = useMemo(() => (user?.name || user?.email || "F").trim().charAt(0).toUpperCase(), [user?.email, user?.name]);
@@ -34,13 +32,26 @@ export default function AccountInformationScreen() {
   function openEditor() { setNameDraft(user?.name ?? ""); setEditorVisible(true); }
   async function saveName() {
     const value = nameDraft.trim();
-    if (value.length < 2 || value.length > 60) { Alert.alert("Tên hiển thị chưa hợp lệ", "Tên cần có từ 2 đến 60 ký tự."); return; }
+    if (value.length < 2 || value.length > 60) {
+      Alert.alert("Tên hiển thị chưa hợp lệ", "Tên cần có từ 2 đến 60 ký tự.");
+      return;
+    }
+    if (!user) {
+      Alert.alert("Chưa đăng nhập", "Vui lòng đăng nhập để chỉnh sửa hồ sơ.");
+      return;
+    }
+    if (Platform.OS === "web") {
+      Alert.alert("Chưa hỗ trợ trên Web", "Hiện tại chỉnh sửa tên hiển thị được hỗ trợ cho tài khoản lưu cục bộ trên Android.");
+      return;
+    }
     try {
-      await updateName.mutateAsync({ name: value });
-      if (user) await Auth.setUserInfo({ ...user, name: value });
-      await refresh(); setEditorVisible(false);
-      Alert.alert("Đã cập nhật", "Tên hiển thị của bạn đã được lưu.");
-    } catch { Alert.alert("Chưa thể cập nhật", "Không lưu được tên hiển thị. Hãy kiểm tra kết nối và thử lại."); }
+      const updatedUser = await Auth.localUpdateAccountName(user.id, value);
+      notifyAuthState(updatedUser);
+      setEditorVisible(false);
+      Alert.alert("Đã cập nhật", "Tên hiển thị đã được lưu trên thiết bị.");
+    } catch (error) {
+      Alert.alert("Chưa thể cập nhật", error instanceof Error ? error.message : "Vui lòng thử lại.");
+    }
   }
   function signOut() {
     Alert.alert("Đăng xuất khỏi Finora?", "Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng tài khoản.", [
@@ -93,8 +104,8 @@ export default function AccountInformationScreen() {
           <TextInput value={nameDraft} onChangeText={setNameDraft} autoFocus maxLength={60} placeholder="Nhập tên hiển thị" placeholderTextColor="#94A3B8" returnKeyType="done" onSubmitEditing={() => void saveName()} style={{ marginTop: 18, borderWidth: 1, borderColor: "#CFE8DE", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, color: C.text, fontSize: 16 }} />
           <Text style={{ color: C.muted, fontSize: 11, marginTop: 6 }}>Từ 2 đến 60 ký tự</Text>
           <View style={{ flexDirection: "row", gap: 10, marginTop: 20 }}>
-            <TouchableOpacity onPress={() => setEditorVisible(false)} disabled={updateName.isPending} style={{ flex: 1, alignItems: "center", paddingVertical: 13, borderRadius: 14, backgroundColor: "#F0F6F3" }}><Text style={{ color: "#52615D", fontWeight: "700" }}>Hủy</Text></TouchableOpacity>
-            <TouchableOpacity onPress={() => void saveName()} disabled={updateName.isPending} style={{ flex: 1, flexDirection: "row", gap: 8, justifyContent: "center", alignItems: "center", paddingVertical: 13, borderRadius: 14, backgroundColor: updateName.isPending ? "#86CDB3" : C.green }}>{updateName.isPending ? <ActivityIndicator color="#FFFFFF" size="small" /> : null}<Text style={{ color: C.white, fontWeight: "800" }}>Lưu thay đổi</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => setEditorVisible(false)} disabled={false} style={{ flex: 1, alignItems: "center", paddingVertical: 13, borderRadius: 14, backgroundColor: "#F0F6F3" }}><Text style={{ color: "#52615D", fontWeight: "700" }}>Hủy</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => void saveName()} disabled={updateName.isPending} style={{ flex: 1, flexDirection: "row", gap: 8, justifyContent: "center", alignItems: "center", paddingVertical: 13, borderRadius: 14, backgroundColor: C.green }}><Text style={{ color: C.white, fontWeight: "800" }}>Lưu thay đổi</Text></TouchableOpacity>
           </View>
         </View>
       </View>
