@@ -59,14 +59,26 @@ export default function AccountEditScreen() {
       setError("Vui lòng nhập tên hiển thị.");
       return;
     }
+    let saveStage = "khởi tạo";
     try {
       setSaving(true);
       setError("");
+      console.log("[AccountEdit] save started", { userId: user.id, hasAvatar: Boolean(avatarUri) });
+      saveStage = "lưu hồ sơ cục bộ";
       const updated = await localUpdateAccountProfile(user.id, name, avatarUri);
+      console.log("[AccountEdit] local profile updated");
+      saveStage = "cập nhật trạng thái đăng nhập";
       notifyAuthState(updated);
+      console.log("[AccountEdit] auth state notified");
+      saveStage = "quay lại màn hình trước";
       router.back();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Không thể lưu thay đổi. Vui lòng thử lại.");
+      const message = e instanceof Error ? e.message : String(e);
+      console.error("[AccountEdit] save failed at stage:", saveStage, e);
+      if (e instanceof Error && e.stack) console.error("[AccountEdit] stack:", e.stack);
+      setError(message && message !== "undefined is not a function"
+        ? `Lỗi khi ${saveStage}: ${message}`
+        : `Lỗi khi ${saveStage}: một hàm chưa khả dụng. Chi tiết đã được ghi vào log Android.`);
     } finally {
       setSaving(false);
     }
