@@ -203,7 +203,7 @@ export default function SettingsScreen() {
         </SettingsGroup>
 
         <SettingsGroup title="Ứng dụng">
-          <SettingRow icon="droplet" title="Giao diện" subtitle="Màu sắc và chế độ hiển thị" onPress={() => Alert.alert("Giao diện", "Tùy chỉnh giao diện sẽ được bổ sung ở bước tiếp theo.")} titleColor="#008F83" />
+          <SettingRow icon="droplet" title="Giao diện" subtitle="Màu sắc và chế độ hiển thị" onPress={() => router.push("/appearance" as never)} titleColor="#008F83" />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />
           <SettingRow icon="life-buoy" title="Trợ giúp & hỗ trợ" subtitle="Hướng dẫn sử dụng Finora" onPress={() => Alert.alert("Trợ giúp & hỗ trợ", "Trung tâm trợ giúp sẽ được bổ sung ở bước tiếp theo.")} titleColor="#008F83" />
           <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 68 }} />

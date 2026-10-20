@@ -1,21 +1,6 @@
-import { useSyncExternalStore } from "react";
-import { useColorScheme as useRNColorScheme } from "react-native";
+import { useThemeContext } from "@/lib/theme-provider";
 
-/**
- * To support static rendering, this value needs to be re-calculated on the client side for web
- */
+/** Uses the shared preference so web and native resolve the same app theme. */
 export function useColorScheme() {
-  const hasHydrated = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-
-  const colorScheme = useRNColorScheme();
-
-  if (hasHydrated) {
-    return colorScheme;
-  }
-
-  return "light";
+  return useThemeContext().colorScheme;
 }
