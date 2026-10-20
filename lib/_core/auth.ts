@@ -369,6 +369,41 @@ export async function localLogin(email: string, password: string): Promise<User>
   return user;
 }
 
+
+/**
+ * Updates the display name for a saved local account and the active user cache.
+ * Financial records and credentials are left unchanged.
+ */
+export async function localUpdateAccountName(userId: number, name: string): Promise<User> {
+  const id = Number(userId);
+  const normalizedName = name.trim();
+  if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Tài khoản không hợp lệ.");
+  if (normalizedName.length < 2 || normalizedName.length > 60) {
+    throw new Error("Tên hiển thị phải có từ 2 đến 60 ký tự.");
+  }
+
+  const accounts = await readAccounts();
+  const account = accounts.find((item) => item.id === id);
+  if (!account) throw new Error("Không tìm thấy tài khoản đã lưu trên thiết bị.");
+
+  const updatedAccount = { ...account, name: normalizedName };
+  await writeAccounts(accounts.map((item) => item.id === id ? updatedAccount : item));
+
+  const updatedUser: User = {
+    id: updatedAccount.id,
+    openId: updatedAccount.openId,
+    name: updatedAccount.name,
+    email: updatedAccount.email,
+    loginMethod: updatedAccount.loginMethod,
+    lastSignedIn: updatedAccount.lastSignedIn,
+  };
+  const sessionToken = await getSessionToken();
+  if (sessionToken === `local-session-${id}`) {
+    await setUserInfo(updatedUser);
+  }
+  return updatedUser;
+}
+
 export async function localLogout(): Promise<void> {
   await removeSessionToken();
   await clearUserInfo();
