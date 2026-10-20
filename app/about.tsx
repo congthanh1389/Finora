@@ -4,7 +4,7 @@ import { Platform, ScrollView, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { ScreenContainer } from "@/components/screen-container";
-import { FinoraHeaderBanner } from "@/components/ui/finora-header-banner";
+import { FinoraProfilePageHeader } from "@/components/ui/finora-profile-page-header";
 
 type Feature = {
   icon: keyof typeof Feather.glyphMap;
@@ -37,17 +37,7 @@ const FEATURES: Feature[] = [
 
 function SectionTitle({ children }: { children: string }) {
   return (
-    <Text
-      style={{
-        color: "#008F83",
-        fontSize: 12,
-        fontWeight: "800",
-        letterSpacing: 1,
-        marginBottom: 10,
-        marginLeft: 4,
-        textTransform: "uppercase",
-      }}
-    >
+    <Text style={{ color: "#164F4B", fontSize: 18, fontWeight: "800", marginBottom: 7, marginLeft: 2 }}>
       {children}
     </Text>
   );
@@ -60,58 +50,56 @@ export default function AboutFinoraScreen() {
     Platform.OS === "android" ? "Android" : Platform.OS === "ios" ? "iOS" : "Web";
 
   return (
-    <ScreenContainer className="bg-[#F3FAF8]">
+    <ScreenContainer className="bg-[#EAF9F4]">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36 }}
+        contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 10, paddingBottom: 32 }}
       >
-        <FinoraHeaderBanner
-          eyebrow="GIỚI THIỆU FINORA"
+        <FinoraProfilePageHeader
           title="Về Finora"
-          subtitle="Tài chính rõ ràng, cuộc sống an tâm"
-          icon="pie-chart"
           onBack={() => router.back()}
+          onSettings={() => router.push("/(tabs)/settings" as never)}
         />
 
-        <View style={{ marginTop: 0, borderRadius: 22, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E8EEF3", padding: 17 }}>
-          <Text style={{ color: "#31594D", fontSize: 14, lineHeight: 21 }}>
+        <View style={{ borderRadius: 25, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E0F4ED", padding: 18 }}>
+          <Text style={{ color: "#164F4B", fontSize: 14, lineHeight: 21 }}>
             Finora giúp cá nhân và gia đình quản lý tài chính hằng ngày, theo dõi dòng tiền và hiểu rõ hơn cách mình sử dụng tiền.
           </Text>
         </View>
 
-        <View style={{ marginTop: 24 }}>
+        <View style={{ marginTop: 20 }}>
           <SectionTitle>Finora giúp bạn</SectionTitle>
           <View
             style={{
-              borderRadius: 22,
+              borderRadius: 25,
               backgroundColor: "#FFFFFF",
               borderWidth: 1,
-              borderColor: "#E8EEF3",
+              borderColor: "#E0F4ED",
               paddingHorizontal: 15,
             }}
           >
             {FEATURES.map((feature, index) => (
               <View key={feature.title}>
-                {index > 0 ? <View style={{ height: 1, backgroundColor: "#F0F3F5", marginLeft: 52 }} /> : null}
+                {index > 0 ? <View style={{ height: 1, backgroundColor: "#EAF2EF", marginLeft: 52 }} /> : null}
                 <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 14 }}>
                   <View
                     style={{
                       width: 40,
                       height: 40,
                       borderRadius: 14,
-                      backgroundColor: "#E6FAF6",
+                      backgroundColor: "#E8F8F2",
                       alignItems: "center",
                       justifyContent: "center",
                       marginRight: 12,
                     }}
                   >
-                    <Feather name={feature.icon} size={19} color="#008F83" />
+                    <Feather name={feature.icon} size={19} color="#08665D" />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: "#172033", fontSize: 14, fontWeight: "800" }}>
+                    <Text style={{ color: "#164F4B", fontSize: 14, fontWeight: "800" }}>
                       {feature.title}
                     </Text>
-                    <Text style={{ color: "#718096", fontSize: 12, lineHeight: 18, marginTop: 4 }}>
+                    <Text style={{ color: "#718C8A", fontSize: 12, lineHeight: 18, marginTop: 4 }}>
                       {feature.description}
                     </Text>
                   </View>
@@ -121,44 +109,44 @@ export default function AboutFinoraScreen() {
           </View>
         </View>
 
-        <View style={{ marginTop: 24 }}>
+        <View style={{ marginTop: 20 }}>
           <SectionTitle>Thông tin ứng dụng</SectionTitle>
           <View
             style={{
-              borderRadius: 22,
+              borderRadius: 25,
               backgroundColor: "#FFFFFF",
               borderWidth: 1,
-              borderColor: "#E8EEF3",
+              borderColor: "#E0F4ED",
               padding: 16,
             }}
           >
             <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 5 }}>
-              <Text style={{ color: "#718096", fontSize: 13 }}>Phiên bản</Text>
-              <Text style={{ color: "#172033", fontSize: 13, fontWeight: "800" }}>v{version}</Text>
+              <Text style={{ color: "#718C8A", fontSize: 13 }}>Phiên bản</Text>
+              <Text style={{ color: "#164F4B", fontSize: 13, fontWeight: "800" }}>v{version}</Text>
             </View>
-            <View style={{ height: 1, backgroundColor: "#F0F3F5", marginVertical: 9 }} />
+            <View style={{ height: 1, backgroundColor: "#EAF2EF", marginVertical: 9 }} />
             <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 5 }}>
-              <Text style={{ color: "#718096", fontSize: 13 }}>Nền tảng</Text>
-              <Text style={{ color: "#172033", fontSize: 13, fontWeight: "800" }}>{platformName}</Text>
+              <Text style={{ color: "#718C8A", fontSize: 13 }}>Nền tảng</Text>
+              <Text style={{ color: "#164F4B", fontSize: 13, fontWeight: "800" }}>{platformName}</Text>
             </View>
           </View>
         </View>
 
-        <View style={{ marginTop: 24 }}>
+        <View style={{ marginTop: 20 }}>
           <SectionTitle>Dữ liệu của bạn</SectionTitle>
           <View
             style={{
-              borderRadius: 22,
+              borderRadius: 20,
               padding: 17,
-              backgroundColor: "#EAF7F1",
+              backgroundColor: "#DFF6ED",
               borderWidth: 1,
-              borderColor: "#CFEBDD",
+              borderColor: "#C9EEE3",
               flexDirection: "row",
               alignItems: "flex-start",
             }}
           >
-            <Feather name="shield" size={20} color="#008F83" style={{ marginTop: 1, marginRight: 11 }} />
-            <Text style={{ flex: 1, color: "#31594D", fontSize: 13, lineHeight: 20 }}>
+            <Feather name="shield" size={20} color="#08665D" style={{ marginTop: 1, marginRight: 11 }} />
+            <Text style={{ flex: 1, color: "#164F4B", fontSize: 13, lineHeight: 20 }}>
               Trong phiên bản hiện tại, ví, giao dịch, danh mục và ngân sách được lưu cục bộ trên
               thiết bị. Khi xóa tài khoản khỏi danh sách trên thiết bị, dữ liệu tài chính cục bộ
               thuộc tài khoản đó cũng sẽ bị xóa.
@@ -166,15 +154,7 @@ export default function AboutFinoraScreen() {
           </View>
         </View>
 
-        <Text
-          style={{
-            textAlign: "center",
-            color: "#8A9995",
-            fontSize: 12,
-            lineHeight: 18,
-            marginTop: 26,
-          }}
-        >
+        <Text style={{ textAlign: "center", color: "#718C8A", fontSize: 10, lineHeight: 18, marginTop: 22 }}>
           FINORA · Tài chính rõ ràng, cuộc sống an tâm
         </Text>
       </ScrollView>

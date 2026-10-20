@@ -2,7 +2,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
-import { FinoraHeaderBanner } from "@/components/ui/finora-header-banner";
+import { FinoraProfilePageHeader } from "@/components/ui/finora-profile-page-header";
 import * as Auth from "@/lib/_core/auth";
 
 export default function AccountListScreen() {
@@ -85,46 +85,26 @@ export default function AccountListScreen() {
   };
 
   return (
-    <ScreenContainer className="bg-[#F3FAF8] px-5 pt-5">
-      <FinoraHeaderBanner
-        eyebrow="QUẢN LÝ CÁ NHÂN"
-        title="Danh sách tài khoản"
-        subtitle="Quản lý các tài khoản đã lưu trên thiết bị của bạn."
-        onBack={() => router.back()}
-        badgeText="👥"
-        footer={!loading && !error ? (
-          <View
-            style={{
-              alignSelf: "flex-start",
-              flexDirection: "row",
-              alignItems: "center",
-              marginTop: 14,
-              paddingHorizontal: 11,
-              paddingVertical: 6,
-              borderRadius: 18,
-              backgroundColor: "rgba(255,255,255,0.90)",
-            }}
-          >
-            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#009E8A", marginRight: 8 }} />
-            <Text style={{ color: "#075E55", fontSize: 11, fontWeight: "800" }}>
-              {accounts.length} tài khoản đã lưu
-            </Text>
-          </View>
-        ) : null}
-      />
+    <ScreenContainer className="bg-[#EAF9F4] px-[18px] pt-[10px]">
+      <FinoraProfilePageHeader title="Danh sách tài khoản" onBack={() => router.back()} onSettings={() => router.push("/(tabs)/settings" as never)} />
 
       <View style={{ flex: 1 }}>
         <View style={{ marginBottom: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <Text style={{ color: "#22B8A8", fontSize: 18, fontWeight: "800" }}>Tài khoản của bạn</Text>
-          <View style={{ width: 34, height: 4, borderRadius: 3, backgroundColor: "#00BFA5" }} />
+          <Text style={{ color: "#164F4B", fontSize: 18, fontWeight: "800" }}>Tài khoản của bạn</Text>
+          {!loading && !error ? (
+            <View style={{ flexDirection: "row", alignItems: "center", borderRadius: 16, backgroundColor: "#E8F8F2", paddingHorizontal: 10, paddingVertical: 6 }}>
+              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#159B70", marginRight: 7 }} />
+              <Text style={{ color: "#08665D", fontSize: 11, fontWeight: "800" }}>{accounts.length} đã lưu</Text>
+            </View>
+          ) : null}
         </View>
 
         {loading ? (
-          <View style={{ alignItems: "center", borderRadius: 22, borderWidth: 1, borderColor: "#D9EFEB", backgroundColor: "#FFFFFF", paddingVertical: 28, paddingHorizontal: 20 }}>
-            <Text style={{ fontSize: 14, fontWeight: "600", color: "#527371" }}>Đang tải danh sách tài khoản...</Text>
+          <View style={{ alignItems: "center", borderRadius: 25, borderWidth: 1, borderColor: "#E0F4ED", backgroundColor: "#FFFFFF", paddingVertical: 28, paddingHorizontal: 20 }}>
+            <Text style={{ fontSize: 14, fontWeight: "600", color: "#718C8A" }}>Đang tải danh sách tài khoản...</Text>
           </View>
         ) : error ? (
-          <View style={{ borderRadius: 22, borderWidth: 1, borderColor: "#FECACA", backgroundColor: "#FFF7F7", padding: 20 }}>
+          <View style={{ borderRadius: 25, borderWidth: 1, borderColor: "#FECACA", backgroundColor: "#FFF7F7", padding: 20 }}>
             <Text style={{ fontSize: 16, fontWeight: "800", color: "#B91C1C" }}>Không thể tải danh sách tài khoản</Text>
             <Text style={{ marginTop: 8, fontSize: 13, lineHeight: 19, color: "#B91C1C" }}>{error}</Text>
             <TouchableOpacity
@@ -136,12 +116,12 @@ export default function AccountListScreen() {
             </TouchableOpacity>
           </View>
         ) : accounts.length === 0 ? (
-          <View style={{ alignItems: "center", borderRadius: 24, borderWidth: 1, borderColor: "#D9EFEB", backgroundColor: "#FFFFFF", paddingHorizontal: 24, paddingVertical: 30 }}>
-            <View style={{ width: 62, height: 62, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "#DDF8F2", marginBottom: 14 }}>
+          <View style={{ alignItems: "center", borderRadius: 26, borderWidth: 1, borderColor: "#E0F4ED", backgroundColor: "#FFFFFF", paddingHorizontal: 24, paddingVertical: 30 }}>
+            <View style={{ width: 62, height: 62, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "#E8F8F2", marginBottom: 14 }}>
               <Text style={{ fontSize: 28 }}>👤</Text>
             </View>
-            <Text style={{ textAlign: "center", fontSize: 16, fontWeight: "800", color: "#123B3A" }}>Chưa có tài khoản nào</Text>
-            <Text style={{ textAlign: "center", marginTop: 7, fontSize: 13, lineHeight: 19, color: "#66817F" }}>
+            <Text style={{ textAlign: "center", fontSize: 16, fontWeight: "800", color: "#164F4B" }}>Chưa có tài khoản nào</Text>
+            <Text style={{ textAlign: "center", marginTop: 7, fontSize: 13, lineHeight: 19, color: "#718C8A" }}>
               Các tài khoản đã lưu trên thiết bị sẽ xuất hiện tại đây.
             </Text>
           </View>
@@ -158,10 +138,10 @@ export default function AccountListScreen() {
                   alignItems: "center",
                   borderRadius: 22,
                   borderWidth: 1,
-                  borderColor: "#DDEEEB",
+                  borderColor: "#E0F4ED",
                   backgroundColor: "#FFFFFF",
                   padding: 15,
-                  shadowColor: "#0B4F49",
+                  shadowColor: "#187D6A",
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.05,
                   shadowRadius: 10,
@@ -175,24 +155,24 @@ export default function AccountListScreen() {
                     borderRadius: 17,
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundColor: "#DDF8F2",
+                    backgroundColor: "#E8F8F2",
                     marginRight: 13,
                   }}
                 >
-                  <Text style={{ fontSize: 19, fontWeight: "800", color: "#007F73" }}>
+                  <Text style={{ fontSize: 19, fontWeight: "800", color: "#08665D" }}>
                     {(item.name || item.email || "F").trim().charAt(0).toUpperCase()}
                   </Text>
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text numberOfLines={1} style={{ fontSize: 15, fontWeight: "800", color: "#163B39" }}>
+                  <Text numberOfLines={1} style={{ fontSize: 15, fontWeight: "800", color: "#164F4B" }}>
                     {item.name || "Tài khoản Finora"}
                   </Text>
-                  <Text numberOfLines={2} style={{ marginTop: 4, fontSize: 12, lineHeight: 17, color: "#66817F" }}>
+                  <Text numberOfLines={2} style={{ marginTop: 4, fontSize: 12, lineHeight: 17, color: "#718C8A" }}>
                     {item.email}
                   </Text>
-                  <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", marginTop: 9, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 10, backgroundColor: "#E8F8F4" }}>
-                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#00A88F", marginRight: 6 }} />
-                    <Text style={{ fontSize: 10, fontWeight: "700", color: "#087568" }}>Đã lưu trên thiết bị</Text>
+                  <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", marginTop: 9, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 10, backgroundColor: "#EFFAF6" }}>
+                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#159B70", marginRight: 6 }} />
+                    <Text style={{ fontSize: 10, fontWeight: "700", color: "#08665D" }}>Đã lưu trên thiết bị</Text>
                   </View>
                 </View>
                 <TouchableOpacity
