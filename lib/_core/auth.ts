@@ -457,29 +457,45 @@ export async function localUpdateAccountProfile(
   name: string,
   avatarUri?: string | null,
 ): Promise<User> {
-  const normalizedName = name.trim();
-  if (!normalizedName) throw new Error("Vui lòng nhập tên hiển thị.");
-  if (normalizedName.length > 60) throw new Error("Tên hiển thị không được vượt quá 60 ký tự.");
+  let stage = "validate display name";
+  try {
+    // Defensively normalize runtime values before calling string methods.
+    const normalizedName = String(name ?? "").trim();
+    if (!normalizedName) throw new Error("Vui lòng nhập tên hiển thị.");
+    if (normalizedName.length > 60) throw new Error("Tên hiển thị không được vượt quá 60 ký tự.");
 
-  const accounts = await readAccounts();
-  const account = accounts.find((item) => item.id === userId);
-  if (!account) throw new Error("Không tìm thấy tài khoản đang đăng nhập.");
+    stage = "read local accounts";
+    console.log("[Auth] localUpdateAccountProfile: reading accounts");
+    const accounts = await readAccounts();
+    console.log("[Auth] localUpdateAccountProfile: accounts read", accounts.length);
+    const account = accounts.find((item) => item.id === userId);
+    if (!account) throw new Error("Không tìm thấy tài khoản đang đăng nhập.");
 
-  const updatedAccount = {
-    ...account,
-    name: normalizedName,
-    ...(avatarUri !== undefined ? { avatarUri } : {}),
-  };
-  await writeAccounts(accounts.map((item) => item.id === userId ? updatedAccount : item));
-  const user: User = {
-    id: updatedAccount.id,
-    openId: updatedAccount.openId,
-    name: updatedAccount.name,
-    email: updatedAccount.email,
-    loginMethod: updatedAccount.loginMethod,
-    lastSignedIn: updatedAccount.lastSignedIn,
-    avatarUri: updatedAccount.avatarUri ?? null,
-  };
-  await setUserInfo(user);
-  return user;
+    const updatedAccount = {
+      ...account,
+      name: normalizedName,
+      ...(avatarUri !== undefined ? { avatarUri } : {}),
+    };
+    stage = "write local accounts";
+    console.log("[Auth] localUpdateAccountProfile: writing account", userId);
+    await writeAccounts(accounts.map((item) => item.id === userId ? updatedAccount : item));
+    console.log("[Auth] localUpdateAccountProfile: account written");
+    const user: User = {
+      id: updatedAccount.id,
+      openId: updatedAccount.openId,
+      name: updatedAccount.name,
+      email: updatedAccount.email,
+      loginMethod: updatedAccount.loginMethod,
+      lastSignedIn: updatedAccount.lastSignedIn,
+      avatarUri: updatedAccount.avatarUri ?? null,
+    };
+    stage = "write user profile cache";
+    await setUserInfo(user);
+    console.log("[Auth] localUpdateAccountProfile: completed");
+    return user;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error("[Auth] localUpdateAccountProfile failed at stage:", stage, detail, error);
+    throw new Error(`Lỗi cập nhật hồ sơ tại bước "${stage}": ${detail}`);
+  }
 }
