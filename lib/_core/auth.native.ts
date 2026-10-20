@@ -7,6 +7,7 @@ export type User = {
   email: string | null;
   loginMethod: string | null;
   lastSignedIn: Date;
+  avatarUri?: string | null;
 };
 
 export type LocalAccount = User & { password: string };
@@ -252,6 +253,58 @@ export async function localLogin(email: string, password: string): Promise<User>
 export async function localLogout(): Promise<void> {
   await removeSessionToken();
   await clearUserInfo();
+}
+
+/** Updates the active local account profile on native platforms. */
+export async function localUpdateAccountProfile(
+  userId: number,
+  name: string,
+  avatarUri?: string | null,
+): Promise<User> {
+  let stage = "validate display name";
+  try {
+    const id = Number(userId);
+    const normalizedName = String(name ?? "").trim();
+    if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Tài khoản không hợp lệ.");
+    if (!normalizedName) throw new Error("Vui lòng nhập tên hiển thị.");
+    if (normalizedName.length > 60) throw new Error("Tên hiển thị không được vượt quá 60 ký tự.");
+
+    stage = "read secure local accounts";
+    const accounts = await readSecureAccounts();
+    const account = accounts.find((item) => Number(item.id) === id);
+    if (!account) throw new Error("Không tìm thấy tài khoản đang đăng nhập.");
+
+    const updatedAccount: LocalAccount = {
+      ...account,
+      name: normalizedName,
+      ...(avatarUri !== undefined ? { avatarUri } : {}),
+    };
+    const updatedAccounts = accounts.map((item) => Number(item.id) === id ? updatedAccount : item);
+
+    stage = "write secure local accounts";
+    await writeSecureAccounts(updatedAccounts);
+
+    stage = "sync local account database";
+    await syncAccountsToDeviceStore(updatedAccounts);
+
+    const user: User = {
+      id: updatedAccount.id,
+      openId: updatedAccount.openId,
+      name: updatedAccount.name,
+      email: updatedAccount.email,
+      loginMethod: updatedAccount.loginMethod,
+      lastSignedIn: updatedAccount.lastSignedIn,
+      avatarUri: updatedAccount.avatarUri ?? null,
+    };
+
+    stage = "write user profile cache";
+    await setUserInfo(user);
+    return user;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error("[Auth] localUpdateAccountProfile failed at stage:", stage, detail, error);
+    throw new Error(`Lỗi cập nhật hồ sơ tại bước "${stage}": ${detail}`);
+  }
 }
 
 export async function localRemoveSavedAccount(userId: number): Promise<void> {
