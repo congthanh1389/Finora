@@ -1,11 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth, notifyAuthState } from "@/hooks/use-auth";
-import { localUpdateAccountName } from "@/lib/_core/auth";
+import { localUpdateAccountProfile } from "@/lib/_core/auth";
 
 const C = {
   bg: "#EAF9F4",
@@ -23,8 +24,31 @@ export default function AccountEditScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const [name, setName] = useState(user?.name ?? "");
+  const [avatarUri, setAvatarUri] = useState(user?.avatarUri ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const chooseAvatar = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        setError("Finora cần quyền truy cập thư viện ảnh để chọn ảnh đại diện.");
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets[0]?.uri) {
+        setAvatarUri(result.assets[0].uri);
+        setError("");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Không thể mở thư viện ảnh.");
+    }
+  };
 
   const save = async () => {
     if (!user) {
@@ -38,7 +62,7 @@ export default function AccountEditScreen() {
     try {
       setSaving(true);
       setError("");
-      const updated = await localUpdateAccountName(user.id, name);
+      const updated = await localUpdateAccountProfile(user.id, name, avatarUri);
       notifyAuthState(updated);
       router.back();
     } catch (e) {
@@ -62,7 +86,7 @@ export default function AccountEditScreen() {
 
         <View style={{ alignItems: "center", paddingTop: 8, paddingBottom: 28 }}>
           <View style={{ width: 150, height: 150, borderRadius: 75, backgroundColor: "#B9F1E1", borderWidth: 5, borderColor: C.white, alignItems: "center", justifyContent: "center", shadowColor: "#087768", shadowOpacity: 0.12, shadowRadius: 12, elevation: 3 }}>
-            <Text style={{ color: C.dark, fontSize: 60, fontWeight: "800" }}>{initial}</Text>
+            {avatarUri ? <Image source={{ uri: avatarUri }} style={{ width: 140, height: 140, borderRadius: 70 }} resizeMode="cover" /> : <Text style={{ color: C.dark, fontSize: 60, fontWeight: "800" }}>{initial}</Text>}
             <View style={{ position: "absolute", right: -2, bottom: 3, width: 42, height: 42, borderRadius: 22, backgroundColor: "#07866E", borderWidth: 3, borderColor: C.white, alignItems: "center", justifyContent: "center" }}>
               <Feather name="camera" size={19} color={C.white} />
             </View>
