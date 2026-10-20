@@ -112,7 +112,7 @@ export default function AccountInformationScreen() {
             <Text style={{ color: COLORS.muted, fontSize: 12, marginTop: 4 }}>Quản lý hồ sơ và bảo mật</Text>
           </View>
           <View style={{ width: 39, height: 39, borderRadius: 14, backgroundColor: COLORS.primarySoft, alignItems: "center", justifyContent: "center" }}>
-            <Feather name="user-round" size={19} color={COLORS.primary} />
+            <Feather name="user" size={19} color={COLORS.primary} />
           </View>
         </View>
 
