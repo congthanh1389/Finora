@@ -9,6 +9,7 @@ export type User = {
   email: string | null;
   loginMethod: string | null;
   lastSignedIn: Date;
+  avatarUri?: string | null;
 };
 
 export async function getSessionToken(): Promise<string | null> {
@@ -153,6 +154,7 @@ function normalizeLocalAccount(value: unknown): LocalAccount | null {
     email: item.email,
     loginMethod: typeof item.loginMethod === "string" ? item.loginMethod : "local-password",
     lastSignedIn: Number.isNaN(lastSignedIn.getTime()) ? new Date(0) : lastSignedIn,
+    avatarUri: typeof item.avatarUri === "string" ? item.avatarUri : null,
     password: item.password,
   };
 }
@@ -443,6 +445,40 @@ export async function localUpdateAccountName(userId: number, name: string): Prom
     email: updatedAccount.email,
     loginMethod: updatedAccount.loginMethod,
     lastSignedIn: updatedAccount.lastSignedIn,
+    avatarUri: updatedAccount.avatarUri ?? null,
+  };
+  await setUserInfo(user);
+  return user;
+}
+
+
+export async function localUpdateAccountProfile(
+  userId: number,
+  name: string,
+  avatarUri?: string | null,
+): Promise<User> {
+  const normalizedName = name.trim();
+  if (!normalizedName) throw new Error("Vui lòng nhập tên hiển thị.");
+  if (normalizedName.length > 60) throw new Error("Tên hiển thị không được vượt quá 60 ký tự.");
+
+  const accounts = await readAccounts();
+  const account = accounts.find((item) => item.id === userId);
+  if (!account) throw new Error("Không tìm thấy tài khoản đang đăng nhập.");
+
+  const updatedAccount = {
+    ...account,
+    name: normalizedName,
+    ...(avatarUri !== undefined ? { avatarUri } : {}),
+  };
+  await writeAccounts(accounts.map((item) => item.id === userId ? updatedAccount : item));
+  const user: User = {
+    id: updatedAccount.id,
+    openId: updatedAccount.openId,
+    name: updatedAccount.name,
+    email: updatedAccount.email,
+    loginMethod: updatedAccount.loginMethod,
+    lastSignedIn: updatedAccount.lastSignedIn,
+    avatarUri: updatedAccount.avatarUri ?? null,
   };
   await setUserInfo(user);
   return user;
