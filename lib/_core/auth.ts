@@ -420,3 +420,30 @@ export async function localRemoveSavedAccount(userId: number): Promise<void> {
     throw new Error(`Lỗi khi gỡ tài khoản tại bước "${stage}": ${detail}`);
   }
 }
+
+
+/**
+ * Updates the active local account's display name without touching financial records.
+ */
+export async function localUpdateAccountName(userId: number, name: string): Promise<User> {
+  const normalizedName = name.trim();
+  if (!normalizedName) throw new Error("Vui lòng nhập tên hiển thị.");
+  if (normalizedName.length > 60) throw new Error("Tên hiển thị không được vượt quá 60 ký tự.");
+
+  const accounts = await readAccounts();
+  const account = accounts.find((item) => item.id === userId);
+  if (!account) throw new Error("Không tìm thấy tài khoản đang đăng nhập.");
+
+  const updatedAccount = { ...account, name: normalizedName };
+  await writeAccounts(accounts.map((item) => item.id === userId ? updatedAccount : item));
+  const user: User = {
+    id: updatedAccount.id,
+    openId: updatedAccount.openId,
+    name: updatedAccount.name,
+    email: updatedAccount.email,
+    loginMethod: updatedAccount.loginMethod,
+    lastSignedIn: updatedAccount.lastSignedIn,
+  };
+  await setUserInfo(user);
+  return user;
+}
