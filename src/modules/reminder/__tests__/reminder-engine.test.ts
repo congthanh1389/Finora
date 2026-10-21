@@ -31,6 +31,31 @@ describe("reminder engine", () => {
     expect(reminders[0]?.id).toBe("budget-over-1");
   });
 
+  it("uses the configured threshold for budget reminders", () => {
+    const reminders = buildReminders({
+      ...baseInput,
+      budgets: [
+        { budgetId: 10, categoryName: "Ăn uống", percentageUsed: 85, isOverBudget: false, spent: 850_000, limit: 1_000_000 },
+      ],
+    }, { budgetAlertThreshold: 90 });
+
+    expect(reminders.some((item) => item.type === "budget")).toBe(false);
+  });
+
+  it("can disable budget reminders without disabling other reminders", () => {
+    const reminders = buildReminders({
+      ...baseInput,
+      income: 1_000_000,
+      expense: 2_000_000,
+      budgets: [
+        { budgetId: 11, categoryName: "Ăn uống", percentageUsed: 120, isOverBudget: true, spent: 1_200_000, limit: 1_000_000 },
+      ],
+    }, { budgetAlertsEnabled: false });
+
+    expect(reminders.some((item) => item.type === "budget")).toBe(false);
+    expect(reminders.some((item) => item.id === "cash-flow-negative")).toBe(true);
+  });
+
   it("warns when cash flow is negative", () => {
     const reminders = buildReminders({
       ...baseInput,
