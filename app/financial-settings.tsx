@@ -144,7 +144,7 @@ export default function FinancialSettingsScreen() {
                 {incomeCategories.map((item) => option(item.name, preferences.defaultIncomeCategoryId === item.id, () => update("defaultIncomeCategoryId", item.id)))}
                 <Text style={{ color: colors.text, fontWeight: "700", marginTop: 18 }}>Danh mục chi mặc định</Text>
                 {option("Không đặt mặc định", preferences.defaultExpenseCategoryId === null, () => update("defaultExpenseCategoryId", null))}
-                {expenseCategories.map((item) => option(item.name, preferences.defaultExpenseCategoryId === item.id, () => update("defaultExpenseCategoryId", item.id))}
+                {expenseCategories.map((item) => option(item.name, preferences.defaultExpenseCategoryId === item.id, () => update("defaultExpenseCategoryId", item.id)))}
               </>
             )}
             {section("B. Cảnh báo ngân sách", "Điều chỉnh khi Finora bắt đầu nhắc bạn về ngân sách. Cảnh báo vượt hạn mức luôn được giữ khi bật tính năng.",
