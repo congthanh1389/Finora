@@ -82,6 +82,9 @@ describe("ReportService", () => {
     expect(today.previousEnd).toEqual(new Date(2026, 9, 8));
     expect(week.start).toEqual(new Date(2026, 9, 5));
     expect(week.end).toEqual(new Date(2026, 9, 12));
+    const sundayWeek = getReportPeriodRange("week", now, 0);
+    expect(sundayWeek.start).toEqual(new Date(2026, 9, 4));
+    expect(sundayWeek.end).toEqual(new Date(2026, 9, 11));
     expect(month.start).toEqual(new Date(2026, 9, 1));
     expect(month.end).toEqual(new Date(2026, 10, 1));
     expect(quarter.start).toEqual(new Date(2026, 9, 1));
