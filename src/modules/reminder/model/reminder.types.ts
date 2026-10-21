@@ -32,4 +32,6 @@ export type ReminderInput = {
 
 export type ReminderEngineOptions = {
   limit?: number;
+  budgetAlertsEnabled?: boolean;
+  budgetAlertThreshold?: number;
 };
