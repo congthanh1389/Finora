@@ -29,7 +29,17 @@ export function WalletView() {
   const vm = useWalletViewModel();
 
   return (
-    <ScreenContainer className="bg-[#F8FAFC] dark:bg-[#10211F]">
+    <ScreenContainer className="bg-[#EAF9F4] dark:bg-[#10211F]">
+      <View pointerEvents="none" className="absolute right-5 top-2 h-24 w-16 items-center opacity-40">
+        <View className="h-[72px] w-14 rounded-full bg-[#9BE7D2]" />
+        <View className="h-3 w-3 -mt-1 rotate-45 bg-[#9BE7D2]" />
+        <View className="h-7 w-px bg-[#67CDB5]" />
+      </View>
+      <View pointerEvents="none" className="absolute right-20 top-12 h-16 w-10 items-center opacity-25">
+        <View className="h-12 w-10 rounded-full bg-[#66D6BD]" />
+        <View className="h-2 w-2 -mt-1 rotate-45 bg-[#66D6BD]" />
+        <View className="h-5 w-px bg-[#67CDB5]" />
+      </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 28 }}>
         <View className="gap-4 px-5 pt-4">
           <View className="flex-row items-center">
