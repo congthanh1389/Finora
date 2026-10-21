@@ -29,13 +29,13 @@ export function WalletView() {
   const vm = useWalletViewModel();
 
   return (
-    <ScreenContainer className="bg-[#F8FAFC]">
+    <ScreenContainer className="bg-[#F8FAFC] dark:bg-[#10211F]">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 28 }}>
         <View className="gap-4 px-5 pt-4">
           <View className="flex-row items-center">
             <View className="flex-1">
-              <Text className="text-[28px] font-bold text-[#0F2A5F]">Ví của tôi</Text>
-              <Text className="mt-1 text-sm text-[#64748B]">Quản lý tiền của bạn thật gọn gàng.</Text>
+              <Text className="text-[28px] font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Ví của tôi</Text>
+              <Text className="mt-1 text-sm text-[#64748B] dark:text-[#A5BCB5]">Quản lý tiền của bạn thật gọn gàng.</Text>
             </View>
             <Pressable
               accessibilityLabel="Thêm ví"
@@ -48,25 +48,25 @@ export function WalletView() {
 
           <View className="rounded-[28px] bg-[#0F2A5F] p-6">
             <Text className="text-xs font-semibold tracking-wider text-white/70">TỔNG SỐ DƯ</Text>
-            <Text className="mt-2 text-[38px] font-bold text-[#047857]">{formatVnd(vm.totalBalance)}</Text>
+            <Text className="mt-2 text-[38px] font-bold text-[#047857] dark:text-[#51D3A1]">{formatVnd(vm.totalBalance)}</Text>
             <Text className="mt-1 text-xs text-white/70">{vm.activeWallets.length} ví đang được quản lý</Text>
           </View>
 
           {vm.isLoading ? (
-            <View className="items-center rounded-3xl border border-[#E2E8F0] bg-white py-12">
+            <View className="items-center rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] py-12">
               <ActivityIndicator />
-              <Text className="mt-3 text-sm text-[#64748B]">Đang tải danh sách ví...</Text>
+              <Text className="mt-3 text-sm text-[#64748B] dark:text-[#A5BCB5]">Đang tải danh sách ví...</Text>
             </View>
           ) : vm.error ? (
-            <View className="rounded-3xl border border-[#FECACA] bg-white p-5">
+            <View className="rounded-3xl border border-[#FECACA] bg-white dark:bg-[#17322D] p-5">
               <Text className="text-base font-bold text-[#991B1B]">Không thể tải dữ liệu cục bộ</Text>
-              <Text className="mt-1 text-sm text-[#64748B]">Vui lòng thử lại.</Text>
+              <Text className="mt-1 text-sm text-[#64748B] dark:text-[#A5BCB5]">Vui lòng thử lại.</Text>
             </View>
           ) : vm.activeWallets.length === 0 && vm.archivedWallets.length === 0 ? (
-            <View className="items-center rounded-3xl border border-dashed border-[#CBD5E1] bg-white px-6 py-12">
+            <View className="items-center rounded-3xl border border-dashed border-[#CBD5E1] bg-white dark:bg-[#17322D] px-6 py-12">
               <FinoraMockupIcon name="01_finance_wallet" size={52} />
-              <Text className="mt-4 text-lg font-bold text-[#0F2A5F]">Chưa có ví nào</Text>
-              <Text className="mt-1 text-center text-sm text-[#64748B]">Thêm ví đầu tiên để Finora bắt đầu theo dõi số dư.</Text>
+              <Text className="mt-4 text-lg font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Chưa có ví nào</Text>
+              <Text className="mt-1 text-center text-sm text-[#64748B] dark:text-[#A5BCB5]">Thêm ví đầu tiên để Finora bắt đầu theo dõi số dư.</Text>
               <Pressable onPress={() => vm.setCreateOpen(true)} className="mt-5 rounded-full bg-[#22B8A8] px-6 py-3">
                 <Text className="font-bold text-white">Thêm ví đầu tiên</Text>
               </Pressable>
@@ -74,22 +74,22 @@ export function WalletView() {
           ) : (
             <View className="gap-3">
               {vm.activeWallets.map((wallet) => (
-                <View key={wallet.id} className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
+                <View key={wallet.id} className="rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] p-4">
                   <View className="flex-row items-center">
-                    <View className="h-12 w-12 items-center justify-center rounded-2xl bg-[#EFF6FF]">
+                    <View className="h-12 w-12 items-center justify-center rounded-2xl bg-[#EFF6FF] dark:bg-[#1C4038]">
                       <FinoraMockupIcon name="01_finance_wallet" size={32} />
                     </View>
                     <View className="ml-3 flex-1">
-                      <Text className="text-base font-bold text-[#0F2A5F]">{wallet.name}</Text>
-                      <Text className="mt-1 text-xs text-[#64748B]">{walletTypeLabel(wallet.type)} · {wallet.currency}</Text>
+                      <Text className="text-base font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">{wallet.name}</Text>
+                      <Text className="mt-1 text-xs text-[#64748B] dark:text-[#A5BCB5]">{walletTypeLabel(wallet.type)} · {wallet.currency}</Text>
                     </View>
                     <View className="items-end">
-                      <Text className="text-base font-bold text-[#0F172A]">{formatVnd(wallet.balance)}</Text>
+                      <Text className="text-base font-bold text-[#0F172A] dark:text-[#E7F5F0]">{formatVnd(wallet.balance)}</Text>
                       <View className="mt-2 flex-row gap-2">
-                        <Pressable onPress={() => vm.openEdit(wallet)} className="rounded-full bg-[#EFF6FF] px-3 py-1.5">
+                        <Pressable onPress={() => vm.openEdit(wallet)} className="rounded-full bg-[#EFF6FF] dark:bg-[#1C4038] px-3 py-1.5">
                           <Text className="text-xs font-bold text-[#2563EB]">Sửa</Text>
                         </Pressable>
-                        <Pressable onPress={() => void vm.archiveWallet(wallet)} className="rounded-full bg-[#FFF7ED] px-3 py-1.5">
+                        <Pressable onPress={() => void vm.archiveWallet(wallet)} className="rounded-full bg-[#FFF7ED] dark:bg-[#3A2B19] px-3 py-1.5">
                           <Text className="text-xs font-bold text-[#C2410C]">Lưu trữ</Text>
                         </Pressable>
                       </View>
@@ -99,24 +99,24 @@ export function WalletView() {
               ))}
 
               {vm.archivedWallets.length > 0 ? (
-                <View className="mt-2 rounded-3xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] p-4">
-                  <Text className="text-sm font-bold text-[#475569]">Ví đã lưu trữ</Text>
+                <View className="mt-2 rounded-3xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] dark:bg-[#10211F] p-4">
+                  <Text className="text-sm font-bold text-[#475569] dark:text-[#B7CBC4]">Ví đã lưu trữ</Text>
                   <View className="mt-3 gap-2">
                     {vm.archivedWallets.map((wallet) => (
-                      <View key={wallet.id} className="flex-row items-center rounded-2xl bg-white p-3 opacity-70">
+                      <View key={wallet.id} className="flex-row items-center rounded-2xl bg-white dark:bg-[#17322D] p-3 opacity-70">
                         <FinoraMockupIcon name="01_finance_wallet" size={28} />
                         <View className="ml-3 flex-1">
-                          <Text className="font-semibold text-[#475569]">{wallet.name}</Text>
-                          <Text className="mt-1 text-xs text-[#94A3B8]">{walletTypeLabel(wallet.type)} · {wallet.currency}</Text>
+                          <Text className="font-semibold text-[#475569] dark:text-[#B7CBC4]">{wallet.name}</Text>
+                          <Text className="mt-1 text-xs text-[#94A3B8] dark:text-[#A5BCB5]">{walletTypeLabel(wallet.type)} · {wallet.currency}</Text>
                         </View>
                         <View className="items-end">
-                          <Text className="text-sm font-bold text-[#64748B]">{formatVnd(wallet.balance)}</Text>
+                          <Text className="text-sm font-bold text-[#64748B] dark:text-[#A5BCB5]">{formatVnd(wallet.balance)}</Text>
                           <View className="mt-2 flex-row gap-2">
                             <Pressable
                               onPress={() => void vm.restoreWallet(wallet)}
-                              className="rounded-full bg-[#ECFDF5] px-3 py-1.5"
+                              className="rounded-full bg-[#ECFDF5] dark:bg-[#1C4038] px-3 py-1.5"
                             >
-                              <Text className="text-xs font-bold text-[#047857]">Khôi phục</Text>
+                              <Text className="text-xs font-bold text-[#047857] dark:text-[#51D3A1]">Khôi phục</Text>
                             </Pressable>
                             <Pressable
                               onPress={() => void vm.deleteArchivedWallet(wallet)}
@@ -138,41 +138,41 @@ export function WalletView() {
 
       <Modal visible={vm.editingWallet !== null} transparent animationType="slide" onRequestClose={vm.closeEdit}>
         <View className="flex-1 justify-end bg-black/30">
-          <View className="rounded-t-[30px] bg-white px-5 pb-8 pt-5">
+          <View className="rounded-t-[30px] bg-white dark:bg-[#17322D] px-5 pb-8 pt-5">
             <View className="flex-row items-center">
-              <Text className="flex-1 text-xl font-bold text-[#0F2A5F]">Sửa ví</Text>
-              <Pressable onPress={vm.closeEdit} className="h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9]">
-                <Text className="text-lg text-[#475569]">×</Text>
+              <Text className="flex-1 text-xl font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Sửa ví</Text>
+              <Pressable onPress={vm.closeEdit} className="h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9] dark:bg-[#263A35]">
+                <Text className="text-lg text-[#475569] dark:text-[#B7CBC4]">×</Text>
               </Pressable>
             </View>
-            <Text className="mt-5 text-sm font-semibold text-[#334155]">Tên ví</Text>
+            <Text className="mt-5 text-sm font-semibold text-[#334155] dark:text-[#DCEAE5]">Tên ví</Text>
             <TextInput
               value={vm.editName}
               onChangeText={vm.setEditName}
               placeholder="Tên ví"
               placeholderTextColor="#94A3B8"
-              className="mt-2 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3.5 text-base text-[#0F172A]"
+              className="mt-2 rounded-2xl border border-[#E2E8F0] dark:border-[#31554B] bg-[#F8FAFC] dark:bg-[#10211F] px-4 py-3.5 text-base text-[#0F172A] dark:text-[#E7F5F0]"
             />
-            <Text className="mt-4 text-sm font-semibold text-[#334155]">Loại ví</Text>
+            <Text className="mt-4 text-sm font-semibold text-[#334155] dark:text-[#DCEAE5]">Loại ví</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
               <View className="flex-row gap-2">
                 {walletTypes.map((item) => (
                   <Pressable
                     key={item.value}
                     onPress={() => vm.setEditType(item.value)}
-                    className={"rounded-2xl border px-4 py-3 " + (vm.editType === item.value ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0] bg-white")}
+                    className={"rounded-2xl border px-4 py-3 " + (vm.editType === item.value ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D]")}
                   >
-                    <Text className={vm.editType === item.value ? "font-bold text-[#047857]" : "font-semibold text-[#475569]"}>{item.label}</Text>
+                    <Text className={vm.editType === item.value ? "font-bold text-[#047857] dark:text-[#51D3A1]" : "font-semibold text-[#475569] dark:text-[#B7CBC4]"}>{item.label}</Text>
                   </Pressable>
                 ))}
               </View>
             </ScrollView>
             <Pressable
               onPress={() => vm.setEditAllowNegative(!vm.editAllowNegative)}
-              className="mt-4 flex-row items-center rounded-2xl bg-[#F8FAFC] p-4"
+              className="mt-4 flex-row items-center rounded-2xl bg-[#F8FAFC] dark:bg-[#10211F] p-4"
             >
               <View className={"h-5 w-5 rounded-md border-2 " + (vm.editAllowNegative ? "border-[#22B8A8] bg-[#22B8A8]" : "border-[#CBD5E1]")} />
-              <Text className="ml-3 text-sm font-semibold text-[#334155]">Cho phép số dư âm</Text>
+              <Text className="ml-3 text-sm font-semibold text-[#334155] dark:text-[#DCEAE5]">Cho phép số dư âm</Text>
             </Pressable>
             <Pressable
               disabled={vm.isSavingEdit || !vm.editName.trim()}
@@ -191,51 +191,51 @@ export function WalletView() {
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             className="flex-1"
           >
-            <View className="m-4 flex-1 overflow-hidden rounded-[30px] bg-white">
+            <View className="m-4 flex-1 overflow-hidden rounded-[30px] bg-white dark:bg-[#17322D]">
               <ScrollView
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 }}
                 showsVerticalScrollIndicator={false}
               >
                 <View className="flex-row items-center">
-                  <Text className="flex-1 text-xl font-bold text-[#0F2A5F]">Thêm ví</Text>
-                  <Pressable onPress={vm.resetForm} className="h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9]">
-                    <Text className="text-lg text-[#475569]">×</Text>
+                  <Text className="flex-1 text-xl font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Thêm ví</Text>
+                  <Pressable onPress={vm.resetForm} className="h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9] dark:bg-[#263A35]">
+                    <Text className="text-lg text-[#475569] dark:text-[#B7CBC4]">×</Text>
                   </Pressable>
                 </View>
 
-                <Text className="mt-5 text-sm font-semibold text-[#334155]">Tên ví</Text>
+                <Text className="mt-5 text-sm font-semibold text-[#334155] dark:text-[#DCEAE5]">Tên ví</Text>
                 <TextInput
                   value={vm.name}
                   onChangeText={vm.setName}
                   placeholder="Ví tiền mặt"
                   placeholderTextColor="#94A3B8"
-                  className="mt-2 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3.5 text-base text-[#0F172A]"
+                  className="mt-2 rounded-2xl border border-[#E2E8F0] dark:border-[#31554B] bg-[#F8FAFC] dark:bg-[#10211F] px-4 py-3.5 text-base text-[#0F172A] dark:text-[#E7F5F0]"
                 />
 
-                <Text className="mt-4 text-sm font-semibold text-[#334155]">Loại ví</Text>
+                <Text className="mt-4 text-sm font-semibold text-[#334155] dark:text-[#DCEAE5]">Loại ví</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
                   <View className="flex-row gap-2">
                     {walletTypes.map((item) => (
                       <Pressable
                         key={item.value}
                         onPress={() => vm.setType(item.value)}
-                        className={"rounded-2xl border px-4 py-3 " + (vm.type === item.value ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0] bg-white")}
+                        className={"rounded-2xl border px-4 py-3 " + (vm.type === item.value ? "border-[#22B8A8] bg-[#E6FFFA]" : "border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D]")}
                       >
-                        <Text className={vm.type === item.value ? "font-bold text-[#047857]" : "font-semibold text-[#475569]"}>{item.label}</Text>
+                        <Text className={vm.type === item.value ? "font-bold text-[#047857] dark:text-[#51D3A1]" : "font-semibold text-[#475569] dark:text-[#B7CBC4]"}>{item.label}</Text>
                       </Pressable>
                     ))}
                   </View>
                 </ScrollView>
 
-                <Text className="mt-4 text-sm font-semibold text-[#334155]">Số dư ban đầu</Text>
+                <Text className="mt-4 text-sm font-semibold text-[#334155] dark:text-[#DCEAE5]">Số dư ban đầu</Text>
                 <TextInput
                   value={vm.openingBalance}
                   onChangeText={vm.setOpeningBalance}
                   placeholder="0"
                   placeholderTextColor="#94A3B8"
                   keyboardType="numeric"
-                  className="mt-2 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3.5 text-base text-[#0F172A]"
+                  className="mt-2 rounded-2xl border border-[#E2E8F0] dark:border-[#31554B] bg-[#F8FAFC] dark:bg-[#10211F] px-4 py-3.5 text-base text-[#0F172A] dark:text-[#E7F5F0]"
                 />
 
                 {vm.createError ? (

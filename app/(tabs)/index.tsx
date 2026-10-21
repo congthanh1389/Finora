@@ -14,9 +14,9 @@ const money = (value: number) => new Intl.NumberFormat("vi-VN").format(value) + 
 const percent = (value: number) => new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 }).format(value) + "%";
 
 const quickActions = [
-  { icon: "01_finance_wallet", label: "Ví của tôi", box: "bg-[#EFF6FF]", route: "/wallet" },
-  { icon: "02_management_budget", label: "Ngân sách", box: "bg-[#FFF7ED]", route: "/budget" },
-  { icon: "04_reports_report", label: "Báo cáo", box: "bg-[#F5F3FF]", route: "/reports" },
+  { icon: "01_finance_wallet", label: "Ví của tôi", box: "bg-[#EFF6FF] dark:bg-[#1C4038]", route: "/wallet" },
+  { icon: "02_management_budget", label: "Ngân sách", box: "bg-[#FFF7ED] dark:bg-[#3A2B19]", route: "/budget" },
+  { icon: "04_reports_report", label: "Báo cáo", box: "bg-[#F5F3FF] dark:bg-[#2A2140]", route: "/reports" },
 ] as const;
 
 const greetingMessages = {
@@ -46,7 +46,7 @@ function SavingRing({ ratio }: { ratio: number }) {
         <Circle cx="46" cy="46" r="36" stroke="#E2E8F0" strokeWidth="10" fill="none" />
         <Circle cx="46" cy="46" r="36" stroke="url(#savingRing)" strokeWidth="10" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - safeRatio)} fill="none" rotation="-90" origin="46, 46" />
       </Svg>
-      <View className="absolute items-center"><Text className="text-lg font-bold text-[#0F172A]">{Math.round(safeRatio * 100)}%</Text><Text className="text-[9px] text-[#64748B]">Tiết kiệm</Text></View>
+      <View className="absolute items-center"><Text className="text-lg font-bold text-[#0F172A] dark:text-[#E7F5F0]">{Math.round(safeRatio * 100)}%</Text><Text className="text-[9px] text-[#64748B] dark:text-[#A5BCB5]">Tiết kiệm</Text></View>
     </View>
   );
 }
@@ -71,16 +71,16 @@ export default function HomeScreen() {
   const cashflowChange = current && previous ? changePercent(current.netCashflow, previous.netCashflow) : null;
 
   return (
-    <ScreenContainer className="bg-[#F8FAFC]">
+    <ScreenContainer className="bg-[#F8FAFC] dark:bg-[#10211F]">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
         <View className="gap-4 px-5 pt-4">
           <View className="flex-row items-center">
             <FinoraMockupIcon name="00_brand_finora_mark" size={42} />
-            <View className="ml-2 flex-1"><Text className="text-[22px] font-bold text-[#0F2A5F]">Finora</Text><Text className="mt-1 text-[21px] font-bold text-[#0F2A5F]">{greeting.title}</Text><Text className="mt-0.5 text-sm text-[#64748B]">{greetingMessage}</Text></View>
+            <View className="ml-2 flex-1"><Text className="text-[22px] font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Finora</Text><Text className="mt-1 text-[21px] font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">{greeting.title}</Text><Text className="mt-0.5 text-sm text-[#64748B] dark:text-[#A5BCB5]">{greetingMessage}</Text></View>
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => router.push("/reminders")}
-              className={`mr-2 h-11 w-11 items-center justify-center rounded-full shadow-sm ${newCount > 0 ? "bg-[#FFFBEB]" : "bg-white"}`}
+              className={`mr-2 h-11 w-11 items-center justify-center rounded-full shadow-sm ${newCount > 0 ? "bg-[#FFFBEB] dark:bg-[#3A2F17]" : "bg-white dark:bg-[#17322D]"}`}
             >
               <Ionicons name="notifications-outline" size={25} color={newCount > 0 ? "#F59E0B" : "#1F2937"} />
               {newCount > 0 ? (
@@ -89,7 +89,7 @@ export default function HomeScreen() {
                 </View>
               ) : null}
             </TouchableOpacity>
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-[#EFF6FF]"><Text className="text-lg">●</Text></View>
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-[#EFF6FF] dark:bg-[#1C4038]"><Text className="text-lg">●</Text></View>
           </View>
 
           <View className="overflow-hidden rounded-[28px] bg-[#0EA5A8] shadow-sm">
@@ -100,35 +100,35 @@ export default function HomeScreen() {
             <View className="p-6"><View className="flex-row items-center justify-between"><View className="flex-row items-center"><FinoraMockupIcon name="01_finance_wallet" size={24} /><Text className="ml-2 text-sm font-semibold text-white">TỔNG TÀI SẢN</Text></View><FinoraMockupIcon name="status_visibility" size={24} /></View><Text className="mt-3 text-[36px] font-bold tracking-tight text-white">{money(data?.totalBalance ?? 0)}</Text>
               <View className="mt-2 flex-row items-center"><View className="h-7 w-7 items-center justify-center rounded-full bg-[#10B981]"><Text className="text-base font-bold text-white">{cashflowChange != null && cashflowChange < 0 ? "↓" : "↑"}</Text></View><Text className="ml-2 text-base font-bold text-white">{cashflowChange == null ? "—" : percent(Math.abs(cashflowChange))}</Text><Text className="ml-2 text-xs text-white/90">dòng tiền so với tháng trước</Text></View>
             </View>
-            <View className="mx-0 flex-row rounded-t-[22px] bg-white px-5 py-4"><View className="flex-1 flex-row items-center"><View className="h-10 w-10 items-center justify-center rounded-full bg-[#DCFCE7]"><Text className="text-xl font-bold text-[#16A34A]">↓</Text></View><View className="ml-3"><Text className="text-xs text-[#64748B]">Tiền vào tháng này</Text><Text className="mt-1 text-base font-bold text-[#047857]">+{money(current?.income ?? 0)}</Text></View></View><View className="my-1 w-px bg-[#E2E8F0]" /><View className="flex-1 flex-row items-center pl-4"><View className="h-10 w-10 items-center justify-center rounded-full bg-[#FFE4E6]"><Text className="text-xl font-bold text-[#F43F5E]">↑</Text></View><View className="ml-3"><Text className="text-xs text-[#64748B]">Tiền ra tháng này</Text><Text className="mt-1 text-base font-bold text-[#E11D48]">-{money(current?.expense ?? 0)}</Text></View></View></View>
+            <View className="mx-0 flex-row rounded-t-[22px] bg-white dark:bg-[#17322D] px-5 py-4"><View className="flex-1 flex-row items-center"><View className="h-10 w-10 items-center justify-center rounded-full bg-[#DCFCE7] dark:bg-[#1C4038]"><Text className="text-xl font-bold text-[#16A34A]">↓</Text></View><View className="ml-3"><Text className="text-xs text-[#64748B] dark:text-[#A5BCB5]">Tiền vào tháng này</Text><Text className="mt-1 text-base font-bold text-[#047857] dark:text-[#51D3A1]">+{money(current?.income ?? 0)}</Text></View></View><View className="my-1 w-px bg-[#E2E8F0] dark:bg-[#31554B]" /><View className="flex-1 flex-row items-center pl-4"><View className="h-10 w-10 items-center justify-center rounded-full bg-[#FFE4E6] dark:bg-[#4A202A]"><Text className="text-xl font-bold text-[#F43F5E]">↑</Text></View><View className="ml-3"><Text className="text-xs text-[#64748B] dark:text-[#A5BCB5]">Tiền ra tháng này</Text><Text className="mt-1 text-base font-bold text-[#E11D48]">-{money(current?.expense ?? 0)}</Text></View></View></View>
           </View>
 
           <TouchableOpacity activeOpacity={0.88} onPress={() => router.push("/transaction/new")} className="flex-row items-center justify-center rounded-full bg-[#22B8A8] px-5 py-4"><Text className="mr-3 text-3xl font-light text-white">+</Text><Text className="text-base font-bold text-white">Thêm giao dịch</Text><Text className="ml-auto text-2xl text-white">›</Text></TouchableOpacity>
 
-          <View className="flex-row gap-3">{quickActions.map((action) => <TouchableOpacity key={action.label} activeOpacity={0.85} onPress={action.route ? () => router.push(action.route) : undefined} disabled={!action.route} className={`flex-1 items-center rounded-2xl border border-white p-3.5 shadow-sm ${action.box}`}><FinoraMockupIcon name={action.icon} size={46} /><Text className="mt-2 text-center text-sm font-semibold text-[#0F2A5F]">{action.label}</Text><Text className="mt-0.5 text-lg text-[#64748B]">›</Text></TouchableOpacity>)}</View>
+          <View className="flex-row gap-3">{quickActions.map((action) => <TouchableOpacity key={action.label} activeOpacity={0.85} onPress={action.route ? () => router.push(action.route) : undefined} disabled={!action.route} className={`flex-1 items-center rounded-2xl border border-white p-3.5 shadow-sm ${action.box}`}><FinoraMockupIcon name={action.icon} size={46} /><Text className="mt-2 text-center text-sm font-semibold text-[#0F2A5F] dark:text-[#E7F5F0]">{action.label}</Text><Text className="mt-0.5 text-lg text-[#64748B] dark:text-[#A5BCB5]">›</Text></TouchableOpacity>)}</View>
 
-          <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <View className="flex-row items-center"><FinoraMockupIcon name="util_calendar" size={23} /><Text className="ml-2 flex-1 text-lg font-bold uppercase text-[#0F2A5F]">{data?.monthLabel ?? "tháng hiện tại"}</Text><Text className="text-xs font-medium text-[#64748B]">Xem chi tiết ›</Text></View>
+          <View className="rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] p-5 shadow-sm">
+            <View className="flex-row items-center"><FinoraMockupIcon name="util_calendar" size={23} /><Text className="ml-2 flex-1 text-lg font-bold uppercase text-[#0F2A5F] dark:text-[#E7F5F0]">{data?.monthLabel ?? "tháng hiện tại"}</Text><Text className="text-xs font-medium text-[#64748B] dark:text-[#A5BCB5]">Xem chi tiết ›</Text></View>
             <View className="mt-5 gap-4">
-              <View className="flex-row items-center"><View className="h-9 w-9 items-center justify-center rounded-full bg-[#DCFCE7]"><Text className="text-lg font-bold text-[#16A34A]">↓</Text></View><View className="ml-3 flex-1"><View className="flex-row"><Text className="flex-1 text-sm text-[#334155]">Thu nhập</Text><Text className="text-sm font-bold text-[#047857]">{money(current?.income ?? 0)}</Text></View><View className="mt-2 h-2 overflow-hidden rounded-full bg-[#D1FAE5]"><View className="h-full rounded-full bg-[#22C55E]" style={{ width: `${current?.income ? 100 : 0}%` }} /></View></View></View>
-              <View className="flex-row items-center"><View className="h-9 w-9 items-center justify-center rounded-full bg-[#FFE4E6]"><Text className="text-lg font-bold text-[#F43F5E]">↑</Text></View><View className="ml-3 flex-1"><View className="flex-row"><Text className="flex-1 text-sm text-[#334155]">Chi tiêu</Text><Text className="text-sm font-bold text-[#E11D48]">{money(current?.expense ?? 0)}</Text></View><View className="mt-2 h-2 overflow-hidden rounded-full bg-[#FFE4E6]"><View className="h-full rounded-full bg-[#FB7185]" style={{ width: `${current?.income ? Math.min(100, current.expense / current.income * 100) : 0}%` }} /></View></View></View>
-              <View className="flex-row items-center"><View className="h-9 w-9 items-center justify-center rounded-full bg-[#EDE9FE]"><Text className="text-lg font-bold text-[#8B5CF6]">◆</Text></View><View className="ml-3 flex-1"><View className="flex-row"><Text className="flex-1 text-sm text-[#334155]">Tiết kiệm</Text><Text className="text-sm font-bold text-[#6D28D9]">{money(current?.netCashflow ?? 0)}</Text></View><View className="mt-2 h-2 overflow-hidden rounded-full bg-[#EDE9FE]"><View className="h-full rounded-full bg-[#8B5CF6]" style={{ width: `${savingRatio * 100}%` }} /></View></View></View>
+              <View className="flex-row items-center"><View className="h-9 w-9 items-center justify-center rounded-full bg-[#DCFCE7] dark:bg-[#1C4038]"><Text className="text-lg font-bold text-[#16A34A]">↓</Text></View><View className="ml-3 flex-1"><View className="flex-row"><Text className="flex-1 text-sm text-[#334155] dark:text-[#DCEAE5]">Thu nhập</Text><Text className="text-sm font-bold text-[#047857] dark:text-[#51D3A1]">{money(current?.income ?? 0)}</Text></View><View className="mt-2 h-2 overflow-hidden rounded-full bg-[#D1FAE5] dark:bg-[#1C4038]"><View className="h-full rounded-full bg-[#22C55E]" style={{ width: `${current?.income ? 100 : 0}%` }} /></View></View></View>
+              <View className="flex-row items-center"><View className="h-9 w-9 items-center justify-center rounded-full bg-[#FFE4E6] dark:bg-[#4A202A]"><Text className="text-lg font-bold text-[#F43F5E]">↑</Text></View><View className="ml-3 flex-1"><View className="flex-row"><Text className="flex-1 text-sm text-[#334155] dark:text-[#DCEAE5]">Chi tiêu</Text><Text className="text-sm font-bold text-[#E11D48]">{money(current?.expense ?? 0)}</Text></View><View className="mt-2 h-2 overflow-hidden rounded-full bg-[#FFE4E6] dark:bg-[#4A202A]"><View className="h-full rounded-full bg-[#FB7185]" style={{ width: `${current?.income ? Math.min(100, current.expense / current.income * 100) : 0}%` }} /></View></View></View>
+              <View className="flex-row items-center"><View className="h-9 w-9 items-center justify-center rounded-full bg-[#EDE9FE] dark:bg-[#2A2140]"><Text className="text-lg font-bold text-[#8B5CF6]">◆</Text></View><View className="ml-3 flex-1"><View className="flex-row"><Text className="flex-1 text-sm text-[#334155] dark:text-[#DCEAE5]">Tiết kiệm</Text><Text className="text-sm font-bold text-[#6D28D9]">{money(current?.netCashflow ?? 0)}</Text></View><View className="mt-2 h-2 overflow-hidden rounded-full bg-[#EDE9FE] dark:bg-[#2A2140]"><View className="h-full rounded-full bg-[#8B5CF6]" style={{ width: `${savingRatio * 100}%` }} /></View></View></View>
             </View>
           </View>
 
-          <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <View className="flex-row items-center"><Text className="flex-1 text-lg font-bold text-[#0F2A5F]">Giao dịch gần đây</Text><TouchableOpacity onPress={() => router.push("/transaction")}><Text className="text-sm font-semibold text-[#0EA5A8]">Xem tất cả ›</Text></TouchableOpacity></View>
+          <View className="rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] p-5 shadow-sm">
+            <View className="flex-row items-center"><Text className="flex-1 text-lg font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Giao dịch gần đây</Text><TouchableOpacity onPress={() => router.push("/transaction")}><Text className="text-sm font-semibold text-[#0EA5A8] dark:text-[#51D3B2]">Xem tất cả ›</Text></TouchableOpacity></View>
             <View className="mt-4 gap-3">
-              {(data?.recentTransactions ?? []).length === 0 ? <Text className="py-4 text-sm text-[#64748B]">Chưa có giao dịch nào.</Text> : data?.recentTransactions.map((transaction) => {
+              {(data?.recentTransactions ?? []).length === 0 ? <Text className="py-4 text-sm text-[#64748B] dark:text-[#A5BCB5]">Chưa có giao dịch nào.</Text> : data?.recentTransactions.map((transaction) => {
                 const isIncome = transaction.type === "income";
                 const isTransfer = transaction.type === "transfer";
                 const amountPrefix = isTransfer ? "" : isIncome ? "+" : "−";
-                return <View key={transaction.id} className="flex-row items-center"><View className={"h-10 w-10 items-center justify-center rounded-full " + (isTransfer ? "bg-[#EDE9FE]" : isIncome ? "bg-[#DCFCE7]" : "bg-[#FFE4E6]")}><Text className={"text-lg font-bold " + (isTransfer ? "text-[#7C3AED]" : isIncome ? "text-[#16A34A]" : "text-[#E11D48]")}>{isTransfer ? "↔" : isIncome ? "↓" : "↑"}</Text></View><View className="ml-3 flex-1"><Text className="text-sm font-semibold text-[#334155]">{transaction.categoryName || (isTransfer ? "Chuyển khoản" : isIncome ? "Thu nhập" : "Chi tiêu")}</Text><Text className="mt-1 text-xs text-[#64748B]">{transaction.walletName}{transaction.walletType ? ` · ${transaction.walletType}` : ""}</Text></View><View className="items-end"><Text className={"text-sm font-bold " + (isTransfer ? "text-[#7C3AED]" : isIncome ? "text-[#047857]" : "text-[#E11D48]")}>{amountPrefix}{money(transaction.amount)}</Text><Text className="mt-1 text-[10px] text-[#64748B]">{new Date(transaction.occurredAt).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</Text></View></View>;
+                return <View key={transaction.id} className="flex-row items-center"><View className={"h-10 w-10 items-center justify-center rounded-full " + (isTransfer ? "bg-[#EDE9FE] dark:bg-[#2A2140]" : isIncome ? "bg-[#DCFCE7] dark:bg-[#1C4038]" : "bg-[#FFE4E6] dark:bg-[#4A202A]")}><Text className={"text-lg font-bold " + (isTransfer ? "text-[#7C3AED] dark:text-[#B9A2FF]" : isIncome ? "text-[#16A34A]" : "text-[#E11D48]")}>{isTransfer ? "↔" : isIncome ? "↓" : "↑"}</Text></View><View className="ml-3 flex-1"><Text className="text-sm font-semibold text-[#334155] dark:text-[#DCEAE5]">{transaction.categoryName || (isTransfer ? "Chuyển khoản" : isIncome ? "Thu nhập" : "Chi tiêu")}</Text><Text className="mt-1 text-xs text-[#64748B] dark:text-[#A5BCB5]">{transaction.walletName}{transaction.walletType ? ` · ${transaction.walletType}` : ""}</Text></View><View className="items-end"><Text className={"text-sm font-bold " + (isTransfer ? "text-[#7C3AED] dark:text-[#B9A2FF]" : isIncome ? "text-[#047857] dark:text-[#51D3A1]" : "text-[#E11D48]")}>{amountPrefix}{money(transaction.amount)}</Text><Text className="mt-1 text-[10px] text-[#64748B] dark:text-[#A5BCB5]">{new Date(transaction.occurredAt).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}</Text></View></View>;
               })}
             </View>
           </View>
 
-          <View className="rounded-3xl border border-[#E2E8F0] bg-white p-5 shadow-sm"><View className="flex-row items-center"><View className="flex-1"><Text className="text-lg font-bold text-[#0F2A5F]">Tiến độ tiết kiệm</Text><Text className="mt-1 text-xs text-[#64748B]">Tỷ lệ tiền còn lại sau chi tiêu trong tháng.</Text></View><SavingRing ratio={savingRatio} /></View><View className="mt-3 h-2 overflow-hidden rounded-full bg-[#E2E8F0]"><View className="h-full rounded-full bg-[#22B8A8]" style={{ width: `${savingRatio * 100}%` }} /></View></View>
+          <View className="rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] p-5 shadow-sm"><View className="flex-row items-center"><View className="flex-1"><Text className="text-lg font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Tiến độ tiết kiệm</Text><Text className="mt-1 text-xs text-[#64748B] dark:text-[#A5BCB5]">Tỷ lệ tiền còn lại sau chi tiêu trong tháng.</Text></View><SavingRing ratio={savingRatio} /></View><View className="mt-3 h-2 overflow-hidden rounded-full bg-[#E2E8F0] dark:bg-[#31554B]"><View className="h-full rounded-full bg-[#22B8A8]" style={{ width: `${savingRatio * 100}%` }} /></View></View>
         </View>
       </ScrollView>
     </ScreenContainer>

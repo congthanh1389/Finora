@@ -93,7 +93,7 @@ export default function CategoryScreen() {
           </View>
         )}
 
-        <View className="mt-5 rounded-[26px] border border-[#E0F4ED] bg-white p-5">
+        <View className="mt-5 rounded-[26px] border border-[#E0F4ED] bg-white dark:bg-[#17322D] p-5">
           <Text className="text-base font-bold text-[#164F4B]">Thêm mục mới</Text>
           <TextInput value={name} onChangeText={(value) => { setName(value); setError(""); }} placeholder={type === "expense" ? "Ví dụ: Ăn uống, Đi chơi" : "Ví dụ: Lương, Làm thêm"} placeholderTextColor="#9BAEAA" className="mt-3 rounded-2xl border border-[#DDE9ED] bg-[#F7FBF9] px-4 py-3 text-base text-[#164F4B]" />
           <Text className="mt-4 text-sm font-bold text-[#164F4B]">Chọn biểu tượng</Text>
@@ -114,23 +114,23 @@ export default function CategoryScreen() {
           </Pressable>
         </View>
 
-        <View className="mt-5 rounded-[26px] border border-[#E0F4ED] bg-white p-5">
+        <View className="mt-5 rounded-[26px] border border-[#E0F4ED] bg-white dark:bg-[#17322D] p-5">
           <Text className="text-base font-bold text-[#164F4B]">{showArchived ? "Danh mục đã lưu trữ" : type === "expense" ? "Danh sách mục chi tiêu" : "Danh sách nguồn thu nhập"}</Text>
           {(showArchived ? archivedCategories : categories).length === 0 ? <Text className="mt-4 text-sm text-[#718C8A]">{showArchived ? "Chưa có danh mục đã lưu trữ." : "Chưa có mục nào. Hãy thêm mục đầu tiên."}</Text> : (showArchived ? archivedCategories : categories).map((item) => (
             <View key={item.id} className="mt-3 rounded-2xl border border-[#E6F2ED] bg-[#F7FBF9] p-3">
               <View className="flex-row items-center">
-                <View className="h-10 w-10 items-center justify-center rounded-full bg-white">
+                <View className="h-10 w-10 items-center justify-center rounded-full bg-white dark:bg-[#17322D]">
                   <CategoryIcon name={(item.icon || "other") as never} size={24} />
                 </View>
                 {editingId === item.id ? (
                   <View className="ml-3 flex-1">
-                    <TextInput value={editingName} onChangeText={(value) => { setEditingName(value); setError(""); }} autoFocus className="rounded-xl border border-[#C9EEE3] bg-white px-3 py-2 font-semibold text-[#164F4B]" />
+                    <TextInput value={editingName} onChangeText={(value) => { setEditingName(value); setError(""); }} autoFocus className="rounded-xl border border-[#C9EEE3] bg-white dark:bg-[#17322D] px-3 py-2 font-semibold text-[#164F4B]" />
                   </View>
-                ) : <Text className="ml-3 flex-1 font-semibold text-[#334155]">{item.name}</Text>}
+                ) : <Text className="ml-3 flex-1 font-semibold text-[#334155] dark:text-[#DCEAE5]">{item.name}</Text>}
               </View>
               {editingId === item.id ? (
                 <View className="mt-3">
-                  <Text className="mb-2 text-xs font-bold text-[#64748B]">Chọn biểu tượng</Text>
+                  <Text className="mb-2 text-xs font-bold text-[#64748B] dark:text-[#A5BCB5]">Chọn biểu tượng</Text>
                   <View className="flex-row flex-wrap">
                     {iconOptions.map((iconItem) => {
                       const selected = editingIcon === iconItem.name;
@@ -154,11 +154,11 @@ export default function CategoryScreen() {
               <View className="mt-2 flex-row justify-end gap-2">
                 {showArchived ? (
                   <>
-                    <Pressable onPress={() => void restoreCategory(item.id)} className="rounded-xl bg-[#DCFCE7] px-3 py-2"><Text className="text-sm font-bold text-[#15803D]">Khôi phục</Text></Pressable>
+                    <Pressable onPress={() => void restoreCategory(item.id)} className="rounded-xl bg-[#DCFCE7] dark:bg-[#1C4038] px-3 py-2"><Text className="text-sm font-bold text-[#15803D]">Khôi phục</Text></Pressable>
                     <Pressable onPress={() => confirmPermanentDelete(item)} className="rounded-xl bg-[#FEE2E2] px-3 py-2"><Text className="text-sm font-bold text-[#DC2626]">Xóa hẳn</Text></Pressable>
                   </>
                 ) : editingId === item.id ? <>
-                  <Pressable onPress={cancelEdit} className="rounded-xl bg-[#E2E8F0] px-3 py-2"><Text className="text-sm font-bold text-[#475569]">Hủy</Text></Pressable>
+                  <Pressable onPress={cancelEdit} className="rounded-xl bg-[#E2E8F0] dark:bg-[#31554B] px-3 py-2"><Text className="text-sm font-bold text-[#475569] dark:text-[#B7CBC4]">Hủy</Text></Pressable>
                   <Pressable onPress={() => void saveEdit(item.id)} className="rounded-xl px-3 py-2" style={{ backgroundColor: FINORA_TURQUOISE }}><Text className="text-sm font-bold text-white">Lưu</Text></Pressable>
                 </> : <>
                   <Pressable onPress={() => startEdit(item)} className="rounded-xl bg-[#E8F8F2] px-3 py-2"><Text className="text-sm font-bold text-[#08665D]">Sửa</Text></Pressable>

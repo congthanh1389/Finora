@@ -8,7 +8,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { ActivityIndicator, Platform, Text, View } from "react-native";
 import "@/lib/_core/nativewind-pressable";
-import { ThemeProvider } from "@/lib/theme-provider";
+import { ThemeProvider, useThemeContext } from "@/lib/theme-provider";
+import { SchemeColors } from "@/constants/theme";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -55,6 +56,37 @@ function AuthGate() {
 export const unstable_settings = {
   anchor: "(tabs)",
 };
+
+function ThemeRuntimeOverlay({ runtimeReady, runtimeError }: { runtimeReady: boolean; runtimeError: string | null }) {
+  const { colorScheme } = useThemeContext();
+  const colors = SchemeColors[colorScheme];
+
+  return (
+    <>
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+      {!runtimeReady ? (
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: colors.background,
+          }}
+        >
+          <ActivityIndicator color={colors.primary} />
+          <Text style={{ marginTop: 12, color: colors.foreground }}>
+            {runtimeError ?? "Đang khởi tạo bộ nhớ trên thiết bị..."}
+          </Text>
+        </View>
+      ) : null}
+    </>
+  );
+}
 
 const DEVICE_RUNTIME_TIMEOUT_MS = 15_000;
 
@@ -148,27 +180,7 @@ export default function RootLayout() {
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <AuthGate />
-          <StatusBar style="auto" />
-          {!runtimeReady ? (
-            <View
-              pointerEvents="none"
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#F8FAFC",
-              }}
-            >
-              <ActivityIndicator />
-              <Text style={{ marginTop: 12 }}>
-                {runtimeError ?? "Đang khởi tạo bộ nhớ trên thiết bị..."}
-              </Text>
-            </View>
-          ) : null}
+          <ThemeRuntimeOverlay runtimeReady={runtimeReady} runtimeError={runtimeError} />
         </QueryClientProvider>
       </trpc.Provider>
     </GestureHandlerRootView>

@@ -4,9 +4,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { FinoraMockupIcon } from "@/components/ui/finora-mockup-icons";
+import { SchemeColors } from "@/constants/theme";
+import { useThemeContext } from "@/lib/theme-provider";
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { colorScheme } = useThemeContext();
+  const colors = SchemeColors[colorScheme];
   const bottomPadding = Platform.OS === "web" ? 12 : Math.max(insets.bottom, 8);
 
   return (
@@ -14,15 +18,15 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarActiveTintColor: "#10B981",
-        tabBarInactiveTintColor: "#94A3B8",
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
         tabBarStyle: {
           paddingTop: 7,
           paddingBottom: bottomPadding,
           height: 62 + bottomPadding,
-          backgroundColor: "#FFFFFF",
-          borderTopColor: "#EEF2F7",
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
           borderTopWidth: 1,
         },
       }}
