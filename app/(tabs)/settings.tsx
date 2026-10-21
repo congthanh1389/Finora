@@ -170,7 +170,7 @@ export default function SettingsScreen() {
             <Text style={{ color: themeColor("#64748B", colorScheme), fontSize: 14, marginTop: 5 }}>Cá nhân hóa trải nghiệm Finora</Text>
           </View>
           <View style={{ width: 48, height: 48, borderRadius: 17, backgroundColor: themeColor("#E6FAF6", colorScheme), alignItems: "center", justifyContent: "center" }}>
-            <Feather name="settings" size={23} color=themeColor("#008F83", colorScheme) />
+            <Feather name="settings" size={23} color={themeColor("#008F83", colorScheme)} />
           </View>
         </View>
 
@@ -218,7 +218,7 @@ export default function SettingsScreen() {
           <View style={{ height: 1, backgroundColor: themeColor("#E6EEF0", colorScheme), marginTop: 16, marginBottom: 12 }} />
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: themeColor("#E6FAF6", colorScheme), alignItems: "center", justifyContent: "center", marginRight: 10 }}>
-              <Feather name="mail" size={15} color=themeColor("#008F83", colorScheme) />
+              <Feather name="mail" size={15} color={themeColor("#008F83", colorScheme)} />
             </View>
             <Text numberOfLines={1} style={{ flex: 1, color: themeColor("#52616B", colorScheme), fontSize: 13, fontWeight: "600" }}>
               {user?.email ?? "Chưa có email"}
@@ -265,7 +265,7 @@ export default function SettingsScreen() {
           accessibilityLabel="Đăng xuất"
           style={{ marginTop: 22, minHeight: 54, borderRadius: 18, borderWidth: 1, borderColor: themeColor("#F3C8CC", colorScheme), backgroundColor: themeColor("#FFF7F7", colorScheme), flexDirection: "row", alignItems: "center", justifyContent: "center" }}
         >
-          <Feather name="log-out" size={17} color=themeColor("#BE123C", colorScheme) style={{ marginRight: 9 }} />
+          <Feather name="log-out" size={17} color={themeColor("#BE123C", colorScheme)} style={{ marginRight: 9 }} />
           <Text style={{ color: themeColor("#BE123C", colorScheme), fontSize: 15, fontWeight: "800" }}>Đăng xuất</Text>
         </TouchableOpacity>
         <Text style={{ textAlign: "center", color: themeColor("#9AA6A3", colorScheme), fontSize: 11, marginTop: 20 }}>FINORA · Tài chính rõ ràng, cuộc sống an tâm</Text>
