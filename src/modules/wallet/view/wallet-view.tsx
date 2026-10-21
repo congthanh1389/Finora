@@ -46,9 +46,9 @@ export function WalletView() {
             <View className="flex-1">
               <Text
   style={{
-    fontSize: 44,
+    fontSize: 24,
     fontWeight: "800",
-    color: "#087F8C",
+    color: "#164F4B",
   }}
 >
   Ví của tôi
