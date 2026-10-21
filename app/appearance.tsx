@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, PanResponder, Pressable, ScrollView, Text, View } from "react-native";
+import { useMemo, useState } from "react";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { SchemeColors } from "@/constants/theme";
@@ -34,11 +35,62 @@ const OPTIONS: AppearanceOption[] = [
   },
 ];
 
+type BrightnessSliderProps = {
+  value: number;
+  onChange: (value: number) => void;
+  trackColor: string;
+  activeColor: string;
+  thumbColor: string;
+};
+
+function BrightnessSlider({ value, onChange, trackColor, activeColor, thumbColor }: BrightnessSliderProps) {
+  const [trackWidth, setTrackWidth] = useState(1);
+  const updateFromX = (x: number) => {
+    const fraction = Math.max(0, Math.min(1, x / trackWidth));
+    onChange(Math.round((fraction * 100) / 5) * 5);
+  };
+  const panResponder = useMemo(
+    () => PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (event) => updateFromX(event.nativeEvent.locationX),
+      onPanResponderMove: (event) => updateFromX(event.nativeEvent.locationX),
+    }),
+    [trackWidth, onChange],
+  );
+
+  return (
+    <View
+      onLayout={(event) => setTrackWidth(Math.max(1, event.nativeEvent.layout.width))}
+      {...panResponder.panHandlers}
+      accessibilityRole="adjustable"
+      accessibilityLabel="Độ sáng giao diện"
+      style={{ height: 36, justifyContent: "center" }}
+    >
+      <View style={{ height: 7, borderRadius: 5, backgroundColor: trackColor, justifyContent: "center" }}>
+        <View style={{ width: `${value}%`, height: 7, borderRadius: 5, backgroundColor: activeColor }} />
+        <View style={{ position: "absolute", left: `${value}%`, marginLeft: -10, width: 20, height: 20, borderRadius: 10, backgroundColor: thumbColor, borderWidth: 2, borderColor: activeColor, elevation: 2 }} />
+      </View>
+    </View>
+  );
+}
+
 export default function AppearanceScreen() {
   const router = useRouter();
-  const { colorScheme, themeMode, setThemeMode } = useThemeContext();
+  const { colorScheme, themeMode, setThemeMode, brightness, setBrightness, backgroundColor, surfaceColor } = useThemeContext();
   const colors = SchemeColors[colorScheme];
   const accentContentColor = colorScheme === "dark" ? colors.background : colors.foreground;
+
+  const chooseBrightness = async (value: number) => {
+    try {
+      await setBrightness(value);
+    } catch (error) {
+      Alert.alert(
+        "Không thể lưu độ sáng",
+        error instanceof Error ? error.message : "Vui lòng thử lại.",
+      );
+    }
+  };
 
   const chooseMode = async (mode: ThemeMode) => {
     if (mode === themeMode) return;
@@ -118,7 +170,36 @@ export default function AppearanceScreen() {
           })}
         </View>
 
-        <View style={{ marginTop: 16, borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, padding: 16, flexDirection: "row", alignItems: "flex-start" }}>
+          <View style={{ marginTop: 18, paddingTop: 16, borderTopWidth: 1, borderTopColor: colors.border }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <Text style={{ color: colors.foreground, fontSize: 16, fontWeight: "800" }}>Độ sáng giao diện</Text>
+              <Text style={{ color: colors.primary, fontSize: 16, fontWeight: "800" }}>{brightness}%</Text>
+            </View>
+            <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 5 }}>
+              Tinh chỉnh độ sáng nền và thẻ trong Finora. Không thay đổi độ sáng màn hình điện thoại.
+            </Text>
+            <BrightnessSlider
+              value={brightness}
+              onChange={(value) => void chooseBrightness(value)}
+              trackColor={colors.border}
+              activeColor={colors.primary}
+              thumbColor={colors.surface}
+            />
+            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 2 }}>
+              <Text style={{ color: colors.muted, fontSize: 11 }}>Tối hơn</Text>
+              <Text style={{ color: colors.muted, fontSize: 11 }}>Mặc định</Text>
+              <Text style={{ color: colors.muted, fontSize: 11 }}>Sáng hơn</Text>
+            </View>
+            <View style={{ marginTop: 14, padding: 14, borderRadius: 16, backgroundColor: surfaceColor, borderWidth: 1, borderColor: colors.border }}>
+              <Text style={{ color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 0.8 }}>XEM TRƯỚC</Text>
+              <Text style={{ color: colors.foreground, fontSize: 13, marginTop: 8 }}>Tổng số dư</Text>
+              <Text style={{ color: colors.foreground, fontSize: 22, fontWeight: "800", marginTop: 2 }}>25.680.000 ₫</Text>
+              <Text style={{ color: colors.primary, fontSize: 12, fontWeight: "700", marginTop: 6 }}>Giao diện Finora</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={{ marginTop: 16, borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: surfaceColor, padding: 16, flexDirection: "row", alignItems: "flex-start" }}>
           <Feather name="info" size={18} color={colors.primary} style={{ marginTop: 1, marginRight: 10 }} />
           <Text style={{ flex: 1, color: colors.muted, fontSize: 12, lineHeight: 19 }}>
             {themeMode === "system"
