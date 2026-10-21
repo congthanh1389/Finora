@@ -65,6 +65,7 @@ export default function AccountEditScreen() {
       setError("");
       console.log("[AccountEdit] save started", { userId: user.id, hasAvatar: Boolean(avatarUri) });
       saveStage = "lưu hồ sơ cục bộ";
+      console.log("[AccountEdit] runtime function type:", typeof localUpdateAccountProfile);
       const updated = await localUpdateAccountProfile(user.id, name, avatarUri);
       console.log("[AccountEdit] local profile updated");
       saveStage = "cập nhật trạng thái đăng nhập";

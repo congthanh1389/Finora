@@ -189,14 +189,7 @@ export default function AppearanceScreen() {
               <Text style={{ color: colors.muted, fontSize: 11 }}>Mặc định</Text>
               <Text style={{ color: colors.muted, fontSize: 11 }}>Sáng hơn</Text>
             </View>
-            <View style={{ marginTop: 14, padding: 14, borderRadius: 16, backgroundColor: surfaceColor, borderWidth: 1, borderColor: colors.border }}>
-              <Text style={{ color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 0.8 }}>XEM TRƯỚC</Text>
-              <Text style={{ color: colors.foreground, fontSize: 13, marginTop: 8 }}>Tổng số dư</Text>
-              <Text style={{ color: colors.foreground, fontSize: 22, fontWeight: "800", marginTop: 2 }}>25.680.000 ₫</Text>
-              <Text style={{ color: colors.primary, fontSize: 12, fontWeight: "700", marginTop: 6 }}>Giao diện Finora</Text>
-            </View>
           </View>
-        </View>
         </View>
 
         <View style={{ marginTop: 16, borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: surfaceColor, padding: 16, flexDirection: "row", alignItems: "flex-start" }}>

@@ -44,7 +44,15 @@ export function WalletView() {
         <View className="gap-4 px-5 pt-4">
           <View className="flex-row items-center">
             <View className="flex-1">
-              <Text className="text-[40px] font-extrabold text-[#087F8C] dark:text-[#72E6D4]">Ví của tôi</Text>
+              <Text
+  style={{
+    fontSize: 44,
+    fontWeight: "800",
+    color: "#087F8C",
+  }}
+>
+  Ví của tôi
+</Text>
               <Text className="mt-1 text-sm text-[#64748B] dark:text-[#A5BCB5]">Quản lý tiền của bạn thật gọn gàng.</Text>
             </View>
             <Pressable
@@ -56,10 +64,44 @@ export function WalletView() {
             </Pressable>
           </View>
 
-          <View className="rounded-[28px] bg-[#0F2A5F] p-6">
-            <Text className="mt-1 text-[22px] font-bold text-white">Tổng số dư: <Text className="text-[30px] font-extrabold text-[#FF7777] dark:text-[#FF8585]">{formatVnd(vm.totalBalance)}</Text></Text>
-            <Text className="mt-1 text-xs text-white/70">{vm.activeWallets.length} ví đang được quản lý</Text>
-          </View>
+          <View style={{ paddingVertical: 8 }}>
+  <View
+    style={{
+      flexDirection: "row",
+      alignItems: "baseline",
+      flexWrap: "nowrap",
+      columnGap: 8,
+    }}
+  >
+    <Text
+      numberOfLines={1}
+      style={{
+        fontSize: 21,
+        fontWeight: "700",
+        color: "#087F8C",
+        flexShrink: 0,
+      }}
+    >
+      Tổng số dư:
+    </Text>
+    <Text
+      numberOfLines={1}
+      adjustsFontSizeToFit
+      minimumFontScale={0.75}
+      style={{
+        fontSize: 30,
+        fontWeight: "800",
+        color: "#F04472",
+        flexShrink: 1,
+      }}
+    >
+      {formatVnd(vm.totalBalance)}
+    </Text>
+  </View>
+  <Text style={{ marginTop: 4, fontSize: 12, color: "#64748B" }}>
+    {vm.activeWallets.length} ví đang được quản lý
+  </Text>
+</View>
 
           {vm.isLoading ? (
             <View className="items-center rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] py-12">
