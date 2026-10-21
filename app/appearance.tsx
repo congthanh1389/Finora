@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Alert, PanResponder, Pressable, ScrollView, Text, View } from "react-native";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { SchemeColors } from "@/constants/theme";
@@ -77,11 +77,11 @@ function BrightnessSlider({ value, onChange, trackColor, activeColor, thumbColor
 
 export default function AppearanceScreen() {
   const router = useRouter();
-  const { colorScheme, themeMode, setThemeMode, brightness, setBrightness, backgroundColor, surfaceColor } = useThemeContext();
+  const { colorScheme, themeMode, setThemeMode, brightness, setBrightness, surfaceColor } = useThemeContext();
   const colors = SchemeColors[colorScheme];
   const accentContentColor = colorScheme === "dark" ? colors.background : colors.foreground;
 
-  const chooseBrightness = async (value: number) => {
+  const chooseBrightness = useCallback(async (value: number) => {
     try {
       await setBrightness(value);
     } catch (error) {
@@ -90,7 +90,7 @@ export default function AppearanceScreen() {
         error instanceof Error ? error.message : "Vui lòng thử lại.",
       );
     }
-  };
+  }, [setBrightness]);
 
   const chooseMode = async (mode: ThemeMode) => {
     if (mode === themeMode) return;
@@ -129,7 +129,7 @@ export default function AppearanceScreen() {
           </View>
         </View>
 
-        <View style={{ borderRadius: 26, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, padding: 18 }}>
+        <View style={{ borderRadius: 26, borderWidth: 1, borderColor: colors.border, backgroundColor: surfaceColor, padding: 18 }}>
           <Text style={{ color: colors.foreground, fontSize: 18, fontWeight: "800" }}>Chế độ hiển thị</Text>
           <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: 5, marginBottom: 14 }}>
             Chọn cách Finora hiển thị trên thiết bị này.
@@ -180,7 +180,7 @@ export default function AppearanceScreen() {
             </Text>
             <BrightnessSlider
               value={brightness}
-              onChange={(value) => void chooseBrightness(value)}
+              onChange={chooseBrightness}
               trackColor={colors.border}
               activeColor={colors.primary}
               thumbColor={colors.surface}
