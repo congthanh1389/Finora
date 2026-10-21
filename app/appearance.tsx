@@ -168,7 +168,6 @@ export default function AppearanceScreen() {
               </Pressable>
             );
           })}
-        </View>
 
           <View style={{ marginTop: 18, paddingTop: 16, borderTopWidth: 1, borderTopColor: colors.border }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
@@ -197,6 +196,7 @@ export default function AppearanceScreen() {
               <Text style={{ color: colors.primary, fontSize: 12, fontWeight: "700", marginTop: 6 }}>Giao diện Finora</Text>
             </View>
           </View>
+        </View>
         </View>
 
         <View style={{ marginTop: 16, borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: surfaceColor, padding: 16, flexDirection: "row", alignItems: "flex-start" }}>
