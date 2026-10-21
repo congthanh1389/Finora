@@ -44,7 +44,7 @@ export function WalletView() {
         <View className="gap-4 px-5 pt-4">
           <View className="flex-row items-center">
             <View className="flex-1">
-              <Text className="text-[28px] font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Ví của tôi</Text>
+              <Text className="text-[34px] font-extrabold text-[#087F8C] dark:text-[#72E6D4]">Ví của tôi</Text>
               <Text className="mt-1 text-sm text-[#64748B] dark:text-[#A5BCB5]">Quản lý tiền của bạn thật gọn gàng.</Text>
             </View>
             <Pressable
@@ -57,8 +57,8 @@ export function WalletView() {
           </View>
 
           <View className="rounded-[28px] bg-[#0F2A5F] p-6">
-            <Text className="text-xs font-semibold tracking-wider text-white/70">TỔNG SỐ DƯ</Text>
-            <Text className="mt-2 text-[38px] font-bold text-[#047857] dark:text-[#51D3A1]">{formatVnd(vm.totalBalance)}</Text>
+            <Text className="text-base font-bold tracking-wide text-white/85">Tổng số dư</Text>
+            <Text className="mt-2 text-[42px] font-extrabold text-[#FF7777] dark:text-[#FF8585]">{formatVnd(vm.totalBalance)}</Text>
             <Text className="mt-1 text-xs text-white/70">{vm.activeWallets.length} ví đang được quản lý</Text>
           </View>
 
