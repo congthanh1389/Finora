@@ -243,7 +243,7 @@ export default function SettingsScreen() {
         <SettingsGroup title="Quản lý tài chính">
           <SettingRow icon="tag" title="Danh mục thu chi" subtitle="Tùy chỉnh nhóm thu nhập và chi tiêu" onPress={() => router.push("/category" as never)} titleColor={themeColor("#008F83", colorScheme)} />
           <View style={{ height: 1, backgroundColor: themeColor("#F0F3F5", colorScheme), marginLeft: 68 }} />
-          <SettingRow icon="sliders" title="Thiết lập tài chính" subtitle="Ví, ngân sách và các thiết lập liên quan" onPress={() => Alert.alert("Thiết lập tài chính", "Các tùy chọn nâng cao sẽ được bổ sung ở bước tiếp theo.")} />
+          <SettingRow icon="sliders" title="Thiết lập tài chính" subtitle="Ví, ngân sách và các thiết lập liên quan" onPress={() => router.push("/financial-settings" as never)} />
         </SettingsGroup>
 
         <SettingsGroup title="Ứng dụng">
