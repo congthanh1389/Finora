@@ -7,6 +7,7 @@ import { createTransactionDependencies } from "../transaction.factory";
 import type { TransactionSummary } from "../types/transaction.types";
 import type { WalletSummary } from "../../wallet/types/wallet.types";
 import type { Category } from "../../../../drizzle/schema";
+import { getFinancialPreferences } from "@/src/core/settings/financial-preferences";
 
 export function useTransactionViewModel(initialType: "income" | "expense" = "expense") {
   const [type, setType] = useState<"income" | "expense">(initialType);
@@ -60,10 +61,31 @@ export function useTransactionViewModel(initialType: "income" | "expense" = "exp
   );
 
   useEffect(() => {
+    if (walletId !== null || wallets.length === 0) return;
+    let active = true;
+    void Auth.getUserInfo().then(async (currentUser) => {
+      if (!currentUser) return;
+      const preferences = await getFinancialPreferences(currentUser.id);
+      if (!active || preferences.defaultWalletId === null) return;
+      if (wallets.some((wallet) => wallet.id === preferences.defaultWalletId && !wallet.isArchived)) {
+        setWalletId((current) => current ?? preferences.defaultWalletId);
+      }
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, [walletId, wallets]);
+
+  useEffect(() => {
     let active = true;
     void Auth.getUserInfo().then((currentUser) => {
       if (!active || !currentUser) return;
-      void loadCategories(currentUser.id, type);
+      void (async () => {
+        const matching = await loadCategories(currentUser.id, type);
+        const preferences = await getFinancialPreferences(currentUser.id);
+        if (!active) return;
+        const defaultCategoryId = type === "income" ? preferences.defaultIncomeCategoryId : preferences.defaultExpenseCategoryId;
+        const defaultCategory = matching.find((item) => item.id === defaultCategoryId);
+        if (defaultCategory) setCategory((current) => current || defaultCategory.name);
+      })();
     });
     return () => {
       active = false;

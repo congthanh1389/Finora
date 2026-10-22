@@ -7,7 +7,9 @@ import type {
 const DEFAULT_LIMIT = 8;
 const MAX_LIMIT = 8;
 
-function pushBudgetReminders(input: ReminderInput, reminders: Reminder[]): void {
+function pushBudgetReminders(input: ReminderInput, reminders: Reminder[], options: ReminderEngineOptions): void {
+  if (options.budgetAlertsEnabled === false) return;
+  const threshold = Math.max(1, Math.min(options.budgetAlertThreshold ?? 80, 100));
   const over = input.budgets
     .filter((item) => item.isOverBudget)
     .sort((a, b) => b.percentageUsed - a.percentageUsed);
@@ -25,7 +27,7 @@ function pushBudgetReminders(input: ReminderInput, reminders: Reminder[]): void 
 
   if (over.length === 0) {
     const nearing = input.budgets
-      .filter((item) => item.percentageUsed >= 80)
+      .filter((item) => item.percentageUsed >= threshold)
       .sort((a, b) => b.percentageUsed - a.percentageUsed)[0];
 
     if (nearing) {
@@ -91,7 +93,7 @@ export function buildReminders(
   const limit = Math.max(1, Math.min(options.limit ?? DEFAULT_LIMIT, MAX_LIMIT));
   const reminders: Reminder[] = [];
 
-  pushBudgetReminders(input, reminders);
+  pushBudgetReminders(input, reminders, options);
   pushCashFlowReminder(input, reminders);
   pushWalletReminders(input, reminders);
   pushTrendReminder(input, reminders);

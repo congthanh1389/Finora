@@ -91,6 +91,7 @@ export function getCustomReportPeriodRange(
 export function getReportPeriodRange(
   period: Exclude<ReportPeriod, "custom">,
   now = new Date(),
+  weekStartsOn: 0 | 1 = 1,
 ): ReportPeriodRange {
   const current = startOfDay(now);
 
@@ -106,7 +107,8 @@ export function getReportPeriodRange(
 
   if (period === "week") {
     const day = current.getDay();
-    const start = addDays(current, day === 0 ? -6 : 1 - day);
+    const offset = (day - weekStartsOn + 7) % 7;
+    const start = addDays(current, -offset);
     const end = addDays(start, 7);
     return { start, end, previousStart: addDays(start, -7), previousEnd: start };
   }
@@ -312,6 +314,7 @@ export class ReportService {
     period: ReportPeriod,
     now = new Date(),
     customRange?: ReportCustomRange,
+    weekStartsOn: 0 | 1 = 1,
   ): Promise<ReportSnapshot> {
     assertUserId(userId);
 
@@ -322,7 +325,7 @@ export class ReportService {
           : (() => {
               throw new Error("Custom report range is required.");
             })()
-        : getReportPeriodRange(period, now);
+        : getReportPeriodRange(period, now, weekStartsOn);
 
     const raw = await this.repository.getReport(userId, range);
     const balance = raw.income - raw.expense;

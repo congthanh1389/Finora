@@ -236,14 +236,22 @@ export default function SettingsScreen() {
 
         <SettingsGroup title="Tài khoản">
           <SettingRow icon="user" title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại" onPress={() => router.push("/account-information" as never)} titleColor={themeColor("#008F83", colorScheme)} />
-          <View style={{ height: 1, backgroundColor: themeColor("#F0F3F5", colorScheme), marginLeft: 68 }} />
-          <SettingRow icon="shield" title="Danh sách tài khoản" subtitle="Quản lý tài khoản đã lưu trên thiết bị" onPress={() => router.push("/account-list" as never)} />
+          <View style={{ height: 1, backgroundColor: themeColor("#F0F3F5", colorScheme), marginLeft: 68 }} /><SettingRow icon="shield" title="Danh sách tài khoản" subtitle="Quản lý tài khoản đã lưu trên thiết bị" onPress={() => router.push("/account-list" as never)} />
         </SettingsGroup>
 
-        <SettingsGroup title="Quản lý tài chính">
+                <SettingsGroup title="Bảo mật tài khoản">
+          <SettingRow
+            icon="lock"
+            title="Đổi mật khẩu"
+            subtitle="Cập nhật mật khẩu đăng nhập trên thiết bị"
+            onPress={() => router.push("/change-password" as never)}
+            titleColor={themeColor("#008F83", colorScheme)}
+          />
+        </SettingsGroup>
+<SettingsGroup title="Quản lý tài chính">
           <SettingRow icon="tag" title="Danh mục thu chi" subtitle="Tùy chỉnh nhóm thu nhập và chi tiêu" onPress={() => router.push("/category" as never)} titleColor={themeColor("#008F83", colorScheme)} />
           <View style={{ height: 1, backgroundColor: themeColor("#F0F3F5", colorScheme), marginLeft: 68 }} />
-          <SettingRow icon="sliders" title="Thiết lập tài chính" subtitle="Ví, ngân sách và các thiết lập liên quan" onPress={() => Alert.alert("Thiết lập tài chính", "Các tùy chọn nâng cao sẽ được bổ sung ở bước tiếp theo.")} />
+          <SettingRow icon="sliders" title="Thiết lập tài chính" subtitle="Ví, ngân sách và các thiết lập liên quan" onPress={() => router.push("/financial-settings" as never)} />
         </SettingsGroup>
 
         <SettingsGroup title="Ứng dụng">

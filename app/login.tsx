@@ -91,10 +91,7 @@ export default function LoginScreen() {
   };
 
   const handleResetPassword = () => {
-    Alert.alert(
-      "Đặt lại mật khẩu",
-      "Chức năng đặt lại mật khẩu qua email sẽ được bổ sung ở module tiếp theo.",
-    );
+    router.push("/forgot-password" as never);
   };
 
   const resetOtpState = () => {

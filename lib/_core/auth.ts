@@ -371,6 +371,105 @@ export async function localLogin(email: string, password: string): Promise<User>
   return user;
 }
 
+/**
+ * Changes the password for one saved local account.
+ * Does not modify financial data or account-removal behavior.
+ */
+/**
+ * Changes the password for one saved local account without modifying financial data.
+ * Uses the same account store as localLogin so the new password remains compatible.
+ */
+/**
+ * Resets a saved local account password by email on this device.
+ * This updates credentials only; financial data and account deletion are untouched.
+ */
+export async function resetLocalAccountPasswordByEmail(
+  email: string,
+  newPassword: string,
+): Promise<void> {
+  const normalizedEmail = String(email ?? "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    throw new Error("Vui lòng nhập email hợp lệ.");
+  }
+  if (typeof newPassword !== "string" || newPassword.length < 6) {
+    throw new Error("Mật khẩu mới phải có ít nhất 6 ký tự.");
+  }
+
+  const accounts = await readAccounts();
+  const account = accounts.find(
+    (item) => item.email?.trim().toLowerCase() === normalizedEmail,
+  );
+  if (!account) {
+    throw new Error("Không tìm thấy tài khoản có email này trên thiết bị hiện tại.");
+  }
+
+  const updatedAccounts = accounts.map((item) =>
+    Number(item.id) === Number(account.id)
+      ? { ...item, password: newPassword }
+      : item,
+  );
+
+  await writeAccounts(updatedAccounts);
+
+  const verified = await readAccounts();
+  const saved = verified.find((item) => Number(item.id) === Number(account.id));
+  if (!saved || saved.password !== newPassword) {
+    throw new Error("Không xác nhận được mật khẩu mới sau khi lưu.");
+  }
+}
+export async function localChangePasswordV2(
+  userId: number,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  let stage = "kiểm tra thông tin đầu vào";
+  try {
+    const id = Number(userId);
+    if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Tài khoản không hợp lệ.");
+    if (typeof currentPassword !== "string" || currentPassword.length === 0) {
+      throw new Error("Vui lòng nhập mật khẩu hiện tại.");
+    }
+    if (typeof newPassword !== "string" || newPassword.length < 6) {
+      throw new Error("Mật khẩu mới phải có ít nhất 6 ký tự.");
+    }
+    if (currentPassword === newPassword) {
+      throw new Error("Mật khẩu mới phải khác mật khẩu hiện tại.");
+    }
+
+    stage = "đọc tài khoản đã lưu";
+    const accounts = await readAccounts();
+    const account = accounts.find((item) => Number(item.id) === id);
+    if (!account) throw new Error("Không tìm thấy tài khoản cần đổi mật khẩu.");
+    if (account.password !== currentPassword) throw new Error("Mật khẩu hiện tại không đúng.");
+
+    stage = "lưu mật khẩu mới";
+    const updatedAccounts = accounts.map((item) =>
+      Number(item.id) === id ? { ...item, password: newPassword } : item,
+    );
+    await writeAccounts(updatedAccounts);
+
+    stage = "xác nhận mật khẩu đã lưu";
+    const savedAccounts = await readAccounts();
+    const savedAccount = savedAccounts.find((item) => Number(item.id) === id);
+    if (!savedAccount || savedAccount.password !== newPassword) {
+      throw new Error("Không xác nhận được mật khẩu mới sau khi lưu. Vui lòng thử lại.");
+    }
+    console.log("[Auth] localChangePassword completed for account", id);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : undefined;
+    console.error("[Auth] localChangePassword failed at stage:", stage, detail, stack);
+    throw new Error(`Không thể đổi mật khẩu tại bước "${stage}": ${detail}`);
+  }
+}
+
+export async function changeLocalAccountPassword(
+  userId: number,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  return localChangePasswordV2(userId, currentPassword, newPassword);
+}
 export async function localLogout(): Promise<void> {
   await removeSessionToken();
   await clearUserInfo();

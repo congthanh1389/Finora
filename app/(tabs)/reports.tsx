@@ -130,7 +130,7 @@ export default function ReportsScreen() {
         contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        <Text className="text-2xl font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Báo cáo</Text>
+        <Text style={{ fontSize: 24, fontWeight: "800", color: "#164F4B" }}>Báo cáo</Text>
         <Text className="mt-1 text-sm text-[#64748B] dark:text-[#A5BCB5]">
           Nhìn nhanh tình hình tài chính của bạn.
         </Text>
@@ -165,9 +165,9 @@ export default function ReportsScreen() {
 
           <Pressable
             onPress={() => setPeriod("custom")}
-            className={`mt-2 self-start flex-row items-center rounded-2xl px-4 py-2.5 ${period === "custom" ? "bg-[#7C3AED]" : "border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D]"}`}
+            className={`mt-2 self-start flex-row items-center rounded-2xl px-4 py-2.5 ${period === "custom" ? "bg-[#087F8C]" : "border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D]"}`}
           >
-            <Text className={`mr-2 text-sm ${period === "custom" ? "text-white" : "text-[#7C3AED] dark:text-[#B9A2FF]"}`}>
+            <Text className={`mr-2 text-sm ${period === "custom" ? "text-white" : "text-[#087F8C] dark:text-[#72E6D4]"}`}>
               📅
             </Text>
             <Text
@@ -180,7 +180,7 @@ export default function ReportsScreen() {
 
         {period === "custom" ? (
           <View className="mt-4 rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] p-4">
-            <Text className="text-sm font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Khoảng thời gian</Text>
+            <Text className="text-sm font-bold text-[#164F4B] dark:text-[#E7F5F0]">Khoảng thời gian</Text>
             <View className="mt-3 flex-row gap-3">
               <Pressable
                 onPress={() => openCalendar("start")}
@@ -235,7 +235,7 @@ export default function ReportsScreen() {
 
             <View className="mt-4 flex-row gap-3">
               <View className="flex-1 rounded-2xl bg-[#ECFDF5] dark:bg-[#1C4038] p-4">
-                <Text className="text-xs font-semibold text-[#7C3AED] dark:text-[#B9A2FF]">Tổng thu</Text>
+                <Text className="text-xs font-semibold text-[#087F8C] dark:text-[#72E6D4]">Tổng thu</Text>
                 <Text className="mt-1 text-base font-bold text-[#047857] dark:text-[#51D3A1]">
                   {money(data?.summary.income ?? 0)}
                 </Text>
@@ -244,7 +244,7 @@ export default function ReportsScreen() {
                 </Text>
               </View>
               <View className="flex-1 rounded-2xl bg-[#FFF1F2] dark:bg-[#4A202A] p-4">
-                <Text className="text-xs font-semibold text-[#7C3AED] dark:text-[#B9A2FF]">Tổng chi</Text>
+                <Text className="text-xs font-semibold text-[#087F8C] dark:text-[#72E6D4]">Tổng chi</Text>
                 <Text className="mt-1 text-base font-bold text-[#BE123C]">
                   {money(data?.summary.expense ?? 0)}
                 </Text>
@@ -255,7 +255,7 @@ export default function ReportsScreen() {
             </View>
 
             <View className="mt-4 rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] p-5">
-              <Text className="text-lg font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">So với kỳ trước</Text>
+              <Text className="text-lg font-bold text-[#164F4B] dark:text-[#E7F5F0]">So với kỳ trước</Text>
               <View className="mt-4 flex-row gap-3">
                 {[
                   ["Thu", data?.comparison.incomeChange ?? 0],
@@ -263,7 +263,7 @@ export default function ReportsScreen() {
                   ["Ròng", data?.comparison.balanceChange ?? 0],
                 ].map(([label, value]) => (
                   <View key={String(label)} className="flex-1 rounded-2xl bg-[#F8FAFC] dark:bg-[#10211F] p-4">
-                    <Text className="text-xs font-semibold text-[#7C3AED] dark:text-[#B9A2FF]">{label}</Text>
+                    <Text className="text-xs font-semibold text-[#087F8C] dark:text-[#72E6D4]">{label}</Text>
                     <Text
                       className={`mt-1 text-base font-bold ${String(label) === "Chi" ? (Number(value) <= 0 ? "text-[#047857] dark:text-[#51D3A1]" : "text-[#BE123C]") : Number(value) >= 0 ? "text-[#047857] dark:text-[#51D3A1]" : "text-[#BE123C]"}`}
                     >
@@ -277,8 +277,8 @@ export default function ReportsScreen() {
             <View className="mt-4 rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] p-5">
               <View className="flex-row items-center justify-between">
                 <View>
-                  <Text className="text-lg font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Dòng tiền</Text>
-                  <Text className="mt-1 text-xs font-semibold text-[#7C3AED] dark:text-[#B9A2FF]">
+                  <Text className="text-lg font-bold text-[#164F4B] dark:text-[#E7F5F0]">Dòng tiền</Text>
+                  <Text className="mt-1 text-xs font-semibold text-[#087F8C] dark:text-[#72E6D4]">
                     Thu và chi theo {cashFlowGranularity}
                   </Text>
                 </View>
@@ -331,7 +331,7 @@ export default function ReportsScreen() {
             </View>
 
             <View className="mt-4 rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] p-5">
-              <Text className="text-lg font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Chi tiêu theo danh mục</Text>
+              <Text className="text-lg font-bold text-[#164F4B] dark:text-[#E7F5F0]">Chi tiêu theo danh mục</Text>
               {topCategories.length === 0 ? (
                 <Text className="mt-4 text-sm text-[#64748B] dark:text-[#A5BCB5]">Chưa có khoản chi trong kỳ này.</Text>
               ) : (
@@ -356,7 +356,7 @@ export default function ReportsScreen() {
             </View>
 
             <View className="mt-4 rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] p-5">
-              <Text className="text-lg font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Ngân sách</Text>
+              <Text className="text-lg font-bold text-[#164F4B] dark:text-[#E7F5F0]">Ngân sách</Text>
               {(data?.budgets ?? []).length === 0 ? (
                 <Text className="mt-4 text-sm text-[#64748B] dark:text-[#A5BCB5]">Chưa có ngân sách trong kỳ này.</Text>
               ) : (
@@ -375,7 +375,7 @@ export default function ReportsScreen() {
                     </View>
                     <View className="mt-2 h-2 overflow-hidden rounded-full bg-[#E2E8F0] dark:bg-[#31554B]">
                       <View
-                        className={`h-full rounded-full ${item.isOverBudget ? "bg-[#FB7185]" : "bg-[#1769D2]"}`}
+                        className={`h-full rounded-full ${item.isOverBudget ? "bg-[#FB7185]" : "bg-[#22B8A8]"}`}
                         style={{ width: `${Math.min(item.percentageUsed, 100)}%` }}
                       />
                     </View>
@@ -388,7 +388,7 @@ export default function ReportsScreen() {
             </View>
 
             <View className="mt-4 rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] p-5">
-              <Text className="text-lg font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">💡 Gợi ý cho bạn</Text>
+              <Text className="text-lg font-bold text-[#164F4B] dark:text-[#E7F5F0]">💡 Gợi ý cho bạn</Text>
               {suggestions.length === 0 ? (
                 <Text className="mt-4 text-sm text-[#64748B] dark:text-[#A5BCB5]">
                   Chưa có điểm nổi bật cần lưu ý trong kỳ này.
@@ -401,11 +401,11 @@ export default function ReportsScreen() {
             </View>
 
             <View className="mt-4 rounded-3xl border border-[#E2E8F0] dark:border-[#31554B] bg-white dark:bg-[#17322D] p-5">
-              <Text className="text-lg font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Theo ví</Text>
+              <Text className="text-lg font-bold text-[#164F4B] dark:text-[#E7F5F0]">Theo ví</Text>
               <View className="mt-3 flex-row border-b border-[#E2E8F0] dark:border-[#31554B] pb-2">
-                <Text className="flex-1 text-[11px] font-bold uppercase text-[#7C3AED] dark:text-[#B9A2FF]">Ví</Text>
-                <Text className="w-24 text-right text-[11px] font-bold uppercase text-[#7C3AED] dark:text-[#B9A2FF]">Chi tiêu</Text>
-                <Text className="w-28 text-right text-[11px] font-bold uppercase text-[#7C3AED] dark:text-[#B9A2FF]">Còn lại</Text>
+                <Text className="flex-1 text-[11px] font-bold uppercase text-[#087F8C] dark:text-[#72E6D4]">Ví</Text>
+                <Text className="w-24 text-right text-[11px] font-bold uppercase text-[#087F8C] dark:text-[#72E6D4]">Chi tiêu</Text>
+                <Text className="w-28 text-right text-[11px] font-bold uppercase text-[#087F8C] dark:text-[#72E6D4]">Còn lại</Text>
               </View>
               {topWallets.length === 0 ? (
                 <Text className="mt-4 text-sm text-[#64748B] dark:text-[#A5BCB5]">Chưa có ví.</Text>

@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import * as Auth from "@/lib/_core/auth";
+import { getFinancialPreferences } from "@/src/core/settings/financial-preferences";
 import type { ReportSnapshot } from "@/src/modules/report/model/report.types";
 import type { Reminder } from "../model/reminder.types";
 import { ReminderService } from "../service/reminder.service";
@@ -26,9 +28,24 @@ function publish(reminders: Reminder[]): void {
 }
 
 export function useReminderViewModel(snapshot: ReportSnapshot | null): Reminder[] {
+  const [budgetAlertsEnabled, setBudgetAlertsEnabled] = useState(true);
+  const [budgetAlertThreshold, setBudgetAlertThreshold] = useState(80);
+
+  useEffect(() => {
+    let active = true;
+    void Auth.getUserInfo().then(async (user) => {
+      if (!user) return;
+      const preferences = await getFinancialPreferences(user.id);
+      if (!active) return;
+      setBudgetAlertsEnabled(preferences.budgetAlertsEnabled);
+      setBudgetAlertThreshold(preferences.budgetAlertThreshold);
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, []);
+
   const reminders = useMemo(
-    () => (snapshot ? reminderService.getReminders(snapshot) : []),
-    [snapshot],
+    () => (snapshot ? reminderService.getReminders(snapshot, { budgetAlertsEnabled, budgetAlertThreshold }) : []),
+    [snapshot, budgetAlertsEnabled, budgetAlertThreshold],
   );
 
   const currentReminders = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);

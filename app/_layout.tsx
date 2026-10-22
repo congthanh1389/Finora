@@ -35,7 +35,7 @@ function AuthGate() {
   useEffect(() => {
     if (loading) return;
 
-    const isPublicRoute = pathname === "/login" || pathname === "/oauth/callback";
+    const isPublicRoute = pathname === "/login" || pathname === "/oauth/callback" || pathname === "/forgot-password";
     if (!user && !isPublicRoute) {
       router.replace("/login" as never);
     } else if (user && pathname === "/login") {
@@ -47,6 +47,7 @@ function AuthGate() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="login" />
+      <Stack.Screen name="forgot-password" />
       <Stack.Screen name="oauth/callback" />
       <Stack.Screen name="account-list" />
     </Stack>
