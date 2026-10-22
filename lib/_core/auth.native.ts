@@ -312,6 +312,45 @@ export async function localUpdateAccountProfile(
  * Changes only the password of an existing local account.
  * Financial records and account-removal behavior are not modified.
  */
+/**
+ * Resets a saved local account password by email on this device.
+ * This updates credentials only; financial data and account deletion are untouched.
+ */
+export async function resetLocalAccountPasswordByEmail(
+  email: string,
+  newPassword: string,
+): Promise<void> {
+  const normalizedEmail = String(email ?? "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    throw new Error("Vui lòng nhập email hợp lệ.");
+  }
+  if (typeof newPassword !== "string" || newPassword.length < 6) {
+    throw new Error("Mật khẩu mới phải có ít nhất 6 ký tự.");
+  }
+
+  const accounts = await readSecureAccounts();
+  const account = accounts.find(
+    (item) => item.email?.trim().toLowerCase() === normalizedEmail,
+  );
+  if (!account) {
+    throw new Error("Không tìm thấy tài khoản có email này trên thiết bị hiện tại.");
+  }
+
+  const updatedAccounts = accounts.map((item) =>
+    Number(item.id) === Number(account.id)
+      ? { ...item, password: newPassword }
+      : item,
+  );
+
+  await writeSecureAccounts(updatedAccounts);
+  await syncAccountsToDeviceStore(updatedAccounts);
+
+  const verified = await readSecureAccounts();
+  const saved = verified.find((item) => Number(item.id) === Number(account.id));
+  if (!saved || saved.password !== newPassword) {
+    throw new Error("Không xác nhận được mật khẩu mới sau khi lưu.");
+  }
+}
 export async function changeLocalAccountPassword(
   userId: number,
   currentPassword: string,
