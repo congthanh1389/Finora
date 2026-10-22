@@ -307,6 +307,53 @@ export async function localUpdateAccountProfile(
   }
 }
 
+
+/**
+ * Changes only the password of an existing local account.
+ * Financial records and account-removal behavior are not modified.
+ */
+export async function changeLocalAccountPassword(
+  userId: number,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const id = Number(userId);
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw new Error("Tài khoản không hợp lệ.");
+  }
+  if (typeof currentPassword !== "string" || currentPassword.length === 0) {
+    throw new Error("Vui lòng nhập mật khẩu hiện tại.");
+  }
+  if (typeof newPassword !== "string" || newPassword.length < 6) {
+    throw new Error("Mật khẩu mới phải có ít nhất 6 ký tự.");
+  }
+  if (currentPassword === newPassword) {
+    throw new Error("Mật khẩu mới phải khác mật khẩu hiện tại.");
+  }
+
+  const accounts = await readSecureAccounts();
+  const account = accounts.find((item) => Number(item.id) === id);
+  if (!account) {
+    throw new Error("Không tìm thấy tài khoản cần đổi mật khẩu.");
+  }
+  if (account.password !== currentPassword) {
+    throw new Error("Mật khẩu hiện tại không đúng.");
+  }
+
+  const updatedAccounts = accounts.map((item) =>
+    Number(item.id) === id ? { ...item, password: newPassword } : item,
+  );
+
+  // Save to the same SecureStore used by localLogin, then synchronize device storage.
+  await writeSecureAccounts(updatedAccounts);
+  await syncAccountsToDeviceStore(updatedAccounts);
+
+  const verifiedAccounts = await readSecureAccounts();
+  const verifiedAccount = verifiedAccounts.find((item) => Number(item.id) === id);
+  if (!verifiedAccount || verifiedAccount.password !== newPassword) {
+    throw new Error("Không xác nhận được mật khẩu mới sau khi lưu.");
+  }
+}
 export async function localRemoveSavedAccount(userId: number): Promise<void> {
   const normalizedUserId = Number(userId);
   if (!Number.isSafeInteger(normalizedUserId) || normalizedUserId <= 0) {

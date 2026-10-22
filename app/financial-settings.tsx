@@ -99,8 +99,8 @@ export default function FinancialSettingsScreen() {
     }
   };
 
-  const option = (label: string, selected: boolean, onPress: () => void, detail?: string) => (
-    <Pressable key={label} onPress={onPress} accessibilityRole="radio" accessibilityState={{ checked: selected }}
+  const option = (label: string, selected: boolean, onPress: () => void, detail?: string, optionKey: string = label) => (
+    <Pressable key={optionKey} onPress={onPress} accessibilityRole="radio" accessibilityState={{ checked: selected }}
       style={{ flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: selected ? colors.accent : colors.border, backgroundColor: selected ? colors.selected : colors.card, borderRadius: 15, padding: 12, marginTop: 8 }}>
       <View style={{ flex: 1 }}>
         <Text style={{ color: colors.text, fontSize: 14, fontWeight: selected ? "800" : "600" }}>{label}</Text>
@@ -136,15 +136,15 @@ export default function FinancialSettingsScreen() {
             {section("A. Mặc định giao dịch", "Chọn trước ví và danh mục để nhập giao dịch nhanh hơn.",
               <>
                 <Text style={{ color: colors.text, fontWeight: "700", marginTop: 4 }}>Ví mặc định</Text>
-                {option("Không đặt mặc định", preferences.defaultWalletId === null, () => update("defaultWalletId", null), "Finora sẽ dùng ví đầu tiên đang hoạt động nếu bạn chưa chọn.")}
-                {wallets.map((wallet) => option(wallet.name, preferences.defaultWalletId === wallet.id, () => update("defaultWalletId", wallet.id), wallet.currency))}
+                {option("Không đặt mặc định", preferences.defaultWalletId === null, () => update("defaultWalletId", null), "Finora sẽ dùng ví đầu tiên đang hoạt động nếu bạn chưa chọn.", "default-wallet")}
+                {wallets.map((wallet) => option(wallet.name, preferences.defaultWalletId === wallet.id, () => update("defaultWalletId", wallet.id), wallet.currency, `wallet:${wallet.id}`))}
                 {wallets.length === 0 ? <Text style={{ color: colors.muted, marginTop: 8 }}>Chưa có ví đang hoạt động. Hãy tạo ví trong “Ví của tôi”.</Text> : null}
                 <Text style={{ color: colors.text, fontWeight: "700", marginTop: 18 }}>Danh mục thu mặc định</Text>
-                {option("Không đặt mặc định", preferences.defaultIncomeCategoryId === null, () => update("defaultIncomeCategoryId", null))}
-                {incomeCategories.map((item) => option(item.name, preferences.defaultIncomeCategoryId === item.id, () => update("defaultIncomeCategoryId", item.id)))}
+                {option("Không đặt mặc định", preferences.defaultIncomeCategoryId === null, () => update("defaultIncomeCategoryId", null), undefined, "default-income-category")}
+                {incomeCategories.map((item) => option(item.name, preferences.defaultIncomeCategoryId === item.id, () => update("defaultIncomeCategoryId", item.id), undefined, `income-category:${item.id}`))}
                 <Text style={{ color: colors.text, fontWeight: "700", marginTop: 18 }}>Danh mục chi mặc định</Text>
-                {option("Không đặt mặc định", preferences.defaultExpenseCategoryId === null, () => update("defaultExpenseCategoryId", null))}
-                {expenseCategories.map((item) => option(item.name, preferences.defaultExpenseCategoryId === item.id, () => update("defaultExpenseCategoryId", item.id)))}
+                {option("Không đặt mặc định", preferences.defaultExpenseCategoryId === null, () => update("defaultExpenseCategoryId", null), undefined, "default-expense-category")}
+                {expenseCategories.map((item) => option(item.name, preferences.defaultExpenseCategoryId === item.id, () => update("defaultExpenseCategoryId", item.id), undefined, `expense-category:${item.id}`))}
               </>
             )}
             {section("B. Cảnh báo ngân sách", "Điều chỉnh khi Finora bắt đầu nhắc bạn về ngân sách. Cảnh báo vượt hạn mức luôn được giữ khi bật tính năng.",
