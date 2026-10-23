@@ -206,16 +206,43 @@ const isTransfer = transaction.type === "transfer";
             </View>
 
             <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
-              <Text className="text-sm font-bold" style={{ color: "#8B5CF6" }}>
-                {typeFilter === "all" ? "TỔNG TẤT CẢ" : typeFilter === "income" ? "TỔNG THU" : typeFilter === "expense" ? "TỔNG CHI" : "TỔNG CHUYỂN TIỀN"}
-              </Text>
               {summary ? (
                 <>
-                  <Text className="mt-1 text-[28px]" style={{ color: "#0F766E", fontWeight: "900" }}>{formatVnd(summary.totals.totalAmount)}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "baseline", flexWrap: "nowrap", columnGap: 8 }}>
+                    <Text
+                      numberOfLines={1}
+                      style={{
+                        fontSize: 18,
+                        fontWeight: "700",
+                        color: "#087F8C",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {typeFilter === "all" ? "Tổng tất cả:" : typeFilter === "income" ? "Tổng thu:" : typeFilter === "expense" ? "Tổng chi:" : "Tổng chuyển tiền:"}
+                    </Text>
+                    <Text
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.75}
+                      style={{
+                        fontSize: 30,
+                        fontWeight: "800",
+                        color: "#F04472",
+                        flexShrink: 1,
+                      }}
+                    >
+                      {formatVnd(summary.totals.totalAmount)}
+                    </Text>
+                  </View>
                   <Text className="mt-1 text-xs text-[#64748B]">{summary.totals.transactionCount} giao dịch trong kỳ đã chọn</Text>
                 </>
               ) : periodKey === "custom" && customStart && customEnd ? (
-                <Text className="mt-2 text-xs text-[#BE123C]">Khoảng ngày không hợp lệ.</Text>
+                <>
+                  <Text className="text-base font-bold" style={{ color: "#087F8C" }}>
+                    {typeFilter === "all" ? "Tổng tất cả:" : typeFilter === "income" ? "Tổng thu:" : typeFilter === "expense" ? "Tổng chi:" : "Tổng chuyển tiền:"}
+                  </Text>
+                  <Text className="mt-2 text-xs text-[#BE123C]">Khoảng ngày không hợp lệ.</Text>
+                </>
               ) : (
                 <View className="mt-3"><ActivityIndicator /></View>
               )}
