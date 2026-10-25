@@ -106,11 +106,11 @@ const isTransfer = transaction.type === "transfer";
                 const category = transaction.categoryId == null ? undefined : categoryMap.get(transaction.categoryId);
                 return (
                   <View className={"mx-5 flex-row items-center bg-white px-4 py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
-                    <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isTransfer ? "bg-[#EFF6FF]" : isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
+                    <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isTransfer ? "bg-[#DDF7EF]" : isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
                       {isTransfer ? <FinoraMockupIcon name="01_finance_wallet" size={28} /> : <CategoryIcon name={resolveCategoryIconName(category?.icon)} size={28} />}
                     </View>
                     <View className="ml-3 flex-1">
-                      <Text className="font-semibold text-[#0F2A5F]">
+                      <Text className="font-semibold text-[#164F4B]">
                         {isTransfer ? (transaction.note || "Chuyển tiền") : (category?.name || (isIncome ? "Khoản thu" : "Khoản chi"))}
                       </Text>
                       <Text className="mt-1 text-xs text-[#64748B]">
@@ -121,13 +121,13 @@ const isTransfer = transaction.type === "transfer";
                       <Text className="mt-1 text-[11px] text-[#94A3B8]">{formatDate(transaction.occurredAt)}</Text>
                     </View>
                     <View className="items-end gap-2">
-                      <Text className={"text-sm font-bold " + (isTransfer ? "text-[#0F2A5F]" : isIncome ? "text-[#22B8A8]" : "text-[#E11D48]")}>
+                      <Text className={"text-sm font-bold " + (isTransfer ? "text-[#164F4B]" : isIncome ? "text-[#22B8A8]" : "text-[#F04472]")}>
                         {isTransfer ? "" : isIncome ? "+" : "−"}{formatVnd(transaction.amount)}
                       </Text>
                       <View className="flex-row gap-2">
                         {!isTransfer ? (
                           <Pressable onPress={() => router.push(`/transaction/edit?id=${transaction.id}`)} className="rounded-full bg-[#E6FFFA] px-3 py-1.5">
-                            <Text className="text-xs font-bold text-[#0F766E]">Sửa</Text>
+                            <Text className="text-xs font-bold text-[#087F8C]">Sửa</Text>
                           </Pressable>
                         ) : null}
                         <Pressable
@@ -181,31 +181,31 @@ const isTransfer = transaction.type === "transfer";
                 <Text className="text-2xl text-[#475569]">‹</Text>
               </Pressable>
               <View className="ml-3 flex-1">
-                <Text className="text-[24px] font-bold text-[#0F2A5F]">Tất cả giao dịch</Text>
+                <Text className="text-[24px] font-bold text-[#164F4B]">Tất cả giao dịch</Text>
                 <Text className="mt-1 text-xs text-[#64748B]">Theo dõi thu, chi và chuyển tiền</Text>
               </View>
-              <Pressable onPress={() => router.push("/transaction/transfer")} className="mr-2 h-10 w-10 items-center justify-center rounded-xl bg-[#DBEAFE]">
+              <Pressable onPress={() => router.push("/transaction/transfer")} className="mr-2 h-10 w-10 items-center justify-center rounded-xl bg-[#DDF7EF]">
                 <FinoraMockupIcon name="01_finance_wallet" size={22} />
               </Pressable>
               <Pressable onPress={() => router.push("/transaction/new")} className="h-10 w-10 items-center justify-center rounded-xl bg-[#CCFBF1]">
-                <Text className="text-2xl font-bold text-[#0F766E]">+</Text>
+                <Text className="text-2xl font-bold text-[#087F8C]">+</Text>
               </Pressable>
             </View>
 
-            <View className="flex-row rounded-2xl bg-[#E2E8F0] p-1">
+            <View className="flex-row rounded-2xl bg-[#DDEFE9] p-1">
               {([
                 ["all", "Tất cả"],
                 ["income", "Thu"],
                 ["expense", "Chi"],
                 ["transfer", "Chuyển"],
               ] as const).map(([value, label]) => (
-                <Pressable key={value} onPress={() => setTypeFilter(value)} className="flex-1 rounded-xl px-2 py-3" style={{ backgroundColor: typeFilter === value ? "#0F2A5F" : "transparent" }}>
+                <Pressable key={value} onPress={() => setTypeFilter(value)} className="flex-1 rounded-xl px-2 py-3" style={{ backgroundColor: typeFilter === value ? "#164F4B" : "transparent" }}>
                   <Text className={"text-center text-sm font-bold " + (typeFilter === value ? "text-white" : "text-[#64748B]")}>{label}</Text>
                 </Pressable>
               ))}
             </View>
 
-            <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
+            <View className="rounded-3xl border border-[#DDEFE9] bg-white p-4">
               {summary ? (
                 <>
                   <View style={{ flexDirection: "row", alignItems: "baseline", flexWrap: "nowrap", columnGap: 8 }}>
@@ -252,12 +252,12 @@ const isTransfer = transaction.type === "transfer";
                   ["today", "Hôm nay"], ["7days", "7 ngày"], ["month", "Tháng này"],
                   ["lastMonth", "Tháng trước"], ["year", "Năm nay"],
                 ].map(([key, label]) => (
-                  <Pressable key={key} onPress={() => setPeriodKey(key as typeof periodKey)} className="rounded-full px-3 py-2" style={{ backgroundColor: periodKey === key ? "#CCFBF1" : "#F1F5F9" }}>
-                    <Text className={"text-xs font-semibold " + (periodKey === key ? "text-[#0F766E]" : "text-[#64748B]")}>{label}</Text>
+                  <Pressable key={key} onPress={() => setPeriodKey(key as typeof periodKey)} className="rounded-full px-3 py-2" style={{ backgroundColor: periodKey === key ? "#CCFBF1" : "#F0FAF7" }}>
+                    <Text className={"text-xs font-semibold " + (periodKey === key ? "text-[#087F8C]" : "text-[#64748B]")}>{label}</Text>
                   </Pressable>
                 ))}
-                <Pressable onPress={() => setPeriodKey("custom")} className="rounded-full px-3 py-2" style={{ backgroundColor: periodKey === "custom" ? "#CCFBF1" : "#F1F5F9" }}>
-                  <Text className={"text-xs font-semibold " + (periodKey === "custom" ? "text-[#0F766E]" : "text-[#64748B]")}>Tùy chọn</Text>
+                <Pressable onPress={() => setPeriodKey("custom")} className="rounded-full px-3 py-2" style={{ backgroundColor: periodKey === "custom" ? "#CCFBF1" : "#F0FAF7" }}>
+                  <Text className={"text-xs font-semibold " + (periodKey === "custom" ? "text-[#087F8C]" : "text-[#64748B]")}>Tùy chọn</Text>
                 </Pressable>
               </View>
               {periodKey === "custom" ? (
@@ -268,14 +268,14 @@ const isTransfer = transaction.type === "transfer";
                       className="flex-1 rounded-xl border border-[#CBD5E1] bg-white px-3 py-3"
                     >
                       <Text className="text-[11px] font-semibold text-[#64748B]">Từ ngày</Text>
-                      <Text className="mt-1 text-sm font-semibold text-[#0F2A5F]">{formatCalendarDate(customStart)}</Text>
+                      <Text className="mt-1 text-sm font-semibold text-[#164F4B]">{formatCalendarDate(customStart)}</Text>
                     </Pressable>
                     <Pressable
                       onPress={() => setDatePickerTarget("end")}
                       className="flex-1 rounded-xl border border-[#CBD5E1] bg-white px-3 py-3"
                     >
                       <Text className="text-[11px] font-semibold text-[#64748B]">Đến ngày</Text>
-                      <Text className="mt-1 text-sm font-semibold text-[#0F2A5F]">{formatCalendarDate(customEnd)}</Text>
+                      <Text className="mt-1 text-sm font-semibold text-[#164F4B]">{formatCalendarDate(customEnd)}</Text>
                     </Pressable>
                   </View>
                   <Text className="text-xs text-[#64748B]">Chạm vào ô ngày để mở lịch và chọn ngày.</Text>
@@ -283,24 +283,24 @@ const isTransfer = transaction.type === "transfer";
               ) : null}
             </View>
 
-            <Pressable onPress={() => setShowAdvancedFilters((visible) => !visible)} className="flex-row items-center rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3">
-              <View className="mr-3 h-9 w-9 items-center justify-center rounded-xl bg-[#F1F5F9]">
+            <Pressable onPress={() => setShowAdvancedFilters((visible) => !visible)} className="flex-row items-center rounded-2xl border border-[#DDEFE9] bg-white px-4 py-3">
+              <View className="mr-3 h-9 w-9 items-center justify-center rounded-xl bg-[#F0FAF7]">
                 <Text className="text-lg text-[#475569]">☷</Text>
               </View>
               <View className="flex-1">
-                <Text className="text-sm font-bold text-[#0F2A5F]">Bộ lọc nâng cao</Text>
+                <Text className="text-sm font-bold text-[#164F4B]">Bộ lọc nâng cao</Text>
                 <Text className="mt-1 text-xs text-[#64748B]">
                   {hasAdvancedFilters ? "Đang áp dụng bộ lọc" : "Ví, danh mục và khoảng tiền"}
                 </Text>
               </View>
-              {hasAdvancedFilters ? <View className="mr-2 rounded-full bg-[#CCFBF1] px-2 py-1"><Text className="text-xs font-bold text-[#0F766E]">Đang lọc</Text></View> : null}
+              {hasAdvancedFilters ? <View className="mr-2 rounded-full bg-[#CCFBF1] px-2 py-1"><Text className="text-xs font-bold text-[#087F8C]">Đang lọc</Text></View> : null}
               <Text className="text-lg text-[#64748B]">{showAdvancedFilters ? "⌃" : "⌄"}</Text>
             </Pressable>
 
             {showAdvancedFilters ? (
-              <View className="rounded-3xl border border-[#E2E8F0] bg-white p-4">
+              <View className="rounded-3xl border border-[#DDEFE9] bg-white p-4">
                 <View className="flex-row items-center justify-between">
-                  <Text className="text-base font-bold text-[#0F2A5F]">Điều chỉnh bộ lọc</Text>
+                  <Text className="text-base font-bold text-[#164F4B]">Điều chỉnh bộ lọc</Text>
                   {hasAdvancedFilters ? (
                     <Pressable onPress={clearAdvancedFilters}><Text className="text-xs font-bold text-[#BE123C]">Xóa lọc</Text></Pressable>
                   ) : null}
@@ -309,12 +309,12 @@ const isTransfer = transaction.type === "transfer";
                 <Text className="mt-3 text-xs font-semibold text-[#64748B]">Ví</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
                   <View className="flex-row gap-2">
-                    <Pressable onPress={() => setWalletFilterId(undefined)} className="rounded-full px-3 py-2" style={{ backgroundColor: walletFilterId === undefined ? "#0F2A5F" : "#E2E8F0" }}>
-                      <Text className="text-xs font-bold" style={{ color: walletFilterId === undefined ? "#FFFFFF" : "#334155" }}>Tất cả ví</Text>
+                    <Pressable onPress={() => setWalletFilterId(undefined)} className="rounded-full px-3 py-2" style={{ backgroundColor: walletFilterId === undefined ? "#164F4B" : "#DDEFE9" }}>
+                      <Text className="text-xs font-bold" style={{ color: walletFilterId === undefined ? "#FFFFFF" : "#335E59" }}>Tất cả ví</Text>
                     </Pressable>
                     {wallets.map((wallet) => (
-                      <Pressable key={wallet.id} onPress={() => setWalletFilterId(wallet.id)} className="rounded-full px-3 py-2" style={{ backgroundColor: walletFilterId === wallet.id ? "#0F2A5F" : "#E2E8F0" }}>
-                        <Text className="text-xs font-semibold" style={{ color: walletFilterId === wallet.id ? "#FFFFFF" : "#334155" }}>{wallet.name}</Text>
+                      <Pressable key={wallet.id} onPress={() => setWalletFilterId(wallet.id)} className="rounded-full px-3 py-2" style={{ backgroundColor: walletFilterId === wallet.id ? "#164F4B" : "#DDEFE9" }}>
+                        <Text className="text-xs font-semibold" style={{ color: walletFilterId === wallet.id ? "#FFFFFF" : "#335E59" }}>{wallet.name}</Text>
                       </Pressable>
                     ))}
                   </View>
@@ -324,12 +324,12 @@ const isTransfer = transaction.type === "transfer";
                 {typeFilter === "transfer" ? <Text className="mt-2 text-xs text-[#64748B]">Chuyển tiền không sử dụng danh mục.</Text> : null}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
                   <View className="flex-row gap-2">
-                    <Pressable onPress={() => setCategoryFilterId(undefined)} className="rounded-full px-3 py-2" style={{ backgroundColor: categoryFilterId === undefined ? "#0F2A5F" : "#E2E8F0" }}>
-                      <Text className="text-xs font-bold" style={{ color: categoryFilterId === undefined ? "#FFFFFF" : "#334155" }}>Tất cả danh mục</Text>
+                    <Pressable onPress={() => setCategoryFilterId(undefined)} className="rounded-full px-3 py-2" style={{ backgroundColor: categoryFilterId === undefined ? "#164F4B" : "#DDEFE9" }}>
+                      <Text className="text-xs font-bold" style={{ color: categoryFilterId === undefined ? "#FFFFFF" : "#335E59" }}>Tất cả danh mục</Text>
                     </Pressable>
                     {visibleCategories.map((category) => (
-                      <Pressable key={category.id} onPress={() => setCategoryFilterId(category.id)} className="rounded-full px-3 py-2" style={{ backgroundColor: categoryFilterId === category.id ? "#0F2A5F" : "#E2E8F0" }}>
-                        <Text className="text-xs font-semibold" style={{ color: categoryFilterId === category.id ? "#FFFFFF" : "#334155" }}>{category.name}</Text>
+                      <Pressable key={category.id} onPress={() => setCategoryFilterId(category.id)} className="rounded-full px-3 py-2" style={{ backgroundColor: categoryFilterId === category.id ? "#164F4B" : "#DDEFE9" }}>
+                        <Text className="text-xs font-semibold" style={{ color: categoryFilterId === category.id ? "#FFFFFF" : "#335E59" }}>{category.name}</Text>
                       </Pressable>
                     ))}
                   </View>
@@ -339,22 +339,22 @@ const isTransfer = transaction.type === "transfer";
                 <View className="mt-2 flex-row gap-2">
                   <TextInput value={minAmountInput} onChangeText={(value) => setMinAmountInput(formatAmountInput(value))} placeholder="Từ" keyboardType="numeric" className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2.5 text-sm" />
                   <TextInput value={maxAmountInput} onChangeText={(value) => setMaxAmountInput(formatAmountInput(value))} placeholder="Đến" keyboardType="numeric" className="flex-1 rounded-xl border border-[#CBD5E1] px-3 py-2.5 text-sm" />
-                  <Pressable onPress={applyAdvancedFilters} className="rounded-xl bg-[#0F766E] px-4 py-2.5"><Text className="font-bold text-white">Lọc</Text></Pressable>
+                  <Pressable onPress={applyAdvancedFilters} className="rounded-xl bg-[#087F8C] px-4 py-2.5"><Text className="font-bold text-white">Lọc</Text></Pressable>
                 </View>
                 {hasAdvancedFilters ? (
-                  <Text className="mt-3 text-xs text-[#0F766E]">
+                  <Text className="mt-3 text-xs text-[#087F8C]">
                     Đang lọc{walletFilterId !== undefined ? " · theo ví" : ""}{categoryFilterId !== undefined ? " · theo danh mục" : ""}{minAmount !== undefined || maxAmount !== undefined ? " · theo khoảng tiền" : ""}
                   </Text>
                 ) : null}
               </View>
             ) : null}
 
-            <Text className="text-base font-bold text-[#0F2A5F]">Danh sách giao dịch</Text>
+            <Text className="text-base font-bold text-[#164F4B]">Danh sách giao dịch</Text>
           </View>
         }
         ListEmptyComponent={
           isLoading ? (
-            <View className="mx-5 items-center rounded-3xl border border-[#E2E8F0] bg-white py-12">
+            <View className="mx-5 items-center rounded-3xl border border-[#DDEFE9] bg-white py-12">
               <ActivityIndicator />
               <Text className="mt-3 text-sm text-[#64748B]">Đang tải giao dịch...</Text>
             </View>
@@ -366,7 +366,7 @@ const isTransfer = transaction.type === "transfer";
           ) : (
             <View className="mx-5 items-center rounded-3xl border border-dashed border-[#CBD5E1] bg-white px-6 py-12">
               <FinoraMockupIcon name="07_navigation_transactions" size={52} />
-              <Text className="mt-4 text-lg font-bold text-[#0F2A5F]">Chưa có giao dịch</Text>
+              <Text className="mt-4 text-lg font-bold text-[#164F4B]">Chưa có giao dịch</Text>
               <Text className="mt-1 text-center text-sm text-[#64748B]">Hãy tạo khoản thu hoặc khoản chi đầu tiên.</Text>
               <Pressable onPress={() => router.push("/transaction/new")} className="mt-5 rounded-full bg-[#22B8A8] px-6 py-3">
                 <Text className="font-bold text-white">Thêm giao dịch</Text>
@@ -412,7 +412,7 @@ const isTransfer = transaction.type === "transfer";
         onClose={() => setDatePickerTarget(null)}
       />
       {showScrollTop ? (
-        <Pressable onPress={scrollToTop} className="absolute bottom-5 right-5 h-12 w-12 items-center justify-center rounded-full bg-[#0F2A5F] shadow-lg">
+        <Pressable onPress={scrollToTop} className="absolute bottom-5 right-5 h-12 w-12 items-center justify-center rounded-full bg-[#164F4B] shadow-lg">
           <Text className="text-xl font-bold text-white">↑</Text>
         </Pressable>
       ) : null}
