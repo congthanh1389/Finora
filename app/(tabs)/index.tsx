@@ -1,4 +1,4 @@
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -75,7 +75,7 @@ export default function HomeScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
         <View className="gap-4 px-5 pt-4">
           <View className="flex-row items-center">
-            <Image source={require("../../assets/images/icon.png")} style={{ width: 42, height: 42, borderRadius: 10 }} accessibilityLabel="Logo F của Finora" />
+            <View accessibilityLabel="Logo F của Finora" className="h-[42px] w-[42px] items-center justify-center rounded-full bg-[#14B8A6]"><Text style={{ fontSize: 29, fontWeight: "800", color: "#FFFFFF", lineHeight: 34 }}>F</Text></View>
             <View className="ml-2 flex-1"><Text style={{ fontSize: 22, fontWeight: "700", color: "#14B8A6" }}>Finora</Text><Text style={{ marginTop: 4, fontSize: 21, fontWeight: "700", color: "#087F8C" }}>{greeting.title}</Text><Text className="mt-0.5 text-sm text-[#64748B] dark:text-[#A5BCB5]">{greetingMessage}</Text></View>
             <TouchableOpacity
               activeOpacity={0.85}
