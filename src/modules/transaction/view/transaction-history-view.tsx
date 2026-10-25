@@ -105,7 +105,7 @@ const isTransfer = transaction.type === "transfer";
                 const destinationWallet = transaction.destinationWalletId == null ? undefined : walletMap.get(transaction.destinationWalletId);
                 const category = transaction.categoryId == null ? undefined : categoryMap.get(transaction.categoryId);
                 return (
-                  <View className={"mx-5 flex-row items-center bg-white px-4 py-4 " + (index !== transactions.length - 1 ? "border-b border-[#EEF2F7]" : "")}>
+                  <View className="mx-5 mb-3 flex-row items-center rounded-3xl border border-[#DDEFE9] bg-white px-4 py-4">
                     <View className={"h-11 w-11 items-center justify-center rounded-xl " + (isTransfer ? "bg-[#DDF7EF]" : isIncome ? "bg-[#ECFDF5]" : "bg-[#FFF1F2]")}>
                       {isTransfer ? <FinoraMockupIcon name="01_finance_wallet" size={28} /> : <CategoryIcon name={resolveCategoryIconName(category?.icon)} size={28} />}
                     </View>
@@ -167,8 +167,18 @@ const isTransfer = transaction.type === "transfer";
     );
 
   return (
-    <ScreenContainer className="bg-[#F8FAFC]">
+    <ScreenContainer className="bg-[#EAF9F4] dark:bg-[#10211F]">
 
+      <View pointerEvents="none" className="absolute right-5 top-2 h-24 w-16 items-center opacity-40">
+        <View className="h-[72px] w-14 rounded-full bg-[#9BE7D2]" />
+        <View className="h-3 w-3 -mt-1 rotate-45 bg-[#9BE7D2]" />
+        <View className="h-7 w-px bg-[#67CDB5]" />
+      </View>
+      <View pointerEvents="none" className="absolute right-20 top-12 h-16 w-10 items-center opacity-25">
+        <View className="h-12 w-10 rounded-full bg-[#66D6BD]" />
+        <View className="h-2 w-2 -mt-1 rotate-45 bg-[#66D6BD]" />
+        <View className="h-5 w-px bg-[#67CDB5]" />
+      </View>
       <FlatList
         ref={listRef}
         data={transactions}
@@ -178,17 +188,17 @@ const isTransfer = transaction.type === "transfer";
           <View className="gap-4 px-5 pt-4">
             <View className="flex-row items-center">
               <Pressable onPress={() => { if (router.canGoBack()) router.back(); else router.replace("/(tabs)"); }} className="h-10 w-10 items-center justify-center rounded-full bg-white">
-                <Text className="text-2xl text-[#475569]">‹</Text>
+                <Text className="text-2xl text-[#087F8C]">‹</Text>
               </Pressable>
               <View className="ml-3 flex-1">
-                <Text className="text-[24px] font-bold text-[#164F4B]">Tất cả giao dịch</Text>
+                <Text className="text-[24px] font-extrabold text-[#164F4B]">Tất cả giao dịch</Text>
                 <Text className="mt-1 text-xs text-[#64748B]">Theo dõi thu, chi và chuyển tiền</Text>
               </View>
               <Pressable onPress={() => router.push("/transaction/transfer")} className="mr-2 h-10 w-10 items-center justify-center rounded-xl bg-[#DDF7EF]">
                 <FinoraMockupIcon name="01_finance_wallet" size={22} />
               </Pressable>
-              <Pressable onPress={() => router.push("/transaction/new")} className="h-10 w-10 items-center justify-center rounded-xl bg-[#CCFBF1]">
-                <Text className="text-2xl font-bold text-[#087F8C]">+</Text>
+              <Pressable onPress={() => router.push("/transaction/new")} className="h-10 w-10 items-center justify-center rounded-xl bg-[#22B8A8]">
+                <Text className="text-2xl font-bold text-white">+</Text>
               </Pressable>
             </View>
 
