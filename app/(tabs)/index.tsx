@@ -1,4 +1,4 @@
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -75,8 +75,8 @@ export default function HomeScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
         <View className="gap-4 px-5 pt-4">
           <View className="flex-row items-center">
-            <FinoraMockupIcon name="00_brand_finora_mark" size={42} />
-            <View className="ml-2 flex-1"><Text className="text-[22px] font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">Finora</Text><Text className="mt-1 text-[21px] font-bold text-[#0F2A5F] dark:text-[#E7F5F0]">{greeting.title}</Text><Text className="mt-0.5 text-sm text-[#64748B] dark:text-[#A5BCB5]">{greetingMessage}</Text></View>
+            <Image source={require("../../assets/images/icon.png")} style={{ width: 42, height: 42, borderRadius: 10 }} accessibilityLabel="Logo F của Finora" />
+            <View className="ml-2 flex-1"><Text style={{ fontSize: 22, fontWeight: "700", color: "#14B8A6" }}>Finora</Text><Text style={{ marginTop: 4, fontSize: 21, fontWeight: "700", color: "#087F8C" }}>{greeting.title}</Text><Text className="mt-0.5 text-sm text-[#64748B] dark:text-[#A5BCB5]">{greetingMessage}</Text></View>
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => router.push("/reminders")}
