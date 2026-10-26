@@ -81,7 +81,7 @@ export default function MonthDetailScreen() {
                 <View className="flex-1 rounded-3xl border border-[#D5F3E8] bg-white p-4 dark:border-[#31554B] dark:bg-[#17322D]">
                   <Text className="text-xs font-semibold text-[#087F8C] dark:text-[#72E6D4]">Tổng thu</Text>
                   <Text className="mt-2 text-base font-bold text-[#047857] dark:text-[#51D3A1]">{money(data?.summary.income ?? 0)}</Text>
-                  <Text className="mt-1 text-xs text-[#64748B] dark:text-[#A5BCB5]}">{data?.summary.incomeCount ?? 0} giao dịch</Text>
+                  <Text className="mt-1 text-xs text-[#64748B] dark:text-[#A5BCB5]">{data?.summary.incomeCount ?? 0} giao dịch</Text>
                 </View>
                 <View className="flex-1 rounded-3xl border border-[#FFE0E5] bg-white p-4 dark:border-[#4A202A] dark:bg-[#17322D]">
                   <Text className="text-xs font-semibold text-[#087F8C] dark:text-[#72E6D4]">Tổng chi</Text>
