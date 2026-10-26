@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useLocalSearchParams } from "expo-router";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
@@ -59,6 +60,29 @@ const cashFlowPointLabel = (date: string, granularity: string) => {
 };
 
 export default function ReportsScreen() {
+  const params = useLocalSearchParams<{ start?: string | string[]; end?: string | string[] }>();
+  const startParam = Array.isArray(params.start) ? params.start[0] : params.start;
+  const endParam = Array.isArray(params.end) ? params.end[0] : params.end;
+  const initialRange = useMemo(() => {
+    if (!startParam || !endParam) return null;
+
+    const parseLocalDate = (value: string): Date | null => {
+      const match = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(value);
+      if (!match) return null;
+      const year = Number(match[1]);
+      const month = Number(match[2]);
+      const day = Number(match[3]);
+      const date = new Date(year, month - 1, day);
+      return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+        ? date
+        : null;
+    };
+
+    const start = parseLocalDate(startParam);
+    const end = parseLocalDate(endParam);
+    if (!start || !end || end < start) return null;
+    return { start, end };
+  }, [startParam, endParam]);
   const {
     data,
     period,
@@ -66,7 +90,7 @@ export default function ReportsScreen() {
     customRange,
     setCustomRange,
     loading,
-  } = useReportViewModel();
+  } = useReportViewModel(undefined, initialRange);
   const suggestions = useSuggestionViewModel(data);
   const [calendarMode, setCalendarMode] = useState<"start" | "end" | null>(null);
   const [draftDate, setDraftDate] = useState<Date | null>(null);
