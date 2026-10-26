@@ -12,14 +12,15 @@ import { getFinancialPreferences } from "@/src/core/settings/financial-preferenc
 
 export function useReportViewModel(
   service?: ReturnType<typeof createReportDependencies>["reportService"],
+  initialRange?: ReportCustomRange | null,
 ) {
   const dependencies = useMemo(() => createReportDependencies(), []);
   const reportService = service ?? dependencies.reportService;
   const [data, setData] = useState<ReportSnapshot | null>(null);
-  const [period, setPeriod] = useState<ReportPeriod>("month");
+  const [period, setPeriod] = useState<ReportPeriod>(initialRange ? "custom" : "month");
   const [weekStartsOn, setWeekStartsOn] = useState<0 | 1>(1);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
-  const [customRange, setCustomRange] = useState<ReportCustomRange | null>(null);
+  const [customRange, setCustomRange] = useState<ReportCustomRange | null>(initialRange ?? null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,13 +29,19 @@ export function useReportViewModel(
       if (!user) return;
       const preferences = await getFinancialPreferences(user.id);
       if (!active) return;
-      setPeriod(preferences.defaultReportPeriod);
+      if (initialRange) {
+        setPeriod("custom");
+        setCustomRange(initialRange);
+      } else {
+        setPeriod(preferences.defaultReportPeriod);
+        setCustomRange(null);
+      }
       setWeekStartsOn(preferences.weekStartsOn);
     }).catch(() => undefined).finally(() => {
       if (active) setPreferencesLoaded(true);
     });
     return () => { active = false; };
-  }, []);
+  }, [initialRange]);
 
   const load = useCallback(async () => {
     if (!preferencesLoaded) return;
